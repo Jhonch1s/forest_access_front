@@ -2,39 +2,45 @@
 
 Capa de **comunicación con el backend**. Aquí viven las funciones que llaman a la API REST.
 
-## ¿Qué va aquí?
+## Archivos
 
-- Instancia de axios configurada con la URL base
-- Funciones para cada recurso: `getUsers()`, `createCategoria()`, `login()`
-- Interceptores para manejar errores (401 → redirect a login)
+| Archivo | Propósito |
+|---------|-----------|
+| `api.ts` | Instancia base de axios + interceptors (token, 401) |
+| `categoriaService.ts` | CRUD de CategoriaEmpleado |
 
-## Convenciones
+## Cómo funciona `api.ts`
 
-- Un archivo por recurso o dominio: `authService.ts`, `categoriaService.ts`
-- El archivo `api.ts` contiene la instancia base de axios (configuración compartida)
-- Las funciones retornan datos tipados (usar interfaces de `../types/`)
-- Exportar funciones nombradas: `export function getUsuarios()`
+1. **`baseURL: '/forest_access/api'`** — Todas las rutas son relativas, el proxy de Vite reenvía al backend
+2. **Interceptor de request** — Agrega `Authorization: Bearer <token>` automáticamente si existe en `localStorage`
+3. **Interceptor de response** — Si el backend responde `401`, borra el token y redirige a `/login`
 
-## Ejemplo de estructura
-
-```
-services/
-  api.ts                # Instancia axios + interceptores
-  authService.ts        # login(), logout(), getToken()
-  categoriaService.ts   # getCategorias(), createCategoria(), updateCategoria(), deleteCategoria()
-  usuarioService.ts     # getUsuarios(), createUsuario(), etc.
-```
-
-## Ejemplo de uso
+## Cómo usar un servicio
 
 ```tsx
 import { getCategorias } from '../services/categoriaService';
 
-useEffect(() => {
-  getCategorias().then(data => setCategorias(data));
-}, []);
+// En un componente o hook
+const categorias = await getCategorias();
+```
+
+## Cómo crear un nuevo servicio
+
+1. Crear archivo `xxxService.ts`
+2. Importar `api` de `./api`
+3. Importar los tipos de `../types/`
+4. Crear funciones que llamen a `api.get()`, `api.post()`, etc.
+
+```ts
+import api from './api';
+import type { Empleado } from '../types/empleado';
+
+export async function getEmpleados(): Promise<Empleado[]> {
+  const { data } = await api.get('/empleados');
+  return data;
+}
 ```
 
 ## Nota importante
 
-Los services **no** manejan estado de React. Solo hacen la llamada HTTP y retornan los datos. El componente es quien decide qué hacer con la respuesta (guardar en useState, mostrar error, etc.).
+Los services **no** manejan estado de React. Solo hacen la llamada HTTP y retornan los datos. El componente o hook es quien decide qué hacer con la respuesta (guardar en `useState`, mostrar error, etc.).

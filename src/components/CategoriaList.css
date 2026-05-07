@@ -1,0 +1,120 @@
+.categoria-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+}
+
+.categoria-error {
+  color: var(--status-error);
+}
+
+.categoria-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--forest-secondary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: var(--space-md);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Desktop: tabla */
+.categoria-table-container {
+  overflow-x: auto;
+}
+
+/* Mobile: cards (oculto en desktop) */
+.categoria-cards {
+  display: none;
+}
+
+.categoria-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  /* Ocultar tabla en movil */
+  .categoria-table-container {
+    display: none;
+  }
+
+  /* Mostrar cards en movil */
+  .categoria-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .categoria-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+  }
+
+  .categoria-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .categoria-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0;
+  }
+
+  .categoria-card-id {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--mono);
+  }
+
+  .categoria-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .categoria-card-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .categoria-card-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .categoria-card-value {
+    font-size: 14px;
+    color: var(--text-main);
+  }
+
+  .categoria-card-actions {
+    display: flex;
+    gap: var(--space-sm);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .categoria-card-actions .button {
+    flex: 1;
+  }
+}

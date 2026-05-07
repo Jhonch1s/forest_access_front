@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Button from '../components/Button';
 
 function Login() {
   const [usuario, setUsuario] = useState('');
@@ -34,9 +35,9 @@ function Login() {
             placeholder="Tu password"
           />
         </div>
-        <button type="submit" className="btn btn-primary">
+        <Button type="submit" variant="primary">
           Entrar
-        </button>
+        </Button>
       </form>
     </div>
   );

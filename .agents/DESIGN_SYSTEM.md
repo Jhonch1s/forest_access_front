@@ -9,6 +9,61 @@
 - **Trust & Security:** Deep, stable tones to convey reliability
 - **Efficiency:** High-density data layouts for rapid administrative tasks
 - **Clarity:** Clear hierarchy and feedback for CRUD operations
+- **Mobile-First for Field:** Optimized for supervisors on mobile devices
+- **Desktop-First for Admin:** Full-featured dashboard for administrators
+
+---
+
+## 1.1 Responsive Strategy
+
+### User Contexts
+
+| User | Device | Context | Design Approach |
+| :--- | :--- | :--- | :--- |
+| **Supervisors** | Mobile (320-414px) | Field work, managing crews | Mobile-first |
+| **Admin General** | Desktop (1024-1280px) | Managing categories, employees, reports | Desktop-first, responsive |
+
+### Breakpoints
+
+| Name | Width | Target |
+| :--- | :--- | :--- |
+| Mobile S | 320px | Small phones |
+| Mobile M | 375px | Standard phones |
+| Mobile L | 414px | Large phones |
+| Tablet | 768px | Tablets, small laptops |
+| Desktop | 1024px | Standard desktops |
+| Desktop L | 1280px | Large screens |
+
+### Pattern: Tables → Cards
+
+On mobile (< 768px), data tables transform into cards:
+- **Desktop:** Table with columns, rows, and action buttons
+- **Mobile:** Stacked cards with key info visible, action buttons at bottom
+
+```css
+/* Desktop: show table, hide cards */
+.table-container { display: block; }
+.card-list { display: none; }
+
+/* Mobile: hide table, show cards */
+@media (max-width: 768px) {
+  .table-container { display: none; }
+  .card-list { display: flex; flex-direction: column; gap: 16px; }
+}
+```
+
+---
+
+## 1.2 Touch Targets
+
+For mobile usability, all interactive elements must meet minimum sizes:
+
+| Element | Minimum Size | Notes |
+| :--- | :--- | :--- |
+| Buttons | 44x44px | iOS HIG recommendation |
+| Links | 44x44px | Include padding in tap area |
+| Checkboxes | 44x44px | Visual size can be smaller, but tap area must be 44px |
+| Spacing between targets | 8px | Prevent accidental taps |
 
 ---
 
@@ -79,15 +134,59 @@
 
 ### 3.1 Buttons
 
-| Type | Background | Text | Border | Usage |
-| :--- | :--- | :--- | :--- | :--- |
-| Primary | `--forest-secondary` | `#ffffff` | none | "Save", "Create", "Login" |
-| Secondary | transparent | `--forest-primary` | `1px solid --border-light` | "Cancel", "Back" |
-| Danger | `--status-error` | `#ffffff` | none | "Delete" |
-| Ghost | transparent | `--text-secondary` | none | Icon buttons, "More" |
+#### Component: `<Button>`
 
-**All buttons:** `padding: 10px 20px`, `border-radius: --radius-md`, `font-size: 14px`, `font-weight: 500`
-**Hover:** Primary → `opacity: 0.9`, Secondary → `background: --forest-accent` at 10% opacity
+```tsx
+<Button variant="primary" size="medium" loading={false} disabled={false}>
+  Save
+</Button>
+```
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `variant` | `'primary' \| 'secondary' \| 'danger' \| 'ghost'` | required | Visual style |
+| `size` | `'small' \| 'medium' \| 'large'` | `'medium'` | Size and padding |
+| `loading` | `boolean` | `false` | Shows spinner, disables button |
+| `disabled` | `boolean` | `false` | Disables button |
+| `type` | `'button' \| 'submit' \| 'reset'` | `'button'` | HTML button type |
+| `onClick` | `() => void` | - | Click handler |
+
+#### Variants
+
+| Variant | Background | Text | Usage |
+| :--- | :--- | :--- | :--- |
+| Primary | `--forest-secondary` | `#ffffff` | Main actions: Save, Create, Login |
+| Secondary | transparent | `--forest-primary` | Secondary: Cancel, Back |
+| Danger | `--status-error` | `#ffffff` | Destructive: Delete |
+| Ghost | transparent | `--text-secondary` | Subtle: "View more", links |
+
+#### Sizes
+
+| Size | Padding | Font Size | Min Height |
+| :--- | :--- | :--- | :--- |
+| Small | `6px 12px` | `13px` | `32px` (44px on mobile) |
+| Medium | `10px 20px` | `14px` | `40px` (44px on mobile) |
+| Large | `12px 24px` | `16px` | `48px` |
+
+#### Usage Examples
+
+```tsx
+// Primary action
+<Button variant="primary" type="submit">Login</Button>
+
+// Secondary action
+<Button variant="secondary">Cancel</Button>
+
+// Destructive action with loading
+<Button variant="danger" loading={isDeleting}>Delete</Button>
+
+// Small button in table row
+<Button variant="secondary" size="small">Edit</Button>
+<Button variant="danger" size="small">Delete</Button>
+
+// Disabled state
+<Button variant="primary" disabled>Save</Button>
+```
 
 ### 3.2 Input Fields
 

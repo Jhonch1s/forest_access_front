@@ -27,10 +27,11 @@ npm run preview  # Preview production build
 
 ## Backend Connection
 
-- **API base URL**: `http://localhost:8081`
+- **API base URL**: `http://localhost:8081/forest_access/api/`
 - **Swagger UI**: `http://localhost:8081/swagger-ui/index.html`
-- **Auth endpoint**: POST `{ "usuario": "string", "password": "string" }` to the auth controller
-- **Known API resource**: `/api/categoria-empleado` (CRUD — check Swagger for exact paths)
+- **Auth endpoint**: POST `{ "usuario": "string", "password": "string" }` to `/auth/login`
+- **Full API docs**: `.agents/API_ENDPOINTS.md` (13 controllers, 80+ endpoints, 23 entities)
+- **TypeScript types**: `src/types/` (generated from OpenAPI schemas)
 - CORS is handled by backend `SeguridadConfig` — configure a **Vite proxy** (`server.proxy` in `vite.config.ts`) to avoid CORS issues in dev
 
 ## TypeScript Quirks
@@ -60,13 +61,14 @@ src/
   components/     # Reusable UI (Layout, Layout.css)
   pages/          # Route pages (Home, Login, Categorias)
   services/       # API layer (empty — to be implemented)
-  types/          # TypeScript interfaces (empty — to be implemented)
+  types/          # TypeScript interfaces (generated from OpenAPI schemas)
   hooks/          # Custom hooks (empty — to be implemented)
   assets/         # Static images (react.svg, vite.svg, hero.png)
 public/           # Served at root (favicon.svg, icons.svg)
 .agents/
-  DESIGN_SYSTEM.md  # UI design tokens, component patterns, interaction rules
-  skills/           # OpenCode skill definitions
+  DESIGN_SYSTEM.md   # UI design tokens, component patterns, interaction rules
+  API_ENDPOINTS.md   # Full API documentation (13 controllers, 80+ endpoints)
+  skills/            # OpenCode skill definitions
 ```
 
 ## Design System
