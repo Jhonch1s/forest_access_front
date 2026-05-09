@@ -1,35 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import { login } from '../services/authService';
+import { register } from '../services/authService';
+import { getPerfiles } from '../services/perfilService';
+import type { Perfil } from '../types';
 import './Login.css';
 
-function Login() {
+function Register() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [perfilId, setPerfilId] = useState<number | ''>('');
+  const [perfiles, setPerfiles] = useState<Perfil[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    getPerfiles()
+      .then(setPerfiles)
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!usuario.trim() || !password.trim()) {
+    if (!usuario.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Completá todos los campos.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
       return;
     }
 
     setLoading(true);
     try {
-      const token = await login({ usuario, password });
-      localStorage.setItem('token', token);
-      navigate('/dashboard');
+      await register({ nombreUsuario: usuario, password });
+      navigate('/');
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Credenciales incorrectas.');
+        setError('Error al registrar. Intentá de nuevo.');
       }
     } finally {
       setLoading(false);
@@ -66,8 +81,8 @@ function Login() {
 
       <div className="login-form-panel">
         <div className="login-form-wrapper">
-          <h2 className="login-title">Iniciar Sesión</h2>
-          <p className="login-subtitle">Ingresá tus credenciales para acceder</p>
+          <h2 className="login-title">Crear Cuenta</h2>
+          <p className="login-subtitle">Registrate para acceder al sistema</p>
 
           <form onSubmit={handleSubmit} className="login-form">
             {error && <div className="login-error">{error}</div>}
@@ -88,7 +103,7 @@ function Login() {
                   type="text"
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
-                  placeholder="Tu usuario"
+                  placeholder="Elegí tu usuario"
                   autoComplete="username"
                 />
               </div>
@@ -115,18 +130,60 @@ function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tu contraseña"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                 />
               </div>
             </div>
 
+            <div className="form-field">
+              <label htmlFor="confirmPassword">Confirmar contraseña</label>
+              <div className="login-input-wrapper">
+                <svg
+                  className="login-input-icon"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repetí tu contraseña"
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="perfil">Perfil</label>
+              <select
+                id="perfil"
+                value={perfilId}
+                onChange={(e) => setPerfilId(e.target.value ? Number(e.target.value) : '')}
+              >
+                <option value="">Seleccioná un perfil</option>
+                {perfiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Button type="submit" variant="primary" size="large" loading={loading}>
-              Entrar
+              Registrarse
             </Button>
           </form>
 
           <p className="login-switch">
-            ¿No tenés cuenta? <Link to="/register">Registrate</Link>
+            ¿Ya tenés cuenta? <Link to="/">Iniciá sesión</Link>
           </p>
 
           <div className="login-form-footer">
@@ -138,4 +195,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;

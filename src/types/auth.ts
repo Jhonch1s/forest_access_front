@@ -3,14 +3,18 @@ export interface Perfil {
   nombre: string;
 }
 
-export interface Usuario {
+export interface UsuarioResponse {
   id: number;
   nombreUsuario: string;
-  password: string;
   perfiles: Perfil[];
 }
 
 export interface LoginRequest {
   usuario: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  nombreUsuario: string;
   password: string;
 }
