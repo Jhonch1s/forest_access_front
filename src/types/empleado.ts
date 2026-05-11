@@ -1,4 +1,4 @@
-import type { CategoriaEmpleado } from './categoria';
+import type { CategoriaEmpleadoDTO } from './categoria';
 
 export interface Empleado {
   idEmpleado: number;
@@ -8,15 +8,28 @@ export interface Empleado {
   email: string;
   fechaIngreso: string;
   activo: boolean;
-  categoria: CategoriaEmpleado;
+  categoria: CategoriaEmpleadoDTO;
 }
 
-export interface EmpleadoCreateDTO {
+export interface EmpleadoDTO {
+  idEmpleado: number;
   nombre: string;
   cedula: string;
   telefono: string;
   email: string;
   fechaIngreso: string;
   activo: boolean;
-  categoria: CategoriaEmpleado;
+  categoria: CategoriaEmpleadoDTO;
+}
+
+export interface EmpleadoResponse {
+  idEmpleado: number;
+  nombre: string;
+  cedula: string;
+  telefono: string;
+  email: string;
+  fechaIngreso: string;
+  activo: boolean;
+  idCategoria: number;
+  nombreCategoria: string;
 }

@@ -1,379 +1,543 @@
-# Forest Access API - Documentación de Endpoints
+# Forest Access API — Documentación de Endpoints
 
 **Base URL**: `http://localhost:8081/forest_access/api/`
-**Swagger UI**: `http://localhost:8081/swagger-ui/index.html`
+**Swagger UI**: `http://localhost:8081/forest_access/swagger-ui/index.html`
+**OpenAPI spec**: `http://localhost:8081/forest_access/v3/api-docs`
+
+> **Patrón arquitectónico**: La API usa **DTOs** para request bodies y **Response** objects para GET responses.
+> Los Response objects están "achatados" — reemplazan objetos anidados por campos `nombreX` (strings) e `idX` (numbers).
+> Solo `CategoriaEmpleado` mantiene el mismo schema para request y response.
 
 ---
 
 ## 1. Autenticación
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| POST | `/auth/login` | Login con `{usuario, password}` |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| POST | `/auth/login` | `LoginRequest` | `string` (JWT) |
 
 ---
 
 ## 2. Usuarios
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/usuarios/all` | Listar todos |
-| POST | `/usuarios/create` | Crear usuario |
-| PUT | `/usuarios/{id}` | Actualizar usuario |
-| DELETE | `/usuarios/{id}` | Eliminar usuario |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/usuarios/all` | — | `UsuarioResponse[]` |
+| POST | `/usuarios/create` | `UsuarioDTO` | `UsuarioResponse` |
+| PUT | `/usuarios/update/{id}` | `UsuarioDTO` | `UsuarioResponse` |
+| DELETE | `/usuarios/delete/{id}` | — | — |
 
 ---
 
 ## 3. Categorías de Empleado
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/categorias-empleado` | Listar todas |
-| POST | `/categorias-empleado/create` | Crear categoría |
-| GET | `/categorias-empleado/{id}` | Obtener por ID |
-| PUT | `/categorias-empleado/{id}` | Actualizar |
-| DELETE | `/categorias-empleado/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/categorias-empleado` | — | `CategoriaEmpleado[]` |
+| GET | `/categorias-empleado/{id}` | — | `CategoriaEmpleado` |
+| POST | `/categorias-empleado/create` | `CategoriaEmpleado` | `CategoriaEmpleado` |
+| PUT | `/categorias-empleado/{id}` | `CategoriaEmpleado` | `CategoriaEmpleado` |
+| DELETE | `/categorias-empleado/{id}` | — | — |
+
+> Nota: Esta es la única entidad que NO usa DTO/Response separado.
 
 ---
 
 ## 4. Empleados
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/empleados` | Listar todos |
-| POST | `/empleados/create` | Crear empleado |
-| GET | `/empleados/{id}` | Obtener por ID |
-| PUT | `/empleados/{id}` | Actualizar |
-| DELETE | `/empleados/{id}` | Eliminar |
-| GET | `/empleados/estado/{activo}` | Filtrar por estado (boolean) |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/empleados` | — | `EmpleadoResponse[]` |
+| GET | `/empleados/{id}` | — | `EmpleadoResponse` |
+| POST | `/empleados/create` | `EmpleadoDTO` | `EmpleadoResponse` |
+| PUT | `/empleados/{id}` | `EmpleadoDTO` | `EmpleadoResponse` |
+| DELETE | `/empleados/{id}` | — | — |
 
 ---
 
 ## 5. Cuadrillas
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/cuadrillas` | Listar todas |
-| POST | `/cuadrillas/create` | Crear cuadrilla |
-| GET | `/cuadrillas/{id}` | Obtener por ID |
-| PUT | `/cuadrillas/{id}` | Actualizar |
-| DELETE | `/cuadrillas/{id}` | Eliminar |
-| GET | `/cuadrillas/activas` | Solo activas |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/cuadrillas` | — | `CuadrillaResponse[]` |
+| GET | `/cuadrillas/{id}` | — | `CuadrillaResponse` |
+| GET | `/cuadrillas/activas` | — | `CuadrillaResponse[]` |
+| POST | `/cuadrillas/create` | `CuadrillaDTO` | `CuadrillaResponse` |
+| PUT | `/cuadrillas/{id}` | `CuadrillaDTO` | `CuadrillaResponse` |
+| DELETE | `/cuadrillas/{id}` | — | — |
 
 ---
 
 ## 6. Campos
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/campos/all` | Listar todos |
-| POST | `/campos/create` | Crear campo |
-| PUT | `/campos/update/{id}` | Actualizar |
-| DELETE | `/campos/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/campos/all` | — | `CampoDTO[]` |
+| POST | `/campos/create` | `CampoDTO` | `CampoDTO` |
+| PUT | `/campos/update/{id}` | `CampoDTO` | `CampoDTO` |
+| DELETE | `/campos/delete/{id}` | — | `CampoDTO` |
 
 ---
 
 ## 7. Rodales
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/rodales/all` | Listar todos |
-| POST | `/rodales/create` | Crear rodal |
-| PUT | `/rodales/update/{id}` | Actualizar |
-| DELETE | `/rodales/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/rodales/all` | — | `RodalResponse[]` |
+| POST | `/rodales/create` | `RodalDTO` | `RodalDTO` |
+| PUT | `/rodales/update/{id}` | `RodalDTO` | `RodalResponse` |
+| DELETE | `/rodales/delete/{id}` | — | `RodalResponse` |
 
 ---
 
 ## 8. Parcelas
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/parcelas/all` | Listar todas |
-| POST | `/parcelas/create` | Crear parcela |
-| PUT | `/parcelas/update/{id}` | Actualizar |
-| DELETE | `/parcelas/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/parcelas/all` | — | `ParcelaResponse[]` |
+| POST | `/parcelas/create` | `ParcelaDTO` | `ParcelaResponse` |
+| PUT | `/parcelas/update/{id}` | `ParcelaDTO` | `ParcelaResponse` |
+| DELETE | `/parcelas/delete/{id}` | — | `ParcelaResponse` |
 
 ---
 
 ## 9. Tareas
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/tareas` | Listar todas |
-| POST | `/tareas/create` | Crear tarea |
-| GET | `/tareas/{id}` | Obtener por ID |
-| PUT | `/tareas/{id}` | Actualizar |
-| DELETE | `/tareas/{id}` | Eliminar |
-| GET | `/tareas/parcela/{idParcela}` | Por parcela |
-| GET | `/tareas/liquidacion` | Para liquidación (query: idEmpleado, inicio, hasta) |
-| GET | `/tareas/estado/{nombreEstado}` | Por estado |
-| GET | `/tareas/empleado/{idEmpleado}` | Por empleado |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/tareas` | — | `TareaResponse[]` |
+| GET | `/tareas/{id}` | — | `TareaResponse` |
+| POST | `/tareas/create` | `TareaDTO` | `TareaResponse` |
+| PUT | `/tareas/{id}` | `TareaDTO` | `TareaResponse` |
+| DELETE | `/tareas/{id}` | — | — |
+| GET | `/tareas/liquidacion` | — | `TareaResponse[]` |
+
+**Query params para `/tareas/liquidacion`**:
+- `idEmpleado` (number, required)
+- `inicio` (date, required)
+- `hasta` (date, required)
 
 ---
 
 ## 10. Registros Diarios
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/registros-diarios` | Listar todos |
-| POST | `/registros-diarios/create` | Crear registro |
-| GET | `/registros-diarios/{id}` | Obtener por ID |
-| PUT | `/registros-diarios/{id}` | Actualizar |
-| DELETE | `/registros-diarios/{id}` | Eliminar |
-| GET | `/registros-diarios/fecha/{fecha}` | Por fecha |
-| GET | `/registros-diarios/empleado/{idEmpleado}` | Por empleado |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/registros-diarios` | — | `RegistroDiarioResponse[]` |
+| GET | `/registros-diarios/{id}` | — | `RegistroDiarioResponse` |
+| POST | `/registros-diarios/create` | `RegistroDiarioDTO` | `RegistroDiarioResponse` |
+| PUT | `/registros-diarios/{id}` | `RegistroDiarioDTO` | `RegistroDiarioResponse` |
+| DELETE | `/registros-diarios/{id}` | — | — |
+| GET | `/registros-diarios/empleado/{idEmpleado}` | — | `RegistroDiarioResponse[]` |
 
 ---
 
 ## 11. Liquidaciones
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/liquidaciones` | Listar todas |
-| POST | `/liquidaciones/create` | Crear liquidación |
-| GET | `/liquidaciones/{id}` | Obtener por ID |
-| PUT | `/liquidaciones/{id}` | Actualizar |
-| DELETE | `/liquidaciones/{id}` | Eliminar |
-| GET | `/liquidaciones/periodo` | Por período (query: desde, hasta) |
-| GET | `/liquidaciones/empleado/{idEmpleado}` | Por empleado |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/liquidaciones` | — | `LiquidacionResponse[]` |
+| GET | `/liquidaciones/{id}` | — | `LiquidacionResponse` |
+| POST | `/liquidaciones/create` | `LiquidacionDTO` | `LiquidacionResponse` |
+| DELETE | `/liquidaciones/{id}` | — | — |
+| GET | `/liquidaciones/empleado/{idEmpleado}` | — | `LiquidacionResponse[]` |
 
 ---
 
 ## 12. Productos
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/productos/all` | Listar todos |
-| POST | `/productos/create` | Crear producto |
-| PUT | `/productos/update/{id}` | Actualizar |
-| DELETE | `/productos/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/productos/all` | — | `ProductoDTO[]` |
+| POST | `/productos/create` | `ProductoDTO` | `ProductoDTO` |
+| PUT | `/productos/update/{id}` | `ProductoDTO` | `ProductoDTO` |
+| DELETE | `/productos/delete/{id}` | — | `ProductoDTO` |
 
 ---
 
 ## 13. Tratamientos
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/tratamientos/all` | Listar todos |
-| POST | `/tratamientos/create` | Crear tratamiento |
-| PUT | `/tratamientos/update/{id}` | Actualizar |
-| DELETE | `/tratamientos/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/tratamientos/all` | — | `TratamientoDTO[]` |
+| POST | `/tratamientos/create` | `TratamientoDTO` | `TratamientoDTO` |
+| PUT | `/tratamientos/update/{id}` | `TratamientoDTO` | `TratamientoDTO` |
+| DELETE | `/tratamientos/delete/{id}` | — | `TratamientoDTO` |
 
 ---
 
 ## 14. Producto-Tratamientos
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/producto_tratamientos/all` | Listar todos |
-| POST | `/producto_tratamientos/create` | Crear relación |
-| PUT | `/producto_tratamientos/update/{id}` | Actualizar |
-| DELETE | `/producto_tratamientos/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/producto_tratamientos/all` | — | `ProductoTratamientoResponse[]` |
+| POST | `/producto_tratamientos/create` | `ProductoTratamientoDTO` | `ProductoTratamientoResponse` |
+| PUT | `/producto_tratamientos/update/{id}` | `ProductoTratamientoDTO` | `ProductoTratamientoResponse` |
+| DELETE | `/producto_tratamientos/delete/{id}` | — | `ProductoTratamientoResponse` |
 
 ---
 
 ## 15. Tratamiento Dependencias
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/tratamientos-dependencias` | Listar todas |
-| POST | `/tratamientos-dependencias/create` | Crear dependencia |
-| PUT | `/tratamientos-dependencias/update` | Actualizar (query: idPosterior, idAnterior) |
-| DELETE | `/tratamientos-dependencias/delete` | Eliminar (query: idPosterior, idAnterior) |
-| GET | `/tratamientos-dependencias/requisitos/{idPosterior}` | Requisitos de un tratamiento |
-| GET | `/tratamientos-dependencias/bloqueados/{idAnterior}` | Tratamientos bloqueados |
-| GET | `/tratamientos-dependencias/find` | Buscar específica (query: idPosterior, idAnterior) |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/tratamientos-dependencias` | — | `TratamientoDependenciaResponse[]` |
+| POST | `/tratamientos-dependencias/create` | `TratamientoDependenciaDTO` | `TratamientoDependenciaResponse` |
+| DELETE | `/tratamientos-dependencias/delete` | — | — |
+
+**Query params para DELETE**: `idAnterior` (number), `idPosterior` (number)
 
 ---
 
 ## 16. Histórico Tratamientos
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/historico_tratamientos/all` | Listar todos |
-| POST | `/historico_tratamientos/create` | Crear histórico |
-| DELETE | `/historico_tratamientos/delete/{id}` | Eliminar |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/historico_tratamientos/all` | — | `HistoricoTratamientoResponse[]` |
+| POST | `/historico_tratamientos/create` | `HistoricoTratamientoDTO` | `HistoricoTratamientoResponse` |
+| DELETE | `/historico_tratamientos/delete/{id}` | — | `HistoricoTratamientoResponse` |
 
 ---
 
 ## 17. Catálogo de Tareas
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/catalogo-tareas` | Listar todos |
-| POST | `/catalogo-tareas/create` | Crear catálogo |
-| GET | `/catalogo-tareas/{id}` | Obtener por ID |
-| PUT | `/catalogo-tareas/{id}` | Actualizar |
-| DELETE | `/catalogo-tareas/{id}` | Eliminar |
-| POST | `/catalogo-tareas/por-habilitacion` | Por habilitación |
-| GET | `/catalogo-tareas/sin-habilitacion` | Sin habilitación |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/catalogo-tareas` | — | `CatalogoTareaResponse[]` |
+| GET | `/catalogo-tareas/{id}` | — | `CatalogoTareaResponse` |
+| POST | `/catalogo-tareas/create` | `CatalogoTareaDTO` | `CatalogoTareaResponse` |
+| PUT | `/catalogo-tareas/{id}` | `CatalogoTareaDTO` | `CatalogoTareaResponse` |
+| DELETE | `/catalogo-tareas/{id}` | — | — |
 
 ---
 
 ## 18. Plantillas de Tarea
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/plantillas-tarea` | Listar todas |
-| POST | `/plantillas-tarea/create` | Crear plantilla |
-| GET | `/plantillas-tarea/{id}` | Obtener por ID |
-| PUT | `/plantillas-tarea/{id}` | Actualizar |
-| DELETE | `/plantillas-tarea/{id}` | Eliminar |
-| GET | `/plantillas-tarea/catalogo/{idCatalogo}` | Por catálogo |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/plantillas-tarea` | — | `PlantillaTareaResponse[]` |
+| GET | `/plantillas-tarea/{id}` | — | `PlantillaTareaResponse` |
+| POST | `/plantillas-tarea/create` | `PlantillaTareaDTO` | `PlantillaTareaResponse` |
+| PUT | `/plantillas-tarea/{id}` | `PlantillaTareaDTO` | `PlantillaTareaResponse` |
+| DELETE | `/plantillas-tarea/{id}` | — | — |
+| GET | `/plantillas-tarea/catalogo/{idCatalogo}` | — | `PlantillaTareaResponse[]` |
 
 ---
 
 ## 19. Perfiles
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/perfiles` | Listar todos |
-| POST | `/perfiles/create` | Crear perfil |
-| GET | `/perfiles/{id}` | Obtener por ID |
-| PUT | `/perfiles/{id}` | Actualizar |
-| DELETE | `/perfiles/{id}` | Eliminar |
-| GET | `/perfiles/nombre/{nombre}` | Buscar por nombre |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/perfiles` | — | `PerfilResponse[]` |
+| GET | `/perfiles/{id}` | — | `PerfilResponse` |
+| POST | `/perfiles/create` | `PerfilDTO` | `PerfilResponse` |
+| PUT | `/perfiles/{id}` | `PerfilDTO` | `PerfilResponse` |
+| DELETE | `/perfiles/{id}` | — | — |
+| GET | `/perfiles/nombre/{nombre}` | — | `PerfilResponse` |
 
 ---
 
 ## 20. Estados
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/estados/all` | Listar todos |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/estados/all` | — | `EstadoDTO[]` |
 
 ---
 
 ## 21. Empleado-Cuadrilla (relación)
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/empleados-cuadrillas` | Listar todas |
-| POST | `/empleados-cuadrillas/create` | Crear relación |
-| DELETE | `/empleados-cuadrillas/delete` | Eliminar (query: idCuadrilla, idEmpleado, fechaInicio) |
-| GET | `/empleados-cuadrillas/find` | Buscar específica |
-| GET | `/empleados-cuadrillas/cuadrilla/{idCuadrilla}` | Por cuadrilla |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/empleados-cuadrillas` | — | `EmpleadoCuadrillaResponse[]` |
+| POST | `/empleados-cuadrillas/create` | `EmpleadoCuadrillaDTO` | `EmpleadoCuadrillaResponse` |
+| DELETE | `/empleados-cuadrillas/delete` | — | — |
+
+**Query params para DELETE**: `idCuadrilla` (number), `idEmpleado` (number), `fechaInicio` (date)
 
 ---
 
 ## 22. Empleado-Habilitación (relación)
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/empleado_habilitaciones/all` | Listar todas |
-| POST | `/empleado_habilitaciones/create` | Crear relación |
-| DELETE | `/empleado_habilitaciones/delete` | Eliminar (query: idEmpleado, idHabilitacion) |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/empleado_habilitaciones/all` | — | `EmpleadoHabilitacionResponse[]` |
+| POST | `/empleado_habilitaciones/create` | `EmpleadoHabilitacionDTO` | `EmpleadoHabilitacionResponse` |
+| DELETE | `/empleado_habilitaciones/delete` | — | `EmpleadoHabilitacionResponse` |
+
+**Query params para DELETE**: `idEmpleado` (number), `idHabilitacion` (number)
 
 ---
 
 ## 23. Tarea Dependencias
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/tarea_dependencias/all` | Listar todas |
-| POST | `/tarea_dependencias/create` | Crear dependencia |
-| DELETE | `/tarea_dependencias/delete` | Eliminar (query: id_anterior, id_posterior) |
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/tarea_dependencias/all` | — | `TareaDependenciaResponse[]` |
+| POST | `/tarea_dependencias/create` | `TareaDependenciaDTO` | `TareaDependenciaResponse` |
+| DELETE | `/tarea_dependencias/delete` | — | `TareaDependenciaResponse` |
+
+**Query params para DELETE**: `id_anterior` (number), `id_posterior` (number)
 
 ---
 
-## Entidades (Schemas)
+## 24. Habilitaciones
 
-### CategoriaEmpleado
-```json
-{ "idCategoria": number, "nombre": string, "valorJornal": number, "descripcion": string }
-```
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/habilitaciones/all` | — | `HabilitacionDTO[]` |
+| POST | `/habilitaciones/create` | `HabilitacionDTO` | `HabilitacionDTO` |
 
-### Empleado
-```json
-{ "idEmpleado": number, "nombre": string, "cedula": string, "telefono": string, "email": string, "fechaIngreso": string(date), "activo": boolean, "categoria": CategoriaEmpleado }
-```
+---
 
-### Usuario
-```json
-{ "id": number, "nombreUsuario": string, "password": string, "perfiles": Perfil[] }
-```
-
-### Perfil
-```json
-{ "id": number, "nombre": string }
-```
-
-### Cuadrilla
-```json
-{ "idCuadrilla": number, "nombre": string, "activa": boolean }
-```
-
-### Campo
-```json
-{ "idCampo": number, "nombre": string, "padron": string, "superficieTotal": number, "coordLat": number, "coordLng": number }
-```
-
-### Rodal
-```json
-{ "idRodal": number, "campo": Campo, "nombre": string, "area": number, "coordLat": number, "coordLng": number }
-```
-
-### Parcela
-```json
-{ "idParcela": number, "rodal": Rodal, "nombre": string, "area": number, "tipoCultivo": string, "anioPlantacion": number, "coordLat": number, "coordLng": number }
-```
-
-### Tarea
-```json
-{ "idTarea": number, "catalogoTarea": CatalogoTarea, "estado": Estado, "empleado": Empleado, "historicoTratamiento": HistoricoTratamiento, "plantilla": PlantillaTarea, "fechaCreacion": string(date), "fechaInicio": string(date), "fechaEstimada": string(date), "fechaFinalizacion": string(date), "descripcion": string, "horas": number, "observaciones": string }
-```
-
-### RegistroDiario
-```json
-{ "idRegistro": number, "empleado": Empleado, "fecha": string(date), "jornales": number, "adelanto": number, "observaciones": string }
-```
-
-### Liquidacion
-```json
-{ "idLiquidacion": number, "empleado": Empleado, "periodoInicio": string(date), "periodoFin": string(date), "totalJornales": number, "valorJornal": number, "totalNominal": number, "totalProduccion": number, "totalIncentivo": number, "adelantos": number, "totalFinal": number, "observaciones": string }
-```
-
-### Producto
-```json
-{ "idProducto": number, "nombre": string, "contenido": string, "concentracion": string, "unidadBase": string }
-```
-
-### Tratamiento
-```json
-{ "idTratamiento": number, "nombre": string, "descripcion": string }
-```
-
-### ProductoTratamiento
-```json
-{ "idProductoTratamiento": number, "tratamiento": Tratamiento, "producto": Producto, "dosis": number, "unidad": string }
-```
-
-### HistoricoTratamiento
-```json
-{ "idHistorico": number, "parcela": Parcela, "tratamiento": Tratamiento, "cuadrilla": Cuadrilla, "fechaInicio": string(date), "fechaFin": string(date), "observaciones": string }
-```
-
-### CatalogoTarea
-```json
-{ "idCatalogoTarea": number, "nombre": string, "descripcion": string, "requiereHabilitacion": Habilitacion }
-```
-
-### PlantillaTarea
-```json
-{ "idPlantilla": number, "catalogoTarea": CatalogoTarea, "nombre": string, "descripcion": string }
-```
-
-### Estado
-```json
-{ "idEstado": number, "nombre": string }
-```
-
-### Habilitacion
-```json
-{ "idHabilitacion": number, "nombre": string, "descripcion": string }
-```
+## DTOs (Request Bodies)
 
 ### LoginRequest
-```json
-{ "usuario": string, "password": string }
+```ts
+{ usuario: string; password: string }
+```
+
+### UsuarioDTO
+```ts
+{ nombreUsuario: string; password: string }
+```
+
+### CategoriaEmpleado (sin DTO — usa entity directo)
+```ts
+{ idCategoria: number; nombre: string; valorJornal: number; descripcion: string }
+```
+
+### EmpleadoDTO
+```ts
+{
+  idEmpleado: number;
+  nombre: string;
+  cedula: string;
+  telefono: string;
+  email: string;
+  fechaIngreso: string;    // date
+  activo: boolean;
+  categoria: CategoriaEmpleadoDTO;
+}
+```
+
+### CategoriaEmpleadoDTO (referenciado por EmpleadoDTO)
+```ts
+{ idCategoria: number; nombre: string; valorJornal: number; descripcion: string }
+```
+
+### CuadrillaDTO
+```ts
+{ idCuadrilla: number; nombre: string; activa: boolean }
+```
+
+### CampoDTO
+```ts
+{ nombre: string; padron: string; superficieTotal: number; coordLat: number; coordLng: number }
+```
+
+### RodalDTO
+```ts
+{ nombre: string; area: number; coordLat: number; coordLng: number; idCampo: number }
+```
+
+### ParcelaDTO
+```ts
+{ nombre: string; area: number; tipoCultivo: string; anioPlantacion: number; coordLat: number; coordLng: number; idRodal: number }
+```
+
+### TareaDTO
+```ts
+{
+  idTarea: number;
+  catalogoTarea: CatalogoTareaDTO;
+  estado: EstadoDTO;
+  empleado: EmpleadoDTO;
+  historicoTratamiento: HistoricoTratamientoDTO;
+  plantilla: PlantillaTareaDTO;
+  fechaCreacion: string;     // date
+  fechaInicio: string;       // date
+  fechaFinEstimada: string;  // date
+  fechaFinalizacion: string; // date
+  descripcion: string;
+  horas: number;
+  observaciones: string;
+}
+```
+
+### EstadoDTO
+```ts
+{ nombre: string; idEstado: number }
+```
+
+### CatalogoTareaDTO
+```ts
+{ idCatalogoTarea: number; nombre: string; descripcion: string; requiereHabilitacion: HabilitacionDTO }
+```
+
+### HabilitacionDTO
+```ts
+{ idHabilitacion: number; nombre: string; descripcion: string }
+```
+
+### PlantillaTareaDTO
+```ts
+{ idPlantilla: number; nombre: string; descripcion: string; catalogoTarea: CatalogoTareaDTO }
+```
+
+### HistoricoTratamientoDTO
+```ts
+{ idHistorico: number; idParcela: number; idTratamiento: number; cuadrilla: number; fechaInicio: string; fechaFin: string; observaciones: string }
+```
+
+### RegistroDiarioDTO
+```ts
+{ idRegistro: number; empleado: EmpleadoDTO; fecha: string; jornales: number; adelanto: number; observaciones: string }
+```
+
+### LiquidacionDTO
+```ts
+{
+  idLiquidacion: number;
+  empleado: EmpleadoDTO;
+  periodoInicio: string;   // date
+  periodoFin: string;      // date
+  totalJornales: number;
+  valorJornal: number;
+  totalNominal: number;
+  totalProduccion: number;
+  totalIncentivo: number;
+  adelantos: number;
+  totalFinal: number;
+  observaciones: string;
+}
+```
+
+### ProductoDTO
+```ts
+{ nombre: string; contenido: string; concentracion: string; unidadBase: string }
+```
+
+### TratamientoDTO
+```ts
+{ idTratamiento: number; nombre: string; descripcion: string }
+```
+
+### ProductoTratamientoDTO
+```ts
+{ idProducto: number; idTratamiento: number; dosis: number; unidad: string }
+```
+
+### TratamientoDependenciaDTO
+```ts
+{ tratamientoAnterior: TratamientoDTO; tratamientoPosterior: TratamientoDTO; diasEsperaMinimo: number }
+```
+
+### TareaDependenciaDTO
+```ts
+{ idTareaAnterior: number; idTareaPosterior: number; diasEsperaMinimo: number }
+```
+
+### EmpleadoCuadrillaDTO
+```ts
+{ empleado: EmpleadoDTO; cuadrilla: CuadrillaDTO; fechaFin: string; rol: string }
+```
+
+### EmpleadoHabilitacionDTO
+```ts
+{ idEmpleado: number; idHabilitacion: number; fechaEmision: string; fechaVencimiento: string }
+```
+
+### PerfilDTO
+```ts
+{ id: number; nombre: string }
+```
+
+---
+
+## Response Types (GET responses)
+
+### UsuarioResponse
+```ts
+{ id: number; nombreUsuario: string; perfiles: PerfilResponse[] }
+```
+
+### PerfilResponse
+```ts
+{ id: number; nombre: string }
+```
+
+### EmpleadoResponse
+```ts
+{ idEmpleado: number; nombre: string; cedula: string; telefono: string; email: string; fechaIngreso: string; activo: boolean; idCategoria: number; nombreCategoria: string }
+```
+
+### CuadrillaResponse
+```ts
+{ idCuadrilla: number; nombre: string; activa: boolean }
+```
+
+### RodalResponse
+```ts
+{ nombre: string; area: number; coordLat: number; coordLng: number; nombreCampo: string }
+```
+
+### ParcelaResponse
+```ts
+{ nombre: string; area: number; tipoCultivo: string; anioPlantacion: number; coordLat: number; coordLng: number; nombreRodal: string }
+```
+
+### TareaResponse
+```ts
+{ idTarea: number; descripcion: string; horas: number; fechaFinalizacion: string; nombreEmpleado: string; nombreEstado: string; nombreTareaCatalogo: string }
+```
+
+### RegistroDiarioResponse
+```ts
+{ idRegistro: number; fecha: string; idEmpleado: number; nombreEmpleado: string; jornales: number; adelanto: number; observaciones: string }
+```
+
+### LiquidacionResponse
+```ts
+{ idLiquidacion: number; nombreEmpleado: string; cedulaEmpleado: string; periodo: string; totalFinal: number; observaciones: string }
+```
+
+### ProductoTratamientoResponse
+```ts
+{ nombreProducto: string; nombreTratamiento: string; dosis: number; unidad: string }
+```
+
+### PlantillaTareaResponse
+```ts
+{ idPlantilla: number; nombre: string; descripcion: string; idCatalogoTarea: number; nombreCatalogoTarea: string }
+```
+
+### CatalogoTareaResponse
+```ts
+{ idCatalogoTarea: number; nombre: string; descripcion: string; idHabilitacion: number; nombreHabilitacion: string }
+```
+
+### HistoricoTratamientoResponse
+```ts
+{ nombreParcela: string; nombreTratamiento: string; nombreCuadrilla: string; fechaInicio: string; fechaFin: string; observaciones: string }
+```
+
+### TratamientoDependenciaResponse
+```ts
+{ idTratamientoAnterior: number; nombreTratamientoAnterior: string; idTratamientoPosterior: number; nombreTratamientoPosterior: string; diasEsperaMinimo: number }
+```
+
+### TareaDependenciaResponse
+```ts
+{ tareaAnterior: string; tareaPosterior: string; diasEsperaMinimo: number }
+```
+
+### EmpleadoCuadrillaResponse
+```ts
+{ idEmpleado: number; nombreEmpleado: string; idCuadrilla: number; nombreCuadrilla: string; rol: string; fechaInicio: string; fechaFin: string; esActivo: boolean }
+```
+
+### EmpleadoHabilitacionResponse
+```ts
+{ nombreEmpleado: string; nombreHabilitacion: string; fechaEmision: string; fechaVencimiento: string }
 ```
