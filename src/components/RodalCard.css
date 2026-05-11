@@ -1,0 +1,204 @@
+.rodal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.rodal-card.expanded {
+  border-color: var(--forest-accent);
+}
+
+.rodal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  transition: background 0.2s;
+  gap: var(--space-md);
+}
+
+.rodal-card-header:hover {
+  background: rgba(34, 255, 216, 0.03);
+}
+
+.rodal-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rodal-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.rodal-expand-icon {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.rodal-card-title-row h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rodal-parcela-count {
+  font-size: 12px;
+  color: var(--forest-secondary);
+  background: rgba(34, 101, 131, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+}
+
+.rodal-card-meta {
+  display: flex;
+  gap: var(--space-xs);
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding-left: calc(16px + var(--space-sm));
+}
+
+.rodal-card-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.rodal-card-body {
+  border-top: 1px solid var(--border-light);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.rodal-card-body-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.rodal-card-body-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rodal-card-empty {
+  text-align: center;
+  padding: var(--space-lg);
+  color: var(--text-secondary);
+}
+
+.rodal-card-empty p {
+  margin: 0;
+}
+
+/* Parcela table */
+.parcela-table-container {
+  overflow-x: auto;
+}
+
+.parcela-table {
+  font-size: 14px;
+}
+
+.parcela-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* Mobile parcela cards */
+.parcela-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .rodal-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rodal-card-actions {
+    justify-content: flex-end;
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .parcela-table-container {
+    display: none;
+  }
+
+  .parcela-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .parcela-card {
+    background: var(--bg-main);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .parcela-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+
+  .parcela-card-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+  }
+
+  .parcela-card-area {
+    font-size: 13px;
+    color: var(--forest-secondary);
+    font-weight: 500;
+  }
+
+  .parcela-card-body {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-sm);
+  }
+
+  .parcela-card-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .parcela-card-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .parcela-card-value {
+    font-size: 13px;
+    color: var(--text-main);
+  }
+
+  .parcela-card-actions {
+    display: flex;
+    gap: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .parcela-card-actions .button {
+    flex: 1;
+  }
+}

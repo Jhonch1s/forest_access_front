@@ -70,34 +70,40 @@
 
 ## 6. Campos
 
+> **Nota**: Este controller devuelve la **entity** `Campo` (con `idCampo`), no `CampoDTO`.
+
 | Método | Endpoint | Request Body | Response |
 |--------|----------|-------------|----------|
-| GET | `/campos/all` | — | `CampoDTO[]` |
-| POST | `/campos/create` | `CampoDTO` | `CampoDTO` |
-| PUT | `/campos/update/{id}` | `CampoDTO` | `CampoDTO` |
-| DELETE | `/campos/delete/{id}` | — | `CampoDTO` |
+| GET | `/campos/all` | — | `Campo[]` |
+| POST | `/campos/create` | `CampoDTO` | `Campo` |
+| PUT | `/campos/update/{id}` | `CampoDTO` | `Campo` |
+| DELETE | `/campos/delete/{id}` | — | `Campo` |
 
 ---
 
 ## 7. Rodales
 
+> **Nota**: Este controller devuelve la **entity** `Rodal` (con `idRodal` y `campo` anidado), no `RodalResponse`.
+
 | Método | Endpoint | Request Body | Response |
 |--------|----------|-------------|----------|
-| GET | `/rodales/all` | — | `RodalResponse[]` |
-| POST | `/rodales/create` | `RodalDTO` | `RodalDTO` |
-| PUT | `/rodales/update/{id}` | `RodalDTO` | `RodalResponse` |
-| DELETE | `/rodales/delete/{id}` | — | `RodalResponse` |
+| GET | `/rodales/all` | — | `Rodal[]` |
+| POST | `/rodales/create` | `RodalDTO` | `Rodal` |
+| PUT | `/rodales/update/{id}` | `RodalDTO` | `Rodal` |
+| DELETE | `/rodales/delete/{id}` | — | `Rodal` |
 
 ---
 
 ## 8. Parcelas
 
+> **Nota**: Este controller devuelve la **entity** `Parcela` (con `idParcela` y `rodal` anidado), no `ParcelaResponse`.
+
 | Método | Endpoint | Request Body | Response |
 |--------|----------|-------------|----------|
-| GET | `/parcelas/all` | — | `ParcelaResponse[]` |
-| POST | `/parcelas/create` | `ParcelaDTO` | `ParcelaResponse` |
-| PUT | `/parcelas/update/{id}` | `ParcelaDTO` | `ParcelaResponse` |
-| DELETE | `/parcelas/delete/{id}` | — | `ParcelaResponse` |
+| GET | `/parcelas/all` | — | `Parcela[]` |
+| POST | `/parcelas/create` | `ParcelaDTO` | `Parcela` |
+| PUT | `/parcelas/update/{id}` | `ParcelaDTO` | `Parcela` |
+| DELETE | `/parcelas/delete/{id}` | — | `Parcela` |
 
 ---
 
@@ -346,6 +352,21 @@
 { nombre: string; area: number; tipoCultivo: string; anioPlantacion: number; coordLat: number; coordLng: number; idRodal: number }
 ```
 
+### Campo (entity — response de endpoints de Campos)
+```ts
+{ idCampo: number; nombre: string; padron: string; superficieTotal: number; coordLat: number; coordLng: number }
+```
+
+### Rodal (entity — response de endpoints de Rodales)
+```ts
+{ idRodal: number; campo: Campo; nombre: string; area: number; coordLat: number; coordLng: number }
+```
+
+### Parcela (entity — response de endpoints de Parcelas)
+```ts
+{ idParcela: number; rodal: Rodal; nombre: string; area: number; tipoCultivo: string; anioPlantacion: number; coordLat: number; coordLng: number }
+```
+
 ### TareaDTO
 ```ts
 {
@@ -478,11 +499,13 @@
 ```
 
 ### RodalResponse
+> **Deprecated**: El backend ahora devuelve `Rodal` (entity) en vez de `RodalResponse`.
 ```ts
 { nombre: string; area: number; coordLat: number; coordLng: number; nombreCampo: string }
 ```
 
 ### ParcelaResponse
+> **Deprecated**: El backend ahora devuelve `Parcela` (entity) en vez de `ParcelaResponse`.
 ```ts
 { nombre: string; area: number; tipoCultivo: string; anioPlantacion: number; coordLat: number; coordLng: number; nombreRodal: string }
 ```
