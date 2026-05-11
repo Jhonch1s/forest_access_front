@@ -1,15 +1,45 @@
+/* Card entrance animation */
+@keyframes rodalCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Table row stagger animation */
+@keyframes rowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .rodal-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  animation: rodalCardEnter 0.35s ease-out both;
+}
+
+.rodal-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .rodal-card.expanded {
   border-color: var(--forest-accent);
 }
 
+/* Header */
 .rodal-card-header {
   display: flex;
   justify-content: space-between;
@@ -36,12 +66,20 @@
   margin-bottom: var(--space-xs);
 }
 
+/* Expand icon with rotation */
 .rodal-expand-icon {
-  font-size: 12px;
-  color: var(--text-secondary);
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  text-align: center;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rodal-expand-icon.rotated {
+  transform: rotate(90deg);
 }
 
 .rodal-card-title-row h4 {
@@ -73,9 +111,46 @@
   flex-shrink: 0;
 }
 
+/* Expand/collapse animation using grid */
+.rodal-card-body-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rodal-card.expanded .rodal-card-body-wrapper {
+  grid-template-rows: 1fr;
+}
+
 .rodal-card-body {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.rodal-card.expanded .rodal-card-body {
   border-top: 1px solid var(--border-light);
-  padding: var(--space-md) var(--space-lg);
+}
+
+/* Inner body content */
+.rodal-card-body > * {
+  padding: 0 var(--space-lg);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.25s ease 0s, transform 0.25s ease 0s;
+}
+
+.rodal-card.expanded .rodal-card-body > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.15s;
+}
+
+.rodal-card-body > :first-child {
+  padding-top: var(--space-md);
+}
+
+.rodal-card-body > :last-child {
+  padding-bottom: var(--space-md);
 }
 
 .rodal-card-body-header {
@@ -110,6 +185,10 @@
 
 .parcela-table {
   font-size: 14px;
+}
+
+.parcela-table tbody tr {
+  animation: rowSlideIn 0.3s ease-out both;
 }
 
 .parcela-actions {
@@ -148,6 +227,7 @@
     background: var(--bg-main);
     border-radius: var(--radius-md);
     padding: var(--space-sm) var(--space-md);
+    animation: rowSlideIn 0.3s ease-out both;
   }
 
   .parcela-card-header {

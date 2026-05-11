@@ -1,5 +1,6 @@
 import type { Campo } from '../types/predio';
 import Button from './Button';
+import SatelliteMap from './SatelliteMap';
 import './CampoHeader.css';
 
 interface CampoHeaderProps {
@@ -13,7 +14,7 @@ interface CampoHeaderProps {
 function CampoHeader({ campo, onEdit, onDelete, onChangeCampo, onCrearCampo }: CampoHeaderProps) {
   if (!campo) {
     return (
-      <div className="campo-header campo-header-empty">
+      <div className="campo-hero campo-hero-empty">
         <div className="campo-empty-icon">
           <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -35,38 +36,59 @@ function CampoHeader({ campo, onEdit, onDelete, onChangeCampo, onCrearCampo }: C
     );
   }
 
+  const hasCoords = campo.coordLat !== 0 && campo.coordLng !== 0;
+
   return (
-    <div className="campo-header">
-      <div className="campo-header-info">
-        <div className="campo-header-top">
-          <h3>{campo.nombre}</h3>
-          <button className="campo-change-btn" onClick={onChangeCampo}>
-            Cambiar campo
-          </button>
+    <div className="campo-hero">
+      <div className="campo-hero-content">
+        <div className="campo-hero-info">
+          <div className="campo-hero-top">
+            <h2 className="campo-hero-title">{campo.nombre}</h2>
+            <button className="campo-change-btn" onClick={onChangeCampo}>
+              Cambiar campo
+            </button>
+          </div>
+
+          <div className="campo-hero-details">
+            {campo.padron && (
+              <div className="campo-hero-stat">
+                <span className="campo-stat-label">Padrón</span>
+                <span className="campo-stat-value">{campo.padron}</span>
+              </div>
+            )}
+            <div className="campo-hero-stat">
+              <span className="campo-stat-label">Superficie</span>
+              <span className="campo-stat-value">{campo.superficieTotal} ha</span>
+            </div>
+            {hasCoords && (
+              <div className="campo-hero-stat">
+                <span className="campo-stat-label">Coordenadas</span>
+                <span className="campo-stat-value">
+                  {campo.coordLat.toFixed(8)}, {campo.coordLng.toFixed(8)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="campo-hero-actions">
+            <Button variant="secondary" size="small" onClick={onEdit}>
+              Editar
+            </Button>
+            <Button variant="danger" size="small" onClick={onDelete}>
+              Eliminar
+            </Button>
+          </div>
         </div>
-        <div className="campo-header-details">
-          {campo.padron && (
-            <span className="campo-detail">
-              <span className="campo-detail-label">Padrón:</span> {campo.padron}
-            </span>
-          )}
-          <span className="campo-detail">
-            <span className="campo-detail-label">Superficie:</span> {campo.superficieTotal} ha
-          </span>
-          {campo.coordLat !== 0 && campo.coordLng !== 0 && (
-            <span className="campo-detail">
-              <span className="campo-detail-label">Coords:</span> {campo.coordLat}, {campo.coordLng}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="campo-header-actions">
-        <Button variant="secondary" size="small" onClick={onEdit}>
-          Editar
-        </Button>
-        <Button variant="danger" size="small" onClick={onDelete}>
-          Eliminar
-        </Button>
+
+        {hasCoords && (
+          <div className="campo-hero-map">
+            <SatelliteMap
+              lat={campo.coordLat}
+              lng={campo.coordLng}
+              nombre={campo.nombre}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

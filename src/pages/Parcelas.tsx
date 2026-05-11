@@ -19,15 +19,15 @@ const campoFields: FieldConfig[] = [
   { name: 'nombre', label: 'Nombre', required: true },
   { name: 'padron', label: 'Padrón' },
   { name: 'superficieTotal', label: 'Superficie (ha)', type: 'number', required: true },
-  { name: 'coordLat', label: 'Latitud', type: 'number', step: '0.0001' },
-  { name: 'coordLng', label: 'Longitud', type: 'number', step: '0.0001' },
+  { name: 'coordLat', label: 'Latitud', type: 'number', step: '0.00000001' },
+  { name: 'coordLng', label: 'Longitud', type: 'number', step: '0.00000001' },
 ];
 
 const rodalFields: FieldConfig[] = [
   { name: 'nombre', label: 'Nombre', required: true },
   { name: 'area', label: 'Área (ha)', type: 'number', required: true },
-  { name: 'coordLat', label: 'Latitud', type: 'number', step: '0.0001' },
-  { name: 'coordLng', label: 'Longitud', type: 'number', step: '0.0001' },
+  { name: 'coordLat', label: 'Latitud', type: 'number', step: '0.00000001' },
+  { name: 'coordLng', label: 'Longitud', type: 'number', step: '0.00000001' },
 ];
 
 const parcelaFields: FieldConfig[] = [
@@ -35,8 +35,8 @@ const parcelaFields: FieldConfig[] = [
   { name: 'area', label: 'Área (ha)', type: 'number', required: true },
   { name: 'tipoCultivo', label: 'Tipo de Cultivo', required: true },
   { name: 'anioPlantacion', label: 'Año de Plantación', type: 'number' },
-  { name: 'coordLat', label: 'Latitud', type: 'number', step: '0.0001' },
-  { name: 'coordLng', label: 'Longitud', type: 'number', step: '0.0001' },
+  { name: 'coordLat', label: 'Latitud', type: 'number', step: '0.00000001' },
+  { name: 'coordLng', label: 'Longitud', type: 'number', step: '0.00000001' },
 ];
 
 type ModalState =
@@ -59,6 +59,7 @@ function Parcelas() {
   });
   const [rodalExpandido, setRodalExpandido] = useState<number | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
+  const [mapVersion, setMapVersion] = useState(0);
 
   const campoActual = useMemo(() => {
     if (campoActualId !== null && Number.isFinite(campoActualId)) {
@@ -114,6 +115,7 @@ function Parcelas() {
       coordLng: (values.coordLng as number) || 0,
     });
     handleRefresh();
+    setMapVersion((v) => v + 1);
     setModal(null);
   };
 
@@ -208,6 +210,15 @@ function Parcelas() {
 
   return (
     <div className="parcelas-page">
+      <CampoHeader
+        key={`${campoActual?.idCampo ?? 'empty'}-${mapVersion}`}
+        campo={campoActual}
+        onEdit={() => campoActual && setModal({ type: 'editarCampo', campo: campoActual })}
+        onDelete={handleEliminarCampo}
+        onChangeCampo={() => setModal({ type: 'selectorCampo' })}
+        onCrearCampo={() => setModal({ type: 'crearCampo' })}
+      />
+
       <div className="page-header">
         <h2>Parcelas</h2>
         {campoActual && (
@@ -216,14 +227,6 @@ function Parcelas() {
           </Button>
         )}
       </div>
-
-      <CampoHeader
-        campo={campoActual}
-        onEdit={() => campoActual && setModal({ type: 'editarCampo', campo: campoActual })}
-        onDelete={handleEliminarCampo}
-        onChangeCampo={() => setModal({ type: 'selectorCampo' })}
-        onCrearCampo={() => setModal({ type: 'crearCampo' })}
-      />
 
       {loading && (
         <div className="parcelas-status">

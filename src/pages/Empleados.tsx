@@ -1,3 +1,5 @@
+import CategoriaList from "../components/CategoriaList";
+
 function Empleados() {
   return (
     <div>
@@ -5,6 +7,7 @@ function Empleados() {
         <h2>Empleados</h2>
       </div>
       <p>Gestión de empleados.</p>
+      <CategoriaList />
     </div>
   );
 }

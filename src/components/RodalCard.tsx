@@ -32,7 +32,11 @@ function RodalCard({
       <div className="rodal-card-header" onClick={onToggle}>
         <div className="rodal-card-info">
           <div className="rodal-card-title-row">
-            <span className="rodal-expand-icon">{expandido ? '▼' : '▶'}</span>
+            <span className={`rodal-expand-icon ${expandido ? 'rotated' : ''}`}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
             <h4>{rodal.nombre}</h4>
             <span className="rodal-parcela-count">
               {parcelas.length} parcela{parcelas.length !== 1 ? 's' : ''}
@@ -40,7 +44,7 @@ function RodalCard({
           </div>
           <div className="rodal-card-meta">
             <span>{rodal.area} ha totales</span>
-            {parcelas.length > 0 && <span>· {totalAreaParcelas} ha en parcelas</span>}
+            {parcelas.length > 0 && <span>· {totalAreaParcelas.toFixed(2)} ha en parcelas</span>}
           </div>
         </div>
         <div className="rodal-card-actions" onClick={(e) => e.stopPropagation()}>
@@ -53,7 +57,7 @@ function RodalCard({
         </div>
       </div>
 
-      {expandido && (
+      <div className="rodal-card-body-wrapper">
         <div className="rodal-card-body">
           <div className="rodal-card-body-header">
             <span className="rodal-card-body-title">Parcelas</span>
@@ -81,8 +85,8 @@ function RodalCard({
                     </tr>
                   </thead>
                   <tbody>
-                    {parcelas.map((parcela) => (
-                      <tr key={parcela.idParcela}>
+                    {parcelas.map((parcela, i) => (
+                      <tr key={parcela.idParcela} style={{ animationDelay: `${i * 40}ms` }}>
                         <td>{parcela.nombre}</td>
                         <td>{parcela.tipoCultivo}</td>
                         <td>{parcela.anioPlantacion}</td>
@@ -103,8 +107,8 @@ function RodalCard({
 
               {/* Mobile cards */}
               <div className="parcela-cards">
-                {parcelas.map((parcela) => (
-                  <div key={parcela.idParcela} className="parcela-card">
+                {parcelas.map((parcela, i) => (
+                  <div key={parcela.idParcela} className="parcela-card" style={{ animationDelay: `${i * 40}ms` }}>
                     <div className="parcela-card-header">
                       <span className="parcela-card-name">{parcela.nombre}</span>
                       <span className="parcela-card-area">{parcela.area} ha</span>
@@ -133,7 +137,7 @@ function RodalCard({
             </>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
