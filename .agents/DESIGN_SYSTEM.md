@@ -216,6 +216,92 @@ Rounded pills (`border-radius: --radius-full`, `padding: 4px 12px`, `font-size: 
 | Inactive/Error | `rgba(196,30,58,0.1)` | `--status-error` |
 | Pending | `rgba(90,128,170,0.1)` | `--status-warning` |
 
+### 3.5 Hero Banner
+
+Used for prominent page-level context (e.g., campo selection in Parcelas).
+
+**Structure:** Dark gradient background + info panel + satellite map.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  [Gradient: --forest-primary → #1a3344]              │
+│  ┌──────────────────┐  ┌─────────────────────────┐   │
+│  │  Title (h2, #fff) │  │                         │   │
+│  │  [Cambiar campo]  │  │   Satellite Map         │   │
+│  │                   │  │   (2/3 width)           │   │
+│  │  Stat  Stat  Stat │  │                         │   │
+│  │                   │  │                         │   │
+│  │  [Editar][Eliminar]  │                         │   │
+│  └──────────────────┘  └─────────────────────────┘   │
+└──────────────────────────────────────────────────────┘
+```
+
+**CSS:**
+- Background: `linear-gradient(135deg, var(--forest-primary) 0%, #1a3344 100%)`
+- Grid: `grid-template-columns: 1fr 2fr` (info 1/3, map 2/3)
+- Map height: `400px` desktop, `280px` mobile
+- Text: `#ffffff` for titles/stats, `rgba(255,255,255,0.5)` for labels
+- Decorative radial gradient via `::before` pseudo-element
+
+**Button overrides in dark context:**
+
+Default `.button-secondary` has dark text (`--forest-primary`). Inside the hero, override with higher specificity:
+
+```css
+.campo-hero .campo-hero-actions .button-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+```
+
+### 3.6 Satellite Map
+
+Component: `<SatelliteMap>`
+
+Uses `react-leaflet` with **Esri World Imagery** tiles (free, no API key, good rural coverage).
+
+```tsx
+<SatelliteMap lat={-33.85} lng={-54.97} nombre="Campo Norte" />
+```
+
+**Key detail:** `MapContainer` ignores prop changes after initial render. Use `key` prop to force re-creation when coordinates change:
+
+```tsx
+<MapContainer key={`${lat}-${lng}`} center={[lat, lng]} ...>
+```
+
+### 3.7 Collapsable Cards (Accordion)
+
+Used for RodalCards — expand/collapse to show parcelas.
+
+**Animation technique:** CSS `grid-template-rows` transition (no JavaScript animation libraries needed).
+
+```css
+/* Collapsed */
+.body-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Expanded */
+.card.expanded .body-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.body-wrapper > .body {
+  overflow: hidden;
+  min-height: 0;
+}
+```
+
+**Inner content fade-in:** Delayed opacity/transform transition (0.15s) so content appears after the expand animation starts.
+
+**Staggered rows:** Each table row gets `animationDelay: ${i * 40}ms` for a cascading entrance effect.
+
+**Icon rotation:** SVG chevron rotates 90° on expand via CSS `transform: rotate(90deg)` with matching transition timing.
+
 ---
 
 ## 4. Interaction Patterns

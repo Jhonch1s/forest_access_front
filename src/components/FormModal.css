@@ -1,0 +1,117 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+.modal-content {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--text-main);
+}
+
+.modal-form {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.modal-error {
+  background: rgba(196, 30, 58, 0.1);
+  color: var(--status-error);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}
+
+.modal-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.modal-form .form-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.modal-form .form-field .required {
+  color: var(--status-error);
+}
+
+.modal-form .form-field input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-family: var(--sans);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-form .form-field input:focus {
+  outline: none;
+  border-color: var(--forest-secondary);
+  box-shadow: 0 0 0 3px rgba(34, 101, 131, 0.1);
+}
+
+.modal-form .form-field input.error {
+  border-color: var(--status-error);
+}
+
+.modal-form .form-field input:disabled {
+  background: var(--bg-main);
+  opacity: 0.6;
+}
+
+.field-error {
+  font-size: 13px;
+  color: var(--status-error);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-light);
+}

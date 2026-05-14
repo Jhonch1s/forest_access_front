@@ -4,14 +4,14 @@
 
 React 19 + TypeScript 6 + Vite 8 frontend for a **Java Spring Boot** REST API.
 Domain: forest access management — personnel administration, employee categories, and access control.
-Currently uses the **default Vite React-TS template** — `src/App.tsx` is the starter page, not production code.
 
 ### Backend Context (Spring Boot)
 
 - **Package**: `com.example.forest_access`
 - **Stack**: Java 24, Spring Boot, Spring Security, Spring Data JPA, Jakarta EE, Lombok
 - **Security**: JWT (stateless) via `io.jsonwebtoken`, validated in `SeguridadConfig` filter
-- **Known entity**: `CategoriaEmpleado` — full CRUD via `CategoriaEmpleadoService`
+- **Known entities**: `CategoriaEmpleado`, `Campo`, `Rodal`, `Parcela`
+- **Coordinate precision**: `BigDecimal(precision=11, scale=8)` — 8 decimal places
 - **CORS**: Handled by backend `SeguridadConfig` — must allow `http://localhost:5173`
 
 ## Dev Commands
@@ -58,11 +58,12 @@ src/
   main.tsx       # Entry point, renders <App /> in StrictMode
   App.tsx         # Router config (BrowserRouter + Routes)
   index.css       # Global styles + design tokens (CSS variables)
-  components/     # Reusable UI (Layout, Layout.css)
-  pages/          # Route pages (Home, Login, Categorias)
-  services/       # API layer (empty — to be implemented)
+  components/     # Reusable UI (Layout, Button, CampoHeader, CampoSelector,
+                  #   CategoriaList, FormModal, RodalCard, SatelliteMap)
+  pages/          # Route pages (Home, Login, Categorias, Parcelas, Empleados, etc.)
+  services/       # API layer (api.ts, campoService, rodalService, parcelaService)
   types/          # TypeScript interfaces (generated from OpenAPI schemas)
-  hooks/          # Custom hooks (empty — to be implemented)
+  hooks/          # Custom hooks (useCampos, useRodalParcelas)
   assets/         # Static images (react.svg, vite.svg, hero.png)
 public/           # Served at root (favicon.svg, icons.svg)
 .agents/
@@ -82,6 +83,8 @@ public/           # Served at root (favicon.svg, icons.svg)
 - Input states (default, focus, error)
 - Table design (sticky headers, hover states)
 - Status badges
+- Hero banner pattern (dark gradient + satellite map)
+- Collapsable card animations (grid-template-rows technique)
 - CSS approach: **CSS custom properties** (no Tailwind)
 
 ## Skills Available
@@ -93,9 +96,9 @@ Load these with the `skill` tool when relevant:
 - **frontend-design** — production-grade UI design
 - **seo** / **accessibility** — audit and optimization
 
-## Planned Architecture (not yet implemented)
+## Project Architecture
 
-The project will be restructured to:
+The project is structured as:
 ```
 src/
   components/    # Reusable UI components
@@ -105,9 +108,12 @@ src/
   hooks/         # Custom hooks
 ```
 
-When implementing, install `axios` and `react-router-dom` as dependencies.
+Key dependencies:
+- `react-router-dom` — client-side routing
+- `axios` — HTTP client with interceptors
+- `react-leaflet` + `leaflet` — satellite maps (Esri World Imagery tiles)
 
-## Auth Flow (Planned)
+## Auth Flow
 
 - Login form POSTs `{ usuario, password }` to the Spring Boot auth controller
 - Response contains a **JWT token** (stateless auth — no server sessions)

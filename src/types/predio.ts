@@ -7,6 +7,14 @@ export interface Campo {
   coordLng: number;
 }
 
+export interface CampoDTO {
+  nombre: string;
+  padron: string;
+  superficieTotal: number;
+  coordLat: number;
+  coordLng: number;
+}
+
 export interface Rodal {
   idRodal: number;
   campo: Campo;
@@ -14,6 +22,22 @@ export interface Rodal {
   area: number;
   coordLat: number;
   coordLng: number;
+}
+
+export interface RodalDTO {
+  nombre: string;
+  area: number;
+  coordLat: number;
+  coordLng: number;
+  idCampo: number;
+}
+
+export interface RodalResponse {
+  nombre: string;
+  area: number;
+  coordLat: number;
+  coordLng: number;
+  nombreCampo: string;
 }
 
 export interface Parcela {
@@ -25,4 +49,24 @@ export interface Parcela {
   anioPlantacion: number;
   coordLat: number;
   coordLng: number;
+}
+
+export interface ParcelaDTO {
+  nombre: string;
+  area: number;
+  tipoCultivo: string;
+  anioPlantacion: number;
+  coordLat: number;
+  coordLng: number;
+  idRodal: number;
+}
+
+export interface ParcelaResponse {
+  nombre: string;
+  area: number;
+  tipoCultivo: string;
+  anioPlantacion: number;
+  coordLat: number;
+  coordLng: number;
+  nombreRodal: string;
 }

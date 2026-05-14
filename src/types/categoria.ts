@@ -5,8 +5,4 @@ export interface CategoriaEmpleado {
   descripcion: string;
 }
 
-export interface CategoriaEmpleadoCreateDTO {
-  nombre: string;
-  valorJornal: number;
-  descripcion: string;
-}
+export type CategoriaEmpleadoDTO = CategoriaEmpleado;

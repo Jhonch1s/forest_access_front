@@ -3,3 +3,15 @@ export interface Cuadrilla {
   nombre: string;
   activa: boolean;
 }
+
+export interface CuadrillaDTO {
+  idCuadrilla: number;
+  nombre: string;
+  activa: boolean;
+}
+
+export interface CuadrillaResponse {
+  idCuadrilla: number;
+  nombre: string;
+  activa: boolean;
+}

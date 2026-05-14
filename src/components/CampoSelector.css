@@ -1,0 +1,67 @@
+.campo-selector-modal {
+  max-width: 400px;
+}
+
+.campo-selector-body {
+  padding: var(--space-md) var(--space-lg);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.campo-selector-empty {
+  text-align: center;
+  padding: var(--space-lg);
+  color: var(--text-secondary);
+}
+
+.campo-selector-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.campo-selector-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: background 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.campo-selector-item:hover {
+  background: rgba(34, 255, 216, 0.05);
+  border-color: var(--forest-secondary);
+}
+
+.campo-selector-item.active {
+  border-color: var(--forest-accent);
+  background: rgba(34, 255, 216, 0.08);
+}
+
+.campo-selector-name {
+  font-weight: 500;
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.campo-selector-meta {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.campo-selector-footer {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: center;
+}
