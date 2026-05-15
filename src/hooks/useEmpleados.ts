@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { Empleado } from '../types/empleado';
+import type { EmpleadoDTO } from '../types/empleado';
 import { getEmpleados } from '../services/empleadoService';
 
 export function useEmpleados() {
-  const [empleados, setEmpleados] = useState<Empleado[]>([]);
+  const [empleados, setEmpleados] = useState<EmpleadoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
