@@ -1,7 +1,7 @@
 import api from './api';
 import type { Empleado, EmpleadoDTO } from '../types/empleado';
 
-export async function getEmpleados(): Promise<Empleado[]> {
+export async function getEmpleados(): Promise<EmpleadoDTO[]> {
   const { data } = await api.get('/empleados');
   return data;
 }
