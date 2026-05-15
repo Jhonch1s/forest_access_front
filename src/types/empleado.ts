@@ -19,7 +19,7 @@ export interface EmpleadoDTO {
   email: string;
   fechaIngreso: string;
   activo: boolean;
-  categoria: CategoriaEmpleadoDTO;
+  idCategoria: number;
 }
 
 export interface EmpleadoResponse {
