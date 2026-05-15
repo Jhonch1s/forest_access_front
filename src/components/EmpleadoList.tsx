@@ -1,7 +1,6 @@
 import { useEmpleados } from "../hooks/useEmpleados";
 import { useState } from 'react';
-import { deleteEmpleado } from "../services/empleadoService";
-import type { Empleado, EmpleadoDTO } from "../types/empleado";
+import type { EmpleadoDTO } from "../types/empleado";
 import Button from "./Button";
 import './CategoriaList.css';
 

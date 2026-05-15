@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import EmpleadoList from "../components/EmpleadoList";
 import { useCategorias } from "../hooks/useCategorias";
 import { useEmpleados } from '../hooks/useEmpleados';
@@ -10,7 +10,7 @@ import Button from "../components/Button";
 function Empleados() {
 
   const { categorias } = useCategorias();
-  const { empleados, loading, error, refetch } = useEmpleados();
+  const {  refetch } = useEmpleados();
 
   const categoriaOptions = useMemo(() =>
     categorias.map(cat => ({
