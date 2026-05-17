@@ -60,11 +60,13 @@
 | Método | Endpoint | Request Body | Response |
 |--------|----------|-------------|----------|
 | GET | `/cuadrillas` | — | `CuadrillaResponse[]` |
-| GET | `/cuadrillas/{id}` | — | `CuadrillaResponse` |
 | GET | `/cuadrillas/activas` | — | `CuadrillaResponse[]` |
+| GET | `/cuadrillas/{id}` | — | `CuadrillaResponse` |
 | POST | `/cuadrillas/create` | `CuadrillaDTO` | `CuadrillaResponse` |
 | PUT | `/cuadrillas/{id}` | `CuadrillaDTO` | `CuadrillaResponse` |
 | DELETE | `/cuadrillas/{id}` | — | — |
+| PUT | `/cuadrillas/{id}/terminar` | — | — |
+| PUT | `/cuadrillas/{id}/sincronizar-empleados` | `EmpleadoRequest[]` | — |
 
 ---
 
