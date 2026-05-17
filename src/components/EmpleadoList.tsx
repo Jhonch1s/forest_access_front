@@ -1,4 +1,3 @@
-import { useEmpleados } from "../hooks/useEmpleados";
 import { useState } from 'react';
 import type { EmpleadoDTO } from "../types/empleado";
 import Button from "./Button";
@@ -11,7 +10,7 @@ interface EmpleadoListProps {
 }
 
 function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
-    const {  loading, error} = useEmpleados();
+    
 
     const [paginaActual, setPaginaActual] = useState(1);
     const itemsPorPagina = 5; 
@@ -35,22 +34,6 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
     }
 
 
-    if (loading) {
-    return (
-      <div className="categoria-status">
-        <div className="categoria-spinner" />
-        <p>Cargando empleados...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="categoria-status categoria-error">
-        <p>Error al cargar empleados: {error}</p>
-      </div>
-    );
-  }
 
   if (empleados.length === 0) {
     return (
