@@ -8,9 +8,10 @@ import Button from './Button';
 interface CuadrillaDetailsProps {
   cuadrilla: CuadrillaUI | null;
   onRefetch: () => void;
+  onClose: () => void;
 }
 
-export default function CuadrillaDetails({ cuadrilla, onRefetch }: CuadrillaDetailsProps) {
+export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: CuadrillaDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editMembers, setEditMembers] = useState<CuadrillaUI['miembros']>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -122,11 +123,21 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch }: CuadrillaDeta
 
   return (
     <div className="cuadrilla-details-pane">
-      <div className="details-header">
-        <h2>{cuadrilla.nombre}</h2>
-        <span className={`status-badge ${cuadrilla.activa ? 'active' : 'inactive'}`}>
-          {cuadrilla.activa ? 'Activa' : 'Inactiva'}
-        </span>
+         <div className="details-header">
+     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+       <button 
+         className="mobile-back-btn" 
+         onClick={onClose}
+         style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', padding: 0 }}
+       >
+         ←
+       </button>
+       <h2>{cuadrilla.nombre}</h2>
+     </div>
+     <span className={`status-badge ${cuadrilla.activa ? 'active' : 'inactive'}`}>
+         {cuadrilla.activa ? 'Activa' : 'Inactiva'}
+     </span>
+
       </div>
 
       <div className="details-section">

@@ -5,3 +5,20 @@
   align-items: start;
   margin-top: var(--space-lg, 24px);
 }
+
+/* Reglas para Celulares */
+@media (max-width: 768px) {
+  .cuadrilla-layout {
+    grid-template-columns: 1fr; /* Una sola columna */
+  }
+
+  /* Si hay una cuadrilla seleccionada, ocultamos la lista */
+  .cuadrilla-layout.detail-active .cuadrilla-list-pane {
+    display: none;
+  }
+
+  /* Si NO hay una cuadrilla seleccionada, ocultamos el detalle */
+  .cuadrilla-layout.list-active .cuadrilla-details-pane {
+    display: none;
+  }
+}

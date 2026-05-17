@@ -2,7 +2,7 @@ import api from './api';
 import type { CuadrillaResponse, CuadrillaDTO } from '../types/cuadrilla';
 
 export async function getCuadrillas(): Promise<CuadrillaResponse[]> {
-  const { data } = await api.get('/cuadrillas');
+  const { data } = await api.get('/cuadrillas/activas');
   return data;
 }
 
@@ -34,11 +34,17 @@ export async function terminarCuadrilla(id: number): Promise<void> {
   await api.put(`/cuadrillas/${id}/terminar`);
 }
 
-export interface EmpleadoSyncDTO {
+export interface EmpleadoRequest {
   idEmpleado: number;
   rol: string;
 }
 
-export async function sincronizarEmpleados(idCuadrilla: number, miembros: EmpleadoSyncDTO[]): Promise<void> {
+export async function sincronizarEmpleados(idCuadrilla: number, miembros: EmpleadoRequest[]): Promise<void> {
   await api.put(`/cuadrillas/${idCuadrilla}/sincronizar-empleados`, miembros);
+}
+
+export async function getHistorialCuadrillas(): Promise<CuadrillaResponse[]> {
+  const { data } = await api.get('/cuadrillas'); 
+  //Filtramos solo las que están terminadas (activa == false)
+  return data.filter((c: CuadrillaResponse) => c.activa === false);
 }

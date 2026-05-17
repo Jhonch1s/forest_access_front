@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCuadrillas } from '../services/cuadrillaService';
+import { getCuadrillas, getHistorialCuadrillas } from '../services/cuadrillaService';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 
 export interface MiembroUI {
@@ -14,10 +14,10 @@ export interface CuadrillaUI {
   nombre: string;
   activa: boolean;
   puntero: string;
-  miembros: MiembroUI[]; // ¡Ahora guardamos la lista completa, no solo el número!
+  miembros: MiembroUI[]; 
 }
 
-export function useCuadrillas() {
+export function useCuadrillas(mostrarHistorial: boolean = false) {
   const [cuadrillas, setCuadrillas] = useState<CuadrillaUI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export function useCuadrillas() {
       try {
         setLoading(true);
         const [cuadrillasData, empleadosData] = await Promise.all([
-          getCuadrillas(),
+          mostrarHistorial ? getHistorialCuadrillas() : getCuadrillas(),
           getEmpleadosCuadrillas()
         ]);
 
@@ -36,12 +36,19 @@ export function useCuadrillas() {
 
         const cuadrillasProcesadas = cuadrillasData.map((cuadrilla) => {
           // Si el backend no manda 'esActivo' bien, usamos 'fechaFin' nula como alternativa para saber si está activo
-          const miembros = empleadosData.filter((emp) => 
-            emp.idCuadrilla === cuadrilla.idCuadrilla && 
-            (emp.esActivo === true || !emp.fechaFin)
-          );
+                    const miembros = empleadosData.filter((emp) => {
+            // Si no es de esta cuadrilla, lo ignoramos
+            if (emp.idCuadrilla !== cuadrilla.idCuadrilla) return false;
+            
+            // Si estamos viendo el historial, queremos ver a TODOS los que pasaron por ahí
+            if (mostrarHistorial) return true;
+            
+            //Si es una cuadrilla activa, solo mostramos a los activos actualmente
+            return emp.esActivo === true || !emp.fechaFin;
+          });
+
           
-          // El backend mandó 'rol: null'. Le ponemos validación segura (emp.rol && ...)
+          // El backend mandó 'rol: null'. Le ponemos validación segura
           const punteroObj = miembros.find((emp) => 
             emp.rol && (emp.rol.toLowerCase().includes('puntero') || emp.rol.toLowerCase().includes('capataz'))
           );
@@ -64,7 +71,7 @@ export function useCuadrillas() {
             nombre: cuadrilla.nombre,
             activa: cuadrilla.activa,
             puntero: nombrePuntero,
-            miembros: miembrosCompletos // Pasamos el array entero
+            miembros: miembrosCompletos 
           };
         });
 
@@ -77,7 +84,8 @@ export function useCuadrillas() {
     }
 
     fetchData();
-  }, [refreshKey]);
+    }, [refreshKey, mostrarHistorial]);
+
 
   const refetch = () => setRefreshKey(k => k + 1);
 
