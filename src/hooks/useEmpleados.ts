@@ -8,14 +8,24 @@ export function useEmpleados() {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const fetchEmpleados = async () => {
+    setLoading(true);
+    try {
+      const data = await getEmpleados();
+      setEmpleados(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getEmpleados()
-      .then(setEmpleados)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [refreshKey]);
+    fetchEmpleados();
+  }, [refreshKey]); // Dependencia clave
 
+  const refetch = () => setRefreshKey(prev => prev + 1);
 
-  const refetch = () => setRefreshKey((k) => k + 1);
   return { empleados, loading, error, refetch };
 }

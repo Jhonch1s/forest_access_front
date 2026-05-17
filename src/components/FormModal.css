@@ -108,6 +108,56 @@
   color: var(--status-error);
 }
 
+.modal-form .form-field select {
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-family: var(--sans);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  /* Opcional: elimina la flecha nativa en algunos navegadores si quieres personalizarla después */
+  appearance: auto; /* mantener la flecha nativa */
+  width: 100%;
+}
+
+/* Focus del select */
+.modal-form .form-field select:focus {
+  outline: none;
+  border-color: var(--forest-secondary);
+  box-shadow: 0 0 0 3px rgba(34, 101, 131, 0.1);
+}
+
+/* Estado error para select */
+.modal-form .form-field select.error {
+  border-color: var(--status-error);
+}
+
+/* Estado deshabilitado para select */
+.modal-form .form-field select:disabled {
+  background: var(--bg-main);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estilos para las opciones (option) */
+.modal-form .form-field select option {
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  padding: 8px; /* opcional, algunos navegadores lo soportan */
+}
+
+/* Opción seleccionada o hover (soporte variable) */
+.modal-form .form-field select option:checked {
+  background-color: var(--forest-secondary);
+  color: white;
+}
+.modal-form .form-field select option:hover {
+  background-color: var(--border-light);
+}
+
 .modal-actions {
   display: flex;
   gap: var(--space-sm);
