@@ -1,0 +1,85 @@
+.config-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+/* ── Cards Grid ── */
+
+.config-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+/* ── General Config Section ── */
+
+.config-general-section {
+  border-top: 2px solid var(--border-light);
+  padding-top: var(--space-lg);
+}
+
+.config-general-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: var(--space-lg);
+}
+
+.config-general-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+}
+
+.config-general-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.config-general-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.config-general-label svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+.config-general-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+  .config-general-card {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .config-general-item {
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .config-general-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}

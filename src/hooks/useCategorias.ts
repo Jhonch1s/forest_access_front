@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { CategoriaEmpleado } from '../types/categoria';
 import { getCategorias } from '../services/categoriaService';
 
@@ -7,12 +7,18 @@ export function useCategorias() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchCategorias = useCallback(() => {
+    setLoading(true);
+    setError(null);
     getCategorias()
       .then(setCategorias)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  return { categorias, loading, error };
+  useEffect(() => {
+    fetchCategorias();
+  }, [fetchCategorias]);
+
+  return { categorias, loading, error, refetch: fetchCategorias };
 }

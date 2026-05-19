@@ -13,6 +13,7 @@ Domain: forest access management — personnel administration, employee categori
 - **Known entities**: `CategoriaEmpleado`, `Campo`, `Rodal`, `Parcela`
 - **Coordinate precision**: `BigDecimal(precision=11, scale=8)` — 8 decimal places
 - **CORS**: Handled by backend `SeguridadConfig` — must allow `http://localhost:5173`
+- **Custom DTOs**: When a feature needs data from multiple entities or only a subset of fields, create custom request/response DTOs in the backend. This avoids over-fetching and keeps frontend logic simple. Always suggest this approach when the existing DTOs don't fit the use case.
 
 ## Dev Commands
 
