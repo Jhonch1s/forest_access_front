@@ -36,43 +36,11 @@ export type {
   HabilitacionDTO,
 } from './habilitacion';
 export type {
-  EmpleadoCuadrillaDTO,
-  EmpleadoCuadrillaResponse,
-} from './empleado-cuadrilla';
-export type {
-  EmpleadoHabilitacionDTO,
-  EmpleadoHabilitacionResponse,
-} from './empleado-habilitacion';
-export type {
-  Estado,
-  EstadoDTO,
-  CatalogoTarea,
-  CatalogoTareaDTO,
-  CatalogoTareaResponse,
-  PlantillaTarea,
-  PlantillaTareaDTO,
-  PlantillaTareaResponse,
-  Tarea,
-  TareaDTO,
-  TareaResponse,
-  HistoricoTratamiento,
-  HistoricoTratamientoDTO,
-  HistoricoTratamientoResponse,
-  Tratamiento,
-  TratamientoDTO,
-  TratamientoDependenciaDTO,
-  TratamientoDependenciaResponse,
-  RegistroDiario,
-  RegistroDiarioDTO,
-  RegistroDiarioResponse,
-  Liquidacion,
-  LiquidacionDTO,
-  LiquidacionResponse,
-  Producto,
-  ProductoDTO,
-  ProductoTratamiento,
-  ProductoTratamientoDTO,
-  ProductoTratamientoResponse,
   TareaDependenciaDTO,
   TareaDependenciaResponse,
 } from './tarea';
+export type {
+  AsignacionTratamientoResponse,
+  AsignacionTratamientoDTO,
+  EstadoAsignacion,
+} from './asignacion-tratamiento';
