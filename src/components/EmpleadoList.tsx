@@ -1,16 +1,16 @@
-import { useEmpleados } from "../hooks/useEmpleados";
 import { useState } from 'react';
 import type { EmpleadoDTO } from "../types/empleado";
 import Button from "./Button";
 import './CategoriaList.css';
 
 interface EmpleadoListProps {
+  empleados: EmpleadoDTO[];
   onEdit: (empleado: EmpleadoDTO) => void;
   onDelete: (empleado: EmpleadoDTO) => void;
 }
 
-function EmpleadoList({ onEdit, onDelete }: EmpleadoListProps){
-    const { empleados, loading, error} = useEmpleados();
+function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
+    
 
     const [paginaActual, setPaginaActual] = useState(1);
     const itemsPorPagina = 5; 
@@ -34,22 +34,6 @@ function EmpleadoList({ onEdit, onDelete }: EmpleadoListProps){
     }
 
 
-    if (loading) {
-    return (
-      <div className="categoria-status">
-        <div className="categoria-spinner" />
-        <p>Cargando empleados...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="categoria-status categoria-error">
-        <p>Error al cargar empleados: {error}</p>
-      </div>
-    );
-  }
 
   if (empleados.length === 0) {
     return (
@@ -98,18 +82,22 @@ function EmpleadoList({ onEdit, onDelete }: EmpleadoListProps){
           </tbody>
         </table>
         <div>
-            <button
+            <Button
             onClick={paginaAnterior}
             disabled={paginaActual === 1}
+            variant="primary"
+            size="medium"
             >
                  Anterior
-            </button>
-            <button
+            </Button>
+            <Button
             onClick={paginaSiguiente}
             disabled={paginaActual == totalPaginas}
+            variant="primary"
+            size="medium"
             >
                 Siguiente
-            </button>
+            </Button>
         </div>
 
       </div>

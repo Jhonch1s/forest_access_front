@@ -11,6 +11,7 @@ import Reportes from './pages/Reportes';
 import Liquidaciones from './pages/Liquidaciones';
 import Configuracion from './pages/Configuracion';
 import Categorias from './pages/Categorias';
+import AsignarTratamientos from './pages/AsignarTratamientos';
 
 function App() {
   return (
@@ -23,6 +24,14 @@ function App() {
           element={
             <Layout>
               <Dashboard />
+            </Layout>
+          }
+        />
+        <Route
+          path="/asignar-tratamientos"
+          element={
+            <Layout>
+              <AsignarTratamientos />
             </Layout>
           }
         />

@@ -1,0 +1,45 @@
+/* Usamos .modal-overlay si no existe, o si ya existe en FormModal lo ignorará o compartirá */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-modal-content {
+  background: var(--bg-surface, #ffffff);
+  padding: var(--space-xl, 32px);
+  border-radius: var(--radius-lg, 8px);
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  animation: modalPop 0.2s ease-out forwards;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.confirm-modal-content h3 {
+  margin: 0 0 var(--space-md, 16px) 0;
+  font-size: 20px;
+  color: var(--text-main, #1a1a1a);
+}
+
+.confirm-modal-content p {
+  color: var(--text-secondary, #585662);
+  margin-bottom: var(--space-lg, 24px);
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm, 12px);
+}

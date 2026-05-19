@@ -1,7 +1,7 @@
 import api from './api';
 import type { Empleado, EmpleadoDTO } from '../types/empleado';
 
-export async function getEmpleados(): Promise<Empleado[]> {
+export async function getEmpleados(): Promise<EmpleadoDTO[]> {
   const { data } = await api.get('/empleados');
   return data;
 }
@@ -12,7 +12,7 @@ export async function createEmpleado(empleado: EmpleadoDTO): Promise<Empleado[]>
 }
 
 export async function updateEmpleado(id: number,empleado: EmpleadoDTO): Promise<Empleado[]>{
-    const {data} = await api.post(`/empleados/update/${id}`,empleado);
+    const {data} = await api.put(`/empleados/${id}`,empleado);
     return data;
 }
 

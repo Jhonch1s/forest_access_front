@@ -3,14 +3,14 @@ import EmpleadoList from "../components/EmpleadoList";
 import { useCategorias } from "../hooks/useCategorias";
 import { useEmpleados } from '../hooks/useEmpleados';
 import { createEmpleado, updateEmpleado, deleteEmpleado } from "../services/empleadoService";
-import {  type EmpleadoDTO } from "../types";
+import { type EmpleadoDTO } from "../types";
 import FormModalComplete from '../components/FormModalComplete';
 import type { FieldConfigComplete } from '../components/FormModalComplete';
 import Button from "../components/Button";
 function Empleados() {
 
   const { categorias } = useCategorias();
-  const {  refetch } = useEmpleados();
+  const { refetch,empleados } = useEmpleados();
 
   const categoriaOptions = useMemo(() =>
     categorias.map(cat => ({
@@ -49,7 +49,7 @@ function Empleados() {
       email: empleado.email,
       fechaIngreso: empleado.fechaIngreso || '',
       activo: empleado.activo,
-      idCategoria: empleado.idCategoria,
+      idCategoria: String(empleado.idCategoria),
     };
   };
 
@@ -69,7 +69,7 @@ function Empleados() {
     setModal(null);
   }
 
-   const handleEditar = async (values: Record<string, string | number>) => {
+  const handleEditar = async (values: Record<string, string | number>) => {
     if (!modal || modal.type !== 'editar') return;
     const { empleado } = modal;
     await updateEmpleado(empleado.idEmpleado, {
@@ -80,8 +80,11 @@ function Empleados() {
       email: values.email as string,
       fechaIngreso: values.fechaIngreso as string,
       activo: values.activo === 'true',
-      idCategoria: Number(values.categoria),
+      idCategoria: Number(values.idCategoria),
+      
     });
+
+    
     await refetch();
     setModal(null);
   };
@@ -96,23 +99,28 @@ function Empleados() {
 
   return (
     <div>
-      <Button variant="primary" onClick={() => setModal({ type: 'crear' })}>
-        + Registrar Empleado
-      </Button>
-      <div className="page-header">
-        <h2>Empleados</h2>
-      </div>
-      <p>Gestión de empleados.</p>
-      <EmpleadoList
-      onEdit={(emp) => {
-         setModal({ type: 'editar', empleado: emp })
-          console.log(emp);
-        }
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div >
+          <h2>Empleados</h2>
+          <p>Gestión de empleados.</p>
+        </div>
+        <div>
+          <Button variant="primary" onClick={() => setModal({ type: 'crear' })}>
+          + Registrar Empleado
+        </Button>
+        </div>
         
-      }
-       
-      onDelete={handleEliminar}
-       />
+      </div>
+      <EmpleadoList
+      empleados={empleados}
+        onEdit={(emp) => {
+          setModal({ type: 'editar', empleado: emp })
+        }
+
+        }
+
+        onDelete={handleEliminar}
+      />
 
       {modal?.type === 'crear' && (
         <FormModalComplete
