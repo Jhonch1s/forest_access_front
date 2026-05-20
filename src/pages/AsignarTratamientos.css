@@ -1,6 +1,7 @@
 .asignar-container {
   display: flex;
   flex-direction: column;
+  height: 100%;
   gap: var(--space-lg);
 }
 
@@ -8,12 +9,15 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-lg);
-  min-height: 600px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @media (max-width: 1024px) {
   .asignar-layout {
     grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 }
 
@@ -25,6 +29,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .panel-title {
@@ -32,12 +38,14 @@
   font-weight: 600;
   color: var(--text-main);
   margin: 0;
+  flex-shrink: 0;
 }
 
 .campo-selector {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  flex-shrink: 0;
 }
 
 .campo-selector label {
@@ -63,13 +71,15 @@
   box-shadow: 0 0 0 3px rgba(34, 101, 131, 0.1);
 }
 
+/* ── Arbol Container ── */
 .arbol-container {
   flex: 1;
   overflow-y: auto;
-  max-height: 500px;
+  min-height: 0;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: var(--space-md);
+  background: var(--bg-main);
 }
 
 .arbol-empty {
@@ -79,43 +89,150 @@
   padding: var(--space-xl);
 }
 
+/* ── Rodal Item ── */
 .rodal-item {
   margin-bottom: var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
 }
 
+.rodal-item.rodal-selected {
+  background: rgba(34, 255, 216, 0.06);
+}
+
+.rodal-item.rodal-selected .rodal-header {
+  border-left: 3px solid var(--forest-accent);
+}
+
+.rodal-item.rodal-selected .rodal-name {
+  color: var(--forest-primary);
+  font-weight: 600;
+}
+
+/* ── Rodal Header ── */
 .rodal-header {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm);
+  padding: 10px var(--space-sm);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
+  border-left: 3px solid transparent;
 }
 
 .rodal-header:hover {
-  background: rgba(34, 255, 216, 0.05);
+  background: rgba(34, 101, 131, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .rodal-toggle {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 12px;
   color: var(--text-secondary);
-  padding: 2px 4px;
-  transition: transform 0.2s;
+  padding: 2px;
+  transition: transform 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.rodal-toggle.expanded {
+.rodal-toggle svg {
+  transition: transform 0.25s ease;
+}
+
+.rodal-toggle.expanded svg {
   transform: rotate(90deg);
 }
 
-.rodal-checkbox {
+.rodal-toggle:hover {
+  color: var(--forest-primary);
+}
+
+/* ── Custom Checkbox ── */
+.custom-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+
+.custom-checkbox-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.custom-checkbox:hover .custom-checkbox-box {
+  border-color: var(--forest-secondary);
+}
+
+.custom-checkbox input[type="checkbox"]:focus + .custom-checkbox-box {
+  box-shadow: 0 0 0 3px rgba(34, 101, 131, 0.15);
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .custom-checkbox-box {
+  background: var(--forest-secondary);
+  border-color: var(--forest-secondary);
+}
+
+.custom-checkbox-check {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .custom-checkbox-box .custom-checkbox-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Indeterminate state */
+.custom-checkbox input[type="checkbox"]:indeterminate + .custom-checkbox-box {
+  background: var(--forest-secondary);
+  border-color: var(--forest-secondary);
+}
+
+.custom-checkbox input[type="checkbox"]:indeterminate + .custom-checkbox-box::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 2px;
+  background: #fff;
+  border-radius: 1px;
+}
+
+.custom-checkbox input[type="checkbox"]:indeterminate + .custom-checkbox-box .custom-checkbox-check {
+  display: none;
+}
+
+/* ── Rodal Icon ── */
+.rodal-icon {
   width: 18px;
   height: 18px;
-  cursor: pointer;
-  accent-color: var(--forest-secondary);
+  color: var(--forest-secondary);
+  flex-shrink: 0;
 }
 
 .rodal-name {
@@ -128,54 +245,114 @@
 .rodal-count {
   font-size: 12px;
   color: var(--text-secondary);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-main);
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.rodal-count.some-selected {
+  background: rgba(255, 193, 7, 0.12);
+  color: #b38600;
+}
+
+.rodal-count.all-selected {
+  background: rgba(48, 130, 48, 0.1);
+  color: var(--status-success);
+}
+
+/* ── Parcelas Wrapper (expand animation) ── */
+.parcelas-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+
+.parcelas-wrapper.expanded {
+  grid-template-rows: 1fr;
 }
 
 .parcelas-list {
-  margin-left: 32px;
+  overflow: hidden;
+  margin-left: 28px;
   padding-left: var(--space-md);
-  border-left: 2px solid var(--border-light);
+  border-left: 2px dashed var(--border-light);
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
+/* ── Parcela Item ── */
 .parcela-item {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: 6px var(--space-sm);
+  padding: 8px var(--space-sm);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, border-left 0.2s;
+  border-left: 3px solid transparent;
+  margin-left: -3px;
 }
 
 .parcela-item:hover {
-  background: rgba(34, 255, 216, 0.05);
+  background: rgba(34, 101, 131, 0.06);
+  border-left-color: var(--forest-secondary);
 }
 
-.parcela-checkbox {
+.parcela-item.parcela-selected {
+  background: rgba(34, 255, 216, 0.06);
+  border-left-color: var(--forest-accent);
+}
+
+.parcela-item.parcela-selected .parcela-name {
+  font-weight: 600;
+  color: var(--forest-primary);
+}
+
+/* Parcela icon */
+.parcela-icon {
   width: 16px;
   height: 16px;
-  cursor: pointer;
-  accent-color: var(--forest-secondary);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.parcela-item:hover .parcela-icon {
+  color: var(--forest-secondary);
+}
+
+.parcela-item.parcela-selected .parcela-icon {
+  color: var(--forest-accent);
 }
 
 .parcela-name {
   font-size: 14px;
   color: var(--text-main);
+  transition: color 0.2s;
 }
 
+/* ── Selection Summary ── */
 .selection-summary {
   font-size: 14px;
   color: var(--text-secondary);
   padding: var(--space-sm) 0;
+  flex-shrink: 0;
+  margin: 0;
 }
 
 .selection-summary strong {
   color: var(--forest-primary);
 }
 
+/* ── Form Section ── */
 .form-section {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  flex-shrink: 0;
 }
 
 .form-field label {
@@ -209,8 +386,42 @@
 }
 
 .form-field textarea {
-  resize: vertical;
-  min-height: 80px;
+  resize: none;
+  min-height: 60px;
+  max-height: 80px;
+}
+
+/* ── Date Range Picker ── */
+.date-range-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+.date-range-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+  display: block;
+}
+
+.date-range-field input[type="date"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: var(--sans);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.date-range-field input[type="date"]:focus {
+  outline: none;
+  border-color: var(--forest-secondary);
+  box-shadow: 0 0 0 3px rgba(34, 101, 131, 0.1);
 }
 
 .dependencia-alert {
@@ -236,12 +447,23 @@
   font-size: 14px;
 }
 
-.asignaciones-list {
+/* ── Asignaciones Section ── */
+.asignaciones-section {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  max-height: 300px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.asignaciones-list {
+  flex: 1;
   overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .asignacion-card {
@@ -296,4 +518,20 @@
   padding: var(--space-sm);
   background: rgba(196, 30, 58, 0.05);
   border-radius: var(--radius-md);
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-secondary);
+  display: flex;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+
+.icon-button:hover {
+  background: rgba(196, 30, 58, 0.08);
+  color: var(--status-error);
 }

@@ -183,7 +183,6 @@
 .main-content {
   flex: 1;
   padding: var(--space-xl) var(--space-lg);
-  max-width: 1200px;
   width: 100%;
   box-sizing: border-box;
   background: var(--bg-main);

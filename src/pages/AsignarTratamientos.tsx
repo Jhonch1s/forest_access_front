@@ -5,7 +5,7 @@ import { useRodalParcelas } from '../hooks/useRodalParcelas';
 import { useTratamientos } from '../hooks/useTratamientos';
 import { useAsignaciones } from '../hooks/useAsignaciones';
 import { useTratamientoDependencias } from '../hooks/useTratamientoDependencias';
-import { createAsignacion } from '../services/asignacionTratamientoService';
+import { createAsignacion, deleteAsignacion } from '../services/asignacionTratamientoService';
 import Button from '../components/Button';
 import type { Parcela } from '../types/predio';
 
@@ -38,6 +38,7 @@ function AsignarTratamientos() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
 
   const { campos, loading: loadingCampos } = useCampos();
   const { rodales, parcelasPorRodal, loading: loadingRodales } = useRodalParcelas(selectedCampoId);
@@ -89,8 +90,10 @@ function AsignarTratamientos() {
   const selectedCount = selectedParcelas.size;
 
   const asignacionesVisibles = useMemo(() => {
-    return asignaciones.filter((a) => selectedParcelas.has(a.idParcela));
-  }, [asignaciones, selectedParcelas]);
+    return asignaciones
+      .filter((a) => selectedParcelas.has(a.idParcela))
+      .filter((a) => !deletedIds.has(a.idAsignacion));
+  }, [asignaciones, selectedParcelas, deletedIds]);
 
   const dependenciasDelTratamiento = useMemo(() => {
     if (!idTratamiento) return [];
@@ -103,6 +106,39 @@ function AsignarTratamientos() {
     setSelectedCampoId(id);
     setSelectedParcelas(new Set());
     setExpandedRodales(new Set());
+  };
+
+  const handleEliminarAsignacion = async (idAsignacion: number, nombreTratamiento: string) => {
+    if (!confirm(`¿Eliminar la asignación de "${nombreTratamiento}"?`)) return;
+    setDeletedIds((prev) => new Set(prev).add(idAsignacion));
+    try {
+      await deleteAsignacion(idAsignacion);
+      await refetch();
+      setDeletedIds(new Set());
+    } catch (err: unknown) {
+      setDeletedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(idAsignacion);
+        return next;
+      });
+      let msg = 'Error al eliminar asignación.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: string | { message?: string; error?: string } } };
+        const data = axiosErr.response?.data;
+        if (typeof data === 'string') msg = data;
+        else msg = data?.message ?? data?.error ?? msg;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      setSubmitError(msg);
+    }
+  };
+
+  const handleFechaInicioChange = (value: string) => {
+    setFechaInicioEstimada(value);
+    if (fechaFinEstimada && value > fechaFinEstimada) {
+      setFechaFinEstimada('');
+    }
   };
 
   const handleSubmit = async () => {
@@ -124,7 +160,6 @@ function AsignarTratamientos() {
 
     setSubmitting(true);
     try {
-      // Detectar si es asignación por rodal completo
       let bulkRodalId: number | null = null;
       let parcelasSueltas: number[] = [];
 
@@ -133,7 +168,6 @@ function AsignarTratamientos() {
           if (bulkRodalId === null && parcelasSueltas.length === 0) {
             bulkRodalId = rodal.idRodal;
           } else {
-            // Hay más de un rodal completo o mixto, convertimos todo a sueltas
             if (bulkRodalId !== null) {
               const prevBulkParcelas = parcelasPorRodal.get(bulkRodalId) ?? [];
               parcelasSueltas.push(...prevBulkParcelas.map((p) => p.idParcela));
@@ -177,7 +211,6 @@ function AsignarTratamientos() {
       }
 
       await refetch();
-      setSelectedParcelas(new Set());
     } catch (err: unknown) {
       let msg = 'Error al asignar tratamiento.';
       if (err && typeof err === 'object' && 'response' in err) {
@@ -204,7 +237,7 @@ function AsignarTratamientos() {
       </div>
 
       <div className="asignar-layout">
-        {/* Panel Izquierdo: Jerarquía */}
+        {/* Panel Izquierdo: Jerarquia */}
         <div className="asignar-panel">
           <h3 className="panel-title">Seleccionar Parcelas</h3>
 
@@ -230,51 +263,86 @@ function AsignarTratamientos() {
             {selectedCampoId && !loadingRodales && rodalesConParcelas.length === 0 && (
               <p className="arbol-empty">No hay rodales registrados para este campo.</p>
             )}
-            {rodalesConParcelas.map(({ rodal, parcelas, allSelected, someSelected }) => (
-              <div key={rodal.idRodal} className="rodal-item">
-                <div className="rodal-header" onClick={() => toggleRodal(rodal.idRodal)}>
-                  <button
-                    className={`rodal-toggle ${expandedRodales.has(rodal.idRodal) ? 'expanded' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleRodal(rodal.idRodal);
-                    }}
-                    type="button"
-                    aria-label="Expandir rodal"
-                  >
-                    ▶
-                  </button>
-                  <input
-                    type="checkbox"
-                    className="rodal-checkbox"
-                    checked={allSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = !allSelected && someSelected;
-                    }}
-                    onChange={() => toggleRodalCompleto(rodal.idRodal, parcelas)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <span className="rodal-name">{rodal.nombre}</span>
-                  <span className="rodal-count">{parcelas.length} parcela(s)</span>
-                </div>
-
-                {expandedRodales.has(rodal.idRodal) && (
-                  <div className="parcelas-list">
-                    {parcelas.map((p) => (
-                      <label key={p.idParcela} className="parcela-item">
-                        <input
-                          type="checkbox"
-                          className="parcela-checkbox"
-                          checked={selectedParcelas.has(p.idParcela)}
-                          onChange={() => toggleParcela(p.idParcela)}
-                        />
-                        <span className="parcela-name">{p.nombre}</span>
-                      </label>
-                    ))}
+            {rodalesConParcelas.map(({ rodal, parcelas, allSelected, someSelected }) => {
+              const selectedCountInRodal = parcelas.filter((p) => selectedParcelas.has(p.idParcela)).length;
+              const isExpanded = expandedRodales.has(rodal.idRodal);
+              return (
+                <div key={rodal.idRodal} className={`rodal-item ${allSelected ? 'rodal-selected' : ''}`}>
+                  <div className="rodal-header" onClick={() => toggleRodal(rodal.idRodal)}>
+                    <button
+                      className={`rodal-toggle ${isExpanded ? 'expanded' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleRodal(rodal.idRodal);
+                      }}
+                      type="button"
+                      aria-label="Expandir rodal"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <label className="custom-checkbox" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = !allSelected && someSelected;
+                        }}
+                        onChange={() => toggleRodalCompleto(rodal.idRodal, parcelas)}
+                      />
+                      <span className="custom-checkbox-box">
+                        <svg className="custom-checkbox-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </span>
+                    </label>
+                    <svg className="rodal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 19h8a2 2 0 002-2V7a2 2 0 00-2-2H8a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <path d="M12 11v.01" />
+                      <path d="M8 11v.01" />
+                      <path d="M16 11v.01" />
+                      <path d="M12 15v.01" />
+                      <path d="M8 15v.01" />
+                      <path d="M16 15v.01" />
+                    </svg>
+                    <span className="rodal-name">{rodal.nombre}</span>
+                    <span className={`rodal-count ${allSelected ? 'all-selected' : someSelected ? 'some-selected' : ''}`}>
+                      {someSelected && !allSelected ? `${selectedCountInRodal}/${parcelas.length} seleccionadas` : `${parcelas.length} parcelas`}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  <div className={`parcelas-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                    <div className="parcelas-list">
+                      {parcelas.map((p) => (
+                        <label
+                          key={p.idParcela}
+                          className={`parcela-item ${selectedParcelas.has(p.idParcela) ? 'parcela-selected' : ''}`}
+                        >
+                          <span className="custom-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={selectedParcelas.has(p.idParcela)}
+                              onChange={() => toggleParcela(p.idParcela)}
+                            />
+                            <span className="custom-checkbox-box">
+                              <svg className="custom-checkbox-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </span>
+                          </span>
+                          <svg className="parcela-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                          <span className="parcela-name">{p.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <p className="selection-summary">
@@ -328,23 +396,28 @@ function AsignarTratamientos() {
             </div>
 
             <div className="form-field">
-              <label htmlFor="fechaInicio">Fecha Inicio Estimada</label>
-              <input
-                id="fechaInicio"
-                type="date"
-                value={fechaInicioEstimada}
-                onChange={(e) => setFechaInicioEstimada(e.target.value)}
-              />
-            </div>
-
-            <div className="form-field">
-              <label htmlFor="fechaFin">Fecha Fin Estimada</label>
-              <input
-                id="fechaFin"
-                type="date"
-                value={fechaFinEstimada}
-                onChange={(e) => setFechaFinEstimada(e.target.value)}
-              />
+              <label>Rango de Fechas Estimado</label>
+              <div className="date-range-row">
+                <div className="date-range-field">
+                  <label htmlFor="fechaInicio">Desde</label>
+                  <input
+                    id="fechaInicio"
+                    type="date"
+                    value={fechaInicioEstimada}
+                    onChange={(e) => handleFechaInicioChange(e.target.value)}
+                  />
+                </div>
+                <div className="date-range-field">
+                  <label htmlFor="fechaFin">Hasta</label>
+                  <input
+                    id="fechaFin"
+                    type="date"
+                    value={fechaFinEstimada}
+                    min={fechaInicioEstimada || undefined}
+                    onChange={(e) => setFechaFinEstimada(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="form-field">
@@ -355,6 +428,7 @@ function AsignarTratamientos() {
                 onChange={(e) => setObservaciones(e.target.value)}
                 placeholder="Opcional..."
                 maxLength={500}
+                rows={2}
               />
             </div>
 
@@ -369,35 +443,61 @@ function AsignarTratamientos() {
               <Button variant="secondary" onClick={() => {
                 setSelectedParcelas(new Set());
                 setIdTratamiento(null);
+                setFechaInicioEstimada('');
+                setFechaFinEstimada('');
+                setObservaciones('');
                 setSubmitError(null);
                 setSubmitSuccess(null);
               }} disabled={submitting}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, verticalAlign: 'middle' }}>
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
                 Limpiar
               </Button>
               <Button variant="primary" onClick={handleSubmit} loading={submitting}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, verticalAlign: 'middle' }}>
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
                 Asignar Tratamiento
               </Button>
             </div>
           </div>
 
-          <h3 className="panel-title" style={{ marginTop: 'var(--space-lg)' }}>
-            Asignaciones Existentes ({asignacionesVisibles.length})
-          </h3>
-          <div className="asignaciones-list">
-            {asignacionesVisibles.length === 0 && (
-              <p className="arbol-empty">No hay asignaciones para las parcelas seleccionadas.</p>
-            )}
-            {asignacionesVisibles.map((a) => (
-              <div key={a.idAsignacion} className="asignacion-card">
-                <div className="asignacion-info">
-                  <span className="asignacion-tratamiento">{a.nombreTratamiento}</span>
-                  <span className="asignacion-meta">
-                    {a.nombreParcela} • {a.fechaInicioEstimada} a {a.fechaFinEstimada}
-                  </span>
+          <div className="asignaciones-section">
+            <h3 className="panel-title">
+              Asignaciones Existentes ({asignacionesVisibles.length})
+            </h3>
+            <div className="asignaciones-list">
+              {asignacionesVisibles.length === 0 && (
+                <p className="arbol-empty">No hay asignaciones para las parcelas seleccionadas.</p>
+              )}
+              {asignacionesVisibles.map((a) => (
+                <div key={a.idAsignacion} className="asignacion-card">
+                  <div className="asignacion-info">
+                    <span className="asignacion-tratamiento">{a.nombreTratamiento}</span>
+                    <span className="asignacion-meta">
+                      {a.nombreParcela} &bull; {a.fechaInicioEstimada} a {a.fechaFinEstimada}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className={`badge ${getEstadoBadgeClass(a.estado)}`}>{a.estado}</span>
+                    {a.estado === 'PENDIENTE' && (
+                      <button
+                        className="icon-button danger-hover"
+                        onClick={() => handleEliminarAsignacion(a.idAsignacion, a.nombreTratamiento)}
+                        title="Eliminar asignación"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)', display: 'flex' }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <span className={`badge ${getEstadoBadgeClass(a.estado)}`}>{a.estado}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

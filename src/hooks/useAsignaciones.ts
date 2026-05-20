@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { AsignacionTratamientoResponse } from '../types/asignacion-tratamiento';
 import { getAsignaciones, getAsignacionesByParcela, getAsignacionesByRodal } from '../services/asignacionTratamientoService';
 
@@ -7,24 +7,42 @@ export function useAsignaciones() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const pendingRef = useRef<{
+    resolve: (data: AsignacionTratamientoResponse[]) => void;
+    reject: (error: string) => void;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     getAsignaciones()
       .then((data) => {
-        if (!cancelled) setAsignaciones(data);
+        if (!cancelled) {
+          setAsignaciones(data);
+          setError(null);
+          pendingRef.current?.resolve(data);
+        }
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Error desconocido');
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : 'Error desconocido';
+          setError(msg);
+          pendingRef.current?.reject(msg);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
+        pendingRef.current = null;
       });
     return () => { cancelled = true; };
   }, [refreshKey]);
 
-  const refetch = () => setRefreshKey((k) => k + 1);
+  const refetch = useCallback(() => {
+    return new Promise<AsignacionTratamientoResponse[]>((resolve, reject) => {
+      pendingRef.current = { resolve, reject };
+      setRefreshKey((k) => k + 1);
+    });
+  }, []);
 
   return { asignaciones, loading, error, refetch };
 }
