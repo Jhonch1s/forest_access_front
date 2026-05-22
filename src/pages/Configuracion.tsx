@@ -3,6 +3,7 @@ import ConfigCard from '../components/ConfigCard';
 import CatalogModal from '../components/CatalogModal';
 import { useCategorias } from '../hooks/useCategorias';
 import { useProductos } from '../hooks/useProductos';
+import { useHabilitaciones } from '../hooks/useHabilitaciones';
 import {
   createCategoria,
   updateCategoria,
@@ -13,11 +14,17 @@ import {
   updateProducto,
   deleteProducto,
 } from '../services/productoService';
+import{
+  createHabilitacion,
+  updateHabilitacion,
+  deleteHabilitacion,
+} from '../services/habilitacionService';
+
 import type { FieldConfig } from '../components/FormModal';
 import './Configuracion.css';
 
 const categoriaColumns = [
-  { key: 'idCategoria', label: 'ID' },
+  { key: 'idCategoria', label: 'ID'},
   { key: 'nombre', label: 'Nombre' },
   { key: 'valorJornal', label: 'Valor Jornal' },
   { key: 'descripcion', label: 'Descripción' },
@@ -44,9 +51,23 @@ const productoFields: FieldConfig[] = [
   { name: 'unidadBase', label: 'Unidad Base' },
 ];
 
+const habilitacionColumns = [ 
+  { key: 'idHabilitacion', label:'ID'},
+  { key: 'nombre', label:'Nombre'},
+  { key: 'descripcion', label:'Descripcion'},
+]
+
+const habilitacionFields: FieldConfig[] = [
+  { name: 'nombre', label: 'Nombre', required: true},
+  { name: 'descripcion', label: 'Descripcion', required: true }
+]
+
+
 function Configuracion() {
   const { categorias, loading: loadingCategorias, refetch: refetchCategorias } = useCategorias();
   const { productos, loading: loadingProductos, refetch: refetchProductos } = useProductos();
+  const { habilitaciones, loading: loadingHabilitaciones, refetch:refetchHabilitaciones} = useHabilitaciones();
+  const [modalHabilitacion, setModalHabilitacion] = useState(false);
   const [modalCategoria, setModalCategoria] = useState(false);
   const [modalProducto, setModalProducto] = useState(false);
 
@@ -78,6 +99,17 @@ function Configuracion() {
           description="Insumos y químicos del sistema"
           count={productos.length}
           onClick={() => setModalProducto(true)}
+        />
+        <ConfigCard
+          icon={
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+            </svg>
+          }
+          title="Habilitaciones"
+          description="Habilitaciones existentes"
+          count={habilitaciones.length}
+          onClick={() => setModalHabilitacion(true)}
         />
       </div>
 
@@ -124,6 +156,29 @@ function Configuracion() {
           }}
           onClose={() => setModalProducto(false)}
           onRefresh={refetchProductos}
+        />
+      )}
+
+      {modalHabilitacion && (
+        <CatalogModal
+          title="Habilitacion de empleado"
+          columns={habilitacionColumns}
+          fields={habilitacionFields}
+          items={habilitaciones as unknown as Record<string, unknown>[]}
+          loading={loadingHabilitaciones}
+          idField="idHabilitacion"
+          displayField="nombre"
+          onCreate={async (values) => {
+            await createHabilitacion(values as never);
+          }}
+          onUpdate={async (id, values) => {
+            await updateHabilitacion(id, values as never);
+          }}
+          onDelete={async (id) => {
+            await deleteHabilitacion(id);
+          }}
+          onClose={() => setModalHabilitacion(false)}
+          onRefresh={refetchHabilitaciones}
         />
       )}
 
