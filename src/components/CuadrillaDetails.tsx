@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { CuadrillaUI } from '../hooks/useCuadrillas';
 import { useEmpleados } from '../hooks/useEmpleados';
 import { sincronizarEmpleados } from '../services/cuadrillaService';
+import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 import './CuadrillaDetails.css';
 import Button from './Button';
 
@@ -20,18 +21,17 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [activeAssignments, setActiveAssignments] = useState<Map<number, string>>(new Map());
 
-  // Sincronizar estado local al abrir modo edición o cambiar de cuadrilla
   useEffect(() => {
     if (cuadrilla) {
       setEditMembers([...cuadrilla.miembros]);
     }
-    setIsEditing(false); // Si cambia la cuadrilla, salimos de edición
+    setIsEditing(false);
     setSearchTerm('');
     setShowDropdown(false);
   }, [cuadrilla]);
 
-  // Cerrar dropdown al hacer clic afuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -41,6 +41,31 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Cargar asignaciones activas de empleados de otras cuadrillas
+  useEffect(() => {
+    async function loadAssignments() {
+      try {
+        const assignments = await getEmpleadosCuadrillas();
+        // Filtrar asignaciones activas de otras cuadrillas
+        const activeOtherAssignments = assignments.filter(
+          a => (a.esActivo || !a.fechaFin) && a.idCuadrilla !== cuadrilla?.idCuadrilla
+        );
+        const map = new Map<number, string>();
+        activeOtherAssignments.forEach(a => {
+          map.set(a.idEmpleado, a.nombreCuadrilla);
+        });
+        setActiveAssignments(map);
+      } catch (err) {
+        console.error("Error loading employee assignments:", err);
+      }
+    }
+    if (isEditing && cuadrilla) {
+      loadAssignments();
+    } else {
+      setActiveAssignments(new Map());
+    }
+  }, [isEditing, cuadrilla]);
 
   if (!cuadrilla) {
     return (
@@ -58,7 +83,7 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
 
   const handleSetPuntero = (idEmpleado: number) => {
     setEditMembers(prev => prev.map(m => {
-      // Si era puntero, pasa a peón. El seleccionado pasa a Puntero.
+      //Si era puntero, pasa a peón. El seleccionado pasa a Puntero.
       if (m.id === idEmpleado) return { ...m, rol: 'Puntero' };
       if (m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz')) return { ...m, rol: 'Peón forestal' };
       return m;
@@ -88,6 +113,14 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
   };
 
   const handleSave = async () => {
+    const hasPuntero = editMembers.some(m => 
+      m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz')
+    );
+    if (!hasPuntero) {
+      alert("Es obligatorio seleccionar un puntero/capataz para la cuadrilla.");
+      return;
+    }
+
     try {
       setIsSaving(true);
       const syncPayload = editMembers.map(m => ({
@@ -147,13 +180,18 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
             <select 
               value={currentPuntero?.id || ""} 
               onChange={(e) => handleSetPuntero(Number(e.target.value))}
-              className="puntero-select"
+              className={`puntero-select ${!currentPuntero ? 'input-error' : ''}`}
             >
               <option value="" disabled>Selecciona un puntero de la lista...</option>
               {editMembers.map(m => (
                 <option key={m.id} value={m.id}>{m.nombre}</option>
               ))}
             </select>
+            {!currentPuntero && (
+              <span className="puntero-warning-text">
+                * Es obligatorio seleccionar un puntero.
+              </span>
+            )}
           </div>
         ) : (
           <p className="detail-value">{currentPuntero ? currentPuntero.nombre : 'Sin asignar'}</p>
@@ -209,16 +247,29 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
               {showDropdown && searchTerm && (
                 <div className="autocomplete-dropdown">
                   {availableEmpleados.length > 0 ? (
-                    availableEmpleados.map(emp => (
-                      <div 
-                        key={emp.idEmpleado} 
-                        className="autocomplete-item"
-                        onClick={() => handleAddMember(emp)}
-                      >
-                        <span className="emp-name">{emp.nombre}</span>
-                        <span className="emp-cedula">CI: {emp.cedula}</span>
-                      </div>
-                    ))
+                    availableEmpleados.map(emp => {
+                      const assignedSquadName = activeAssignments.get(emp.idEmpleado);
+                      return (
+                        <div 
+                          key={emp.idEmpleado} 
+                          className={`autocomplete-item ${assignedSquadName ? 'disabled' : ''}`}
+                          onClick={() => {
+                            if (assignedSquadName) return;
+                            handleAddMember(emp);
+                          }}
+                        >
+                          <div className="emp-search-info">
+                            <span className="emp-name">{emp.nombre}</span>
+                            {assignedSquadName && (
+                              <span className="assigned-squad-badge">
+                                En: {assignedSquadName}
+                              </span>
+                            )}
+                          </div>
+                          <span className="emp-cedula">CI: {emp.cedula}</span>
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="autocomplete-empty">No se encontraron empleados.</div>
                   )}

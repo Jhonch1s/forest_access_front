@@ -45,11 +45,20 @@ export default function CuadrillaList({ cuadrillas, loading, error, selectedId, 
   };
   
   if (loading) {
-    return <div className="cuadrilla-list-pane"><p>Cargando cuadrillas...</p></div>;
+    return (
+      <div className="cuadrilla-list-status">
+        <div className="cuadrilla-spinner" />
+        <p>Cargando cuadrillas...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="cuadrilla-list-pane"><p style={{color: 'red'}}>Error: {error}</p></div>;
+    return (
+      <div className="cuadrilla-list-status cuadrilla-list-error">
+        <p>Error al cargar cuadrillas: {error}</p>
+      </div>
+    );
   }
 
   return (
