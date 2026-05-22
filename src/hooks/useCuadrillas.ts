@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCuadrillas, getHistorialCuadrillas } from '../services/cuadrillaService';
+import { getCuadrillasActivas, getHistorialCuadrillas } from '../services/cuadrillaService';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 
 export interface MiembroUI {
@@ -28,11 +28,9 @@ export function useCuadrillas(mostrarHistorial: boolean = false) {
       try {
         setLoading(true);
         const [cuadrillasData, empleadosData] = await Promise.all([
-          mostrarHistorial ? getHistorialCuadrillas() : getCuadrillas(),
+          mostrarHistorial ? getHistorialCuadrillas() : getCuadrillasActivas(),
           getEmpleadosCuadrillas()
         ]);
-
-        console.log("DATOS CRUDOS DE EMPLEADOS:", empleadosData);
 
         const cuadrillasProcesadas = cuadrillasData.map((cuadrilla) => {
           // Si el backend no manda 'esActivo' bien, usamos 'fechaFin' nula como alternativa para saber si está activo
@@ -76,8 +74,8 @@ export function useCuadrillas(mostrarHistorial: boolean = false) {
         });
 
         setCuadrillas(cuadrillasProcesadas);
-      } catch (err: any) {
-        setError(err.message || 'Error al cargar cuadrillas');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error al cargar cuadrillas');
       } finally {
         setLoading(false);
       }

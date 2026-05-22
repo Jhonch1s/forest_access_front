@@ -15,22 +15,26 @@ function Login() {
     e.preventDefault();
     setError('');
 
-    if (!usuario.trim() || !password.trim()) {
+    const u = usuario.trim();
+    const p = password.trim();
+
+    if (!u || !p) {
       setError('Completá todos los campos.');
+      return;
+    }
+
+    if (u.length > 50 || p.length > 100) {
+      setError('Los datos ingresados superan el límite permitido.');
       return;
     }
 
     setLoading(true);
     try {
-      const token = await login({ usuario, password });
+      const token = await login({ usuario: u, password: p });
       localStorage.setItem('token', token);
       navigate('/dashboard');
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Credenciales incorrectas.');
-      }
+    } catch {
+      setError('Credenciales incorrectas.');
     } finally {
       setLoading(false);
     }

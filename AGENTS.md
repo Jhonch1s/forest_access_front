@@ -10,7 +10,7 @@ Domain: forest access management — personnel administration, employee categori
 - **Package**: `com.example.forest_access`
 - **Stack**: Java 24, Spring Boot, Spring Security, Spring Data JPA, Jakarta EE, Lombok
 - **Security**: JWT (stateless) via `io.jsonwebtoken`, validated in `SeguridadConfig` filter
-- **Known entities**: `CategoriaEmpleado`, `Campo`, `Rodal`, `Parcela`, `Empleado`, `Cuadrilla`, `Tarea`, `Liquidacion`, `Habilitacion`, `Perfil`, `Usuario`
+- **Known entities**: `CategoriaEmpleado`, `Campo`, `Rodal`, `Parcela`, `Empleado`, `Cuadrilla`, `Tarea`, `Liquidacion`, `Habilitacion`, `Perfil`, `Usuario`, `Producto`
 - **Coordinate precision**: `BigDecimal(precision=11, scale=8)` — 8 decimal places
 - **CORS**: Handled by backend `SeguridadConfig` — must allow `http://localhost:5173`
 - **Custom DTOs**: When a feature needs data from multiple entities or only a subset of fields, create custom request/response DTOs in the backend. This avoids over-fetching and keeps frontend logic simple. Always suggest this approach when the existing DTOs don't fit the use case.
@@ -44,7 +44,7 @@ These are **enforced** in `tsconfig.app.json` — code that violates them won't 
 - `erasableSyntaxOnly: true` — no `enum`, `namespace`, or parameter properties; use `const` objects or `type` unions instead
 - `noUnusedLocals: true` / `noUnusedParameters: true` — dead code causes build errors
 - `moduleResolution: "bundler"` — `.ts`/`.tsx` extensions allowed in imports
-- Two tsconfig files: `tsconfig.app.json` (src/) and `tsconfig.node.json` (vite.config.ts only)
+- Three tsconfig files: `tsconfig.json` (root, project references aggregator), `tsconfig.app.json` (src/), and `tsconfig.node.json` (vite.config.ts only)
 
 ## ESLint Config
 
@@ -68,11 +68,13 @@ src/
     CampoHeader.tsx / .css
     CampoSelector.tsx / .css
     CategoriaList.tsx / .css
-    EmpleadoList.tsx / .css      # Table with pagination (desktop + mobile cards)
+    EmpleadoList.tsx             # Table with pagination (desktop + mobile cards)
     CuadrillaList.tsx / .css     # Selectable list with status badges
     CuadrillaDetails.tsx / .css  # Member management, puntero assignment, inline editing
     FormModal.tsx / .css         # Basic form modal (text/number)
-    FormModalComplete.tsx / .css # Advanced form modal (text/number/select/checkbox/date)
+    FormModalComplete.tsx        # Advanced form modal (text/number/select/checkbox/date)
+    CatalogModal.tsx / .css      # CRUD catalog modal (list + create/edit form)
+    ConfigCard.tsx / .css        # Config section card (icon, title, description, count)
     ConfirmModal.tsx / .css      # Confirmation dialog
     RodalCard.tsx / .css
     SatelliteMap.tsx / .css      # react-leaflet map (Esri World Imagery)
@@ -100,6 +102,7 @@ src/
     empleadoService.ts    # CRUD for empleados
     cuadrillaService.ts   # CRUD + terminar + sincronizar empleados
     empleadoCuadrillaService.ts  # assign/remove employees from squads
+    productoService.ts          # CRUD for productos
     tratamientoService.ts       # CRUD for tratamientos (catalog)
     asignacionTratamientoService.ts  # Planificación: assign treatments to parcels/rodales
   types/                  # TypeScript interfaces (generated from OpenAPI schemas)
@@ -119,6 +122,7 @@ src/
     useRodalParcelas.ts
     useCategorias.ts
     useEmpleados.ts
+    useProductos.ts       # Fetches product catalog
     useCuadrillas.ts      # Enriched squad data with member aggregation and puntero detection
     useTratamientos.ts    # Catalog of available treatments
     useTratamientoDependencias.ts  # Treatment precedence rules
@@ -154,6 +158,9 @@ Load these with the `skill` tool when relevant:
 - **typescript-advanced-types** — generics, conditional types, mapped types
 - **frontend-design** — production-grade UI design
 - **seo** / **accessibility** — audit and optimization
+- **composition-patterns** — React composition patterns that scale
+- **nodejs-backend-patterns** — production-ready Node.js backend services
+- **nodejs-best-practices** — Node.js development principles and decision-making
 
 ## Project Architecture
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { CuadrillaUI } from '../hooks/useCuadrillas';
 import { useEmpleados } from '../hooks/useEmpleados';
+import type { EmpleadoDTO } from '../types/empleado';
 import { sincronizarEmpleados } from '../services/cuadrillaService';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 import './CuadrillaDetails.css';
@@ -90,7 +91,7 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
     }));
   };
 
-  const handleAddMember = (emp: any) => {
+  const handleAddMember = (emp: EmpleadoDTO) => {
     if (editMembers.some(m => m.id === emp.idEmpleado)) {
       alert("El empleado ya está en la cuadrilla");
       return;

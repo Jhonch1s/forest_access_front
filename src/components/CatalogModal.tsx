@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useModalA11y } from '../hooks/useModalA11y';
 import type { FieldConfig } from './FormModal';
 import Button from './Button';
 import './CatalogModal.css';
@@ -44,6 +45,7 @@ function CatalogModal({
   onClose,
   onRefresh,
 }: CatalogModalProps) {
+  const modalRef = useModalA11y(true, onClose);
   const [view, setView] = useState<'list' | 'form'>('list');
   const [editingItem, setEditingItem] = useState<Record<string, unknown> | null>(null);
 
@@ -148,8 +150,6 @@ function CatalogModal({
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
         msg = axiosErr.response?.data?.message ?? axiosErr.response?.data?.error ?? msg;
-      } else if (err instanceof Error) {
-        msg = err.message;
       }
       setSubmitError(msg);
     } finally {
@@ -169,8 +169,6 @@ function CatalogModal({
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
         msg = axiosErr.response?.data?.message ?? axiosErr.response?.data?.error ?? msg;
-      } else if (err instanceof Error) {
-        msg = err.message;
       }
       setDeleteError(msg);
     } finally {
@@ -186,7 +184,7 @@ function CatalogModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="catalog-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="catalog-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>
             {view === 'form'
@@ -195,7 +193,7 @@ function CatalogModal({
                 : `Nuevo ${title}`
               : title}
           </h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar modal">
             &times;
           </button>
         </div>

@@ -38,7 +38,7 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
   if (empleados.length === 0) {
     return (
       <div className="categoria-status">
-        <p>No hay empleados registradas.</p>
+                <p>No hay empleados registrados.</p>
       </div>
     );
   }
@@ -92,7 +92,7 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
             </Button>
             <Button
             onClick={paginaSiguiente}
-            disabled={paginaActual == totalPaginas}
+            disabled={paginaActual === totalPaginas}
             variant="primary"
             size="medium"
             >
@@ -113,7 +113,7 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
             <div className="categoria-card-body">
               <div className="categoria-card-field">
                 <span className="categoria-card-label">Email</span>
-                <span className="categoria-card-value">${cat.email}</span>
+                <span className="categoria-card-value">{cat.email}</span>
               </div>
               <div className="categoria-card-field">
                 <span className="categoria-card-label">Activo ?</span>
@@ -121,8 +121,8 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
               </div>
             </div>
             <div className="categoria-card-actions">
-              <Button variant="secondary" size="small">Editar</Button>
-              <Button variant="danger" size="small" >Eliminar</Button>
+              <Button variant="secondary" size="small" onClick={() => onEdit(cat)}>Editar</Button>
+              <Button variant="danger" size="small" onClick={() => onDelete(cat)}>Eliminar</Button>
             </div>
           </div>
         ))}
@@ -135,7 +135,7 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
             </button>
             <button
             onClick={paginaSiguiente}
-            disabled={paginaActual == totalPaginas}
+            disabled={paginaActual === totalPaginas}
             >
                 Siguiente
             </button>

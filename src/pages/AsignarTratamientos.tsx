@@ -127,8 +127,6 @@ function AsignarTratamientos() {
         const data = axiosErr.response?.data;
         if (typeof data === 'string') msg = data;
         else msg = data?.message ?? data?.error ?? msg;
-      } else if (err instanceof Error) {
-        msg = err.message;
       }
       setSubmitError(msg);
     }
@@ -138,6 +136,13 @@ function AsignarTratamientos() {
     setFechaInicioEstimada(value);
     if (fechaFinEstimada && value > fechaFinEstimada) {
       setFechaFinEstimada('');
+    }
+  };
+
+  const handleFechaFinChange = (value: string) => {
+    setFechaFinEstimada(value);
+    if (fechaInicioEstimada && value < fechaInicioEstimada) {
+      setFechaInicioEstimada('');
     }
   };
 
@@ -157,11 +162,15 @@ function AsignarTratamientos() {
       setSubmitError('Completá las fechas estimadas.');
       return;
     }
+    if (fechaInicioEstimada > fechaFinEstimada) {
+      setSubmitError('La fecha de inicio no puede ser posterior a la fecha de fin.');
+      return;
+    }
 
     setSubmitting(true);
     try {
       let bulkRodalId: number | null = null;
-      let parcelasSueltas: number[] = [];
+      const parcelasSueltas: number[] = [];
 
       for (const { rodal, parcelas, allSelected } of rodalesConParcelas) {
         if (allSelected && parcelas.length > 0) {
@@ -218,8 +227,6 @@ function AsignarTratamientos() {
         const data = axiosErr.response?.data;
         if (typeof data === 'string') msg = data;
         else msg = data?.message ?? data?.error ?? msg;
-      } else if (err instanceof Error) {
-        msg = err.message;
       }
       setSubmitError(msg);
     } finally {
@@ -404,6 +411,7 @@ function AsignarTratamientos() {
                     id="fechaInicio"
                     type="date"
                     value={fechaInicioEstimada}
+                    max={fechaFinEstimada || undefined}
                     onChange={(e) => handleFechaInicioChange(e.target.value)}
                   />
                 </div>
@@ -414,7 +422,7 @@ function AsignarTratamientos() {
                     type="date"
                     value={fechaFinEstimada}
                     min={fechaInicioEstimada || undefined}
-                    onChange={(e) => setFechaFinEstimada(e.target.value)}
+                    onChange={(e) => handleFechaFinChange(e.target.value)}
                   />
                 </div>
               </div>

@@ -1,3 +1,4 @@
+import { useModalA11y } from '../hooks/useModalA11y';
 import type { Campo } from '../types/predio';
 import Button from './Button';
 import './CampoSelector.css';
@@ -11,12 +12,14 @@ interface CampoSelectorProps {
 }
 
 function CampoSelector({ campos, campoActualId, onSelect, onCrearNuevo, onClose }: CampoSelectorProps) {
+  const modalRef = useModalA11y(true, onClose);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content campo-selector-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content campo-selector-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label="Seleccionar Campo" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Seleccionar Campo</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar modal">
             &times;
           </button>
         </div>

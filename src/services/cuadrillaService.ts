@@ -2,7 +2,7 @@ import api from './api';
 import type { CuadrillaResponse, CuadrillaDTO } from '../types/cuadrilla';
 
 export async function getCuadrillas(): Promise<CuadrillaResponse[]> {
-  const { data } = await api.get('/cuadrillas/activas');
+  const { data } = await api.get('/cuadrillas');
   return data;
 }
 

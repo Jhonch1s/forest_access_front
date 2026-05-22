@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useModalA11y } from '../hooks/useModalA11y';
 import Button from './Button';
 import './FormModal.css';
 
@@ -29,6 +30,7 @@ function computeDefaults(fields: FieldConfig[], initialValues?: Record<string, u
 }
 
 function FormModal({ title, fields, initialValues, onSubmit, onClose }: FormModalProps) {
+  const modalRef = useModalA11y(true, onClose);
   const initialDefaults = useMemo(() => computeDefaults(fields, initialValues), [fields, initialValues]);
   const [values, setValues] = useState<Record<string, string | number>>(initialDefaults);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -90,8 +92,6 @@ function FormModal({ title, fields, initialValues, onSubmit, onClose }: FormModa
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
         msg = axiosErr.response?.data?.message ?? axiosErr.response?.data?.error ?? msg;
-      } else if (err instanceof Error) {
-        msg = err.message;
       }
       setSubmitError(msg);
     } finally {
@@ -101,10 +101,10 @@ function FormModal({ title, fields, initialValues, onSubmit, onClose }: FormModa
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" ref={modalRef} role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{title}</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar modal">
             &times;
           </button>
         </div>

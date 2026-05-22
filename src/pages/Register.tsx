@@ -26,26 +26,46 @@ function Register() {
     e.preventDefault();
     setError('');
 
-    if (!usuario.trim() || !password.trim() || !confirmPassword.trim()) {
+    const u = usuario.trim();
+    const p = password.trim();
+    const c = confirmPassword.trim();
+
+    if (!u || !p || !c) {
       setError('Completá todos los campos.');
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (u.length < 3 || u.length > 50) {
+      setError('El usuario debe tener entre 3 y 50 caracteres.');
+      return;
+    }
+
+    if (p.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (p.length > 100) {
+      setError('La contraseña supera el límite permitido.');
+      return;
+    }
+
+    if (p !== c) {
       setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (!perfilId) {
+      setError('Seleccioná un perfil.');
       return;
     }
 
     setLoading(true);
     try {
-      await register({ nombreUsuario: usuario, password });
+      await register({ nombreUsuario: u, password: p });
       navigate('/');
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Error al registrar. Intentá de nuevo.');
-      }
+    } catch {
+      setError('Error al registrar. Intentá de nuevo.');
     } finally {
       setLoading(false);
     }

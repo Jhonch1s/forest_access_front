@@ -21,12 +21,6 @@
   margin-bottom: var(--space-md);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Desktop: tabla */
 .categoria-table-container {
   overflow-x: auto;

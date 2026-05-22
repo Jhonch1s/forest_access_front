@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useModalA11y } from '../hooks/useModalA11y';
 import Button from './Button';
 import './FormModal.css';
 
@@ -41,6 +42,7 @@ function computeDefaults(fields: FieldConfigComplete[], initialValues?: Record<s
 }
 
 function FormModalComplete({ title, fields, initialValues, onSubmit, onClose }: FormModalProps) {
+  const modalRef = useModalA11y(true, onClose);
   const initialDefaults = useMemo(() => computeDefaults(fields, initialValues), [fields, initialValues]);
   const [values, setValues] = useState<Record<string, string | number>>(initialDefaults);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -101,7 +103,7 @@ function FormModalComplete({ title, fields, initialValues, onSubmit, onClose }: 
     try {
       const processed: Record<string, string | number> = {};
       for (const field of fields) {
-        let val = values[field.name];
+        const val = values[field.name];
         if (field.type === 'number' && val !== '') {
           processed[field.name] = Number(val);
         } else {
@@ -114,8 +116,6 @@ function FormModalComplete({ title, fields, initialValues, onSubmit, onClose }: 
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
         msg = axiosErr.response?.data?.message ?? axiosErr.response?.data?.error ?? msg;
-      } else if (err instanceof Error) {
-        msg = err.message;
       }
       setSubmitError(msg);
     } finally {
@@ -125,10 +125,10 @@ function FormModalComplete({ title, fields, initialValues, onSubmit, onClose }: 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" ref={modalRef} role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{title}</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar modal">
             &times;
           </button>
         </div>

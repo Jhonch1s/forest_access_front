@@ -10,7 +10,7 @@ import Button from "../components/Button";
 function Empleados() {
 
   const { categorias } = useCategorias();
-  const { refetch,empleados } = useEmpleados();
+  const { refetch, empleados, loading, error } = useEmpleados();
 
   const categoriaOptions = useMemo(() =>
     categorias.map(cat => ({
@@ -54,7 +54,7 @@ function Empleados() {
   };
 
 
-  const handleCrearEmpleado = async (values: Record<string, any>) => {
+  const handleCrearEmpleado = async (values: Record<string, string | number>) => {
     await createEmpleado({
       idEmpleado: 0,
       nombre: values.nombre as string,
@@ -62,7 +62,7 @@ function Empleados() {
       telefono: values.telefono as string,
       email: values.email as string,
       fechaIngreso: values.fechaIngreso as string,
-      activo: values.activo as boolean,
+      activo: values.activo === 'true',
       idCategoria: Number(values.idCategoria),
     });
     await refetch();
@@ -111,7 +111,23 @@ function Empleados() {
         </div>
         
       </div>
-      <EmpleadoList
+
+      {loading && (
+        <div className="categoria-status">
+          <div className="categoria-spinner" />
+          <p>Cargando empleados...</p>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="categoria-status">
+          <p className="categoria-error">{error}</p>
+          <Button variant="secondary" onClick={() => refetch()}>Reintentar</Button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <EmpleadoList
       empleados={empleados}
         onEdit={(emp) => {
           setModal({ type: 'editar', empleado: emp })
@@ -121,6 +137,7 @@ function Empleados() {
 
         onDelete={handleEliminar}
       />
+      )}
 
       {modal?.type === 'crear' && (
         <FormModalComplete
