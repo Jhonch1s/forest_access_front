@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { EmpleadoDTO } from "../types/empleado";
+import type { EmpleadoDTO,EmpleadoResponse } from "../types/empleado";
 import Button from "./Button";
 import './CategoriaList.css';
 
 interface EmpleadoListProps {
-  empleados: EmpleadoDTO[];
+  empleados: EmpleadoResponse[];
   onEdit: (empleado: EmpleadoDTO) => void;
   onDelete: (empleado: EmpleadoDTO) => void;
 }
@@ -49,12 +49,11 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
         <table className="table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Cedula</th>
               <th>Nombre</th>
               <th>Email</th>
               <th>Telefono</th>
-              <th>Fecha de ingreso</th>
+              <th>Categoria</th>
               <th>Activo ?</th>
               <th>Acciones</th>
             </tr>
@@ -62,12 +61,11 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
           <tbody>
             {empleadosPagina.map((emp) => (
               <tr key={emp.idEmpleado}>
-                <td>{emp.idEmpleado}</td>
                 <td>{emp.cedula}</td>
                 <td>{emp.nombre}</td>
                 <td>{emp.email}</td>
                 <td>{emp.telefono}</td>
-                <td>{emp.fechaIngreso}</td>
+                <td>{emp.nombreCategoria}</td>
                 {emp.activo == true ? (
                     <td>Si</td>
                 ) : (
@@ -126,7 +124,7 @@ function EmpleadoList({ empleados,onEdit, onDelete }: EmpleadoListProps){
             </div>
           </div>
         ))}
-        <div>
+        <div className='botones'>
             <button
             onClick={paginaAnterior}
             disabled={paginaActual === 1}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { EmpleadoDTO } from '../types/empleado';
+import type { EmpleadoDTO,EmpleadoResponse } from '../types/empleado';
 import { getEmpleados } from '../services/empleadoService';
 
 export function useEmpleados() {
-  const [empleados, setEmpleados] = useState<EmpleadoDTO[]>([]);
+  const [empleados, setEmpleados] = useState<EmpleadoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -23,7 +23,7 @@ export function useEmpleados() {
 
   useEffect(() => {
     fetchEmpleados();
-  }, [refreshKey]); // Dependencia clave
+  }, [refreshKey]); 
 
   const refetch = () => setRefreshKey(prev => prev + 1);
 

@@ -117,4 +117,10 @@
   .categoria-card-actions .button {
     flex: 1;
   }
+
+  .botones{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
 }
