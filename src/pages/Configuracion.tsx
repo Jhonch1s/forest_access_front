@@ -24,7 +24,7 @@ import type { FieldConfig } from '../components/FormModal';
 import './Configuracion.css';
 
 const categoriaColumns = [
-  { key: 'idCategoria', label: 'ID' },
+  { key: 'idCategoria', label: 'ID'},
   { key: 'nombre', label: 'Nombre' },
   { key: 'valorJornal', label: 'Valor Jornal' },
   { key: 'descripcion', label: 'Descripción' },
@@ -67,9 +67,6 @@ function Configuracion() {
   const { categorias, loading: loadingCategorias, refetch: refetchCategorias } = useCategorias();
   const { productos, loading: loadingProductos, refetch: refetchProductos } = useProductos();
   const { habilitaciones, loading: loadingHabilitaciones, refetch:refetchHabilitaciones} = useHabilitaciones();
-  console.log(habilitaciones);
-  console.log(productos);
-  console.log(categorias);
   const [modalHabilitacion, setModalHabilitacion] = useState(false);
   const [modalCategoria, setModalCategoria] = useState(false);
   const [modalProducto, setModalProducto] = useState(false);
