@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import './Layout.css';
 
 interface LayoutProps {
@@ -93,14 +94,19 @@ const navItems = [
 
 function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     navigate('/');
   };
 
   const closeSidebar = () => setSidebarOpen(false);
+
+  const avatar = user?.nombreUsuario.charAt(0).toUpperCase() ?? 'A';
+  const displayName = user?.nombreUsuario ?? 'Usuario';
+  const displayRole = user?.perfiles.includes('admin') ? 'Administrador' : 'Puntero';
 
   return (
     <div className="layout">
@@ -146,10 +152,10 @@ function Layout({ children }: LayoutProps) {
 
         <div className="sidebar-user">
           <div className="sidebar-user-info">
-            <div className="sidebar-user-avatar">A</div>
+            <div className="sidebar-user-avatar">{avatar}</div>
             <div>
-              <p className="sidebar-user-name">Admin</p>
-              <p className="sidebar-user-role">Administrador</p>
+              <p className="sidebar-user-name">{displayName}</p>
+              <p className="sidebar-user-role">{displayRole}</p>
             </div>
           </div>
           <button className="sidebar-logout" onClick={handleLogout} aria-label="Cerrar sesión">

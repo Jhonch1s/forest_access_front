@@ -59,11 +59,14 @@ Flat config in `eslint.config.js`. Applies to `**/*.{ts,tsx}`:
 ```
 src/
   main.tsx                # Entry point, renders <App /> in StrictMode
-  App.tsx                 # Router config (BrowserRouter + Routes)
+  App.tsx                 # Router config (BrowserRouter + Routes, AuthProvider wrapper)
   index.css               # Global styles + design tokens (CSS variables)
   App.css                 # App-level styles (if any)
   components/             # Reusable UI components
-    Layout.tsx / .css     # Sidebar + topbar navigation shell
+    Layout.tsx / .css     # Sidebar + topbar navigation shell (admin)
+    PunteroLayout.tsx / .css  # Mobile topbar layout (puntero, no sidebar)
+    AuthProvider.tsx       # JWT decode + auth state provider
+    ProtectedRoute.tsx     # Route guard by profile
     Button.tsx / .css     # Reusable button (primary/secondary/danger/ghost, sizes, loading)
     CampoHeader.tsx / .css
     CampoSelector.tsx / .css
@@ -78,6 +81,8 @@ src/
     ConfirmModal.tsx / .css      # Confirmation dialog
     RodalCard.tsx / .css
     SatelliteMap.tsx / .css      # react-leaflet map (Esri World Imagery)
+  contexts/               # React contexts
+    AuthContext.ts         # Auth context type + createContext
   pages/                  # Route-level pages
     Login.tsx / .css
     Register.tsx
@@ -91,6 +96,7 @@ src/
     Liquidaciones.tsx
     Configuracion.tsx
     Categorias.tsx
+    PunteroPanel.tsx / .css  # Mobile-first: cuadrilla info, parcelas, task creation
   services/               # API layer (axios instances, typed fetchers)
     api.ts                # Axios instance with JWT interceptor + 401/403 handling
     authService.ts        # login / register
@@ -105,9 +111,13 @@ src/
     productoService.ts          # CRUD for productos
     tratamientoService.ts       # CRUD for tratamientos (catalog)
     asignacionTratamientoService.ts  # Planificación: assign treatments to parcels/rodales
+    tareaService.ts             # CRUD for tareas + liquidacion query
+    catalogoTareaService.ts     # GET catalogo de tareas
+    estadoService.ts            # GET estados
+    registroDiarioService.ts    # CRUD for registros diarios
   types/                  # TypeScript interfaces (generated from OpenAPI schemas)
     index.ts              # Central barrel export
-    auth.ts               # Perfil, Usuario, LoginRequest, RegisterRequest
+    auth.ts               # Perfil, Usuario, LoginRequest, RegisterRequest, AuthUser
     categoria.ts          # CategoriaEmpleado, CategoriaEmpleadoDTO
     cuadrilla.ts          # Cuadrilla, CuadrillaDTO, CuadrillaResponse
     empleado.ts           # Empleado, EmpleadoDTO, EmpleadoResponse
@@ -118,6 +128,7 @@ src/
     tarea.ts              # Estado, CatalogoTarea, PlantillaTarea, Tarea, Liquidacion, RegistroDiario, Tratamiento, Producto, etc.
     asignacion-tratamiento.ts # AsignacionTratamientoResponse, AsignacionTratamientoDTO, EstadoAsignacion
   hooks/                  # Custom hooks
+    useAuth.ts            # useAuth() — consumes AuthContext
     useCampos.ts
     useRodalParcelas.ts
     useCategorias.ts
@@ -127,6 +138,8 @@ src/
     useTratamientos.ts    # Catalog of available treatments
     useTratamientoDependencias.ts  # Treatment precedence rules
     useAsignaciones.ts    # Treatment assignments (planning layer)
+    useTareas.ts          # Fetch tareas with refetch
+    useCatalogoTareas.ts  # Fetch catalogo de tipos de tarea
   assets/                 # Static images (react.svg, vite.svg, hero.png)
 public/                   # Served at root (favicon.svg, icons.svg)
 .agents/
@@ -183,10 +196,15 @@ Key dependencies:
 
 - Login form POSTs `{ usuario, password }` to the Spring Boot auth controller (`/auth/login`)
 - Response contains a **JWT token** (stateless auth — no server sessions)
+- JWT claims: `sub` (username), `authorities` (profile names, e.g. `["admin"]`, `["puntero"]`), `idEmpleado` (nullable, links usuario to empleado)
+- **`AuthProvider`** (`src/components/AuthProvider.tsx`) wraps the app, decodes JWT on mount, exposes `{ user, token, isAuthenticated, login, logout, hasProfile }` via `useAuth()` hook
+- **`AuthContext`** (`src/contexts/AuthContext.ts`) — React context for auth state
+- **`ProtectedRoute`** (`src/components/ProtectedRoute.tsx`) — guards routes by `requiredProfile` prop; redirects to `/` if not authenticated, to `/dashboard` if wrong profile
 - Store JWT in `localStorage` (`token`), attach as `Authorization: Bearer <token>` header on every request via Axios request interceptor (`services/api.ts`)
-- Token is NOT decoded on the frontend; user info is static/hardcoded in Layout for now (no `AuthContext` implemented yet)
 - **API interceptor** (axios response) handles 401/403 → removes token and redirects to `/`
-- Routes are NOT programmatically protected yet (no `<ProtectedRoute>` wrapper); all routes render directly
+- **Role-based routing**: admin → `/dashboard` (sidebar layout), puntero → `/puntero` (mobile layout). Redirect happens in `Login.tsx` after successful login based on `user.perfiles`.
+- **Backend FK**: `Usuario` entity has `@ManyToOne Empleado empleado` (nullable). Hibernate `ddl-auto: update` auto-creates the `id_empleado` column. Backend adds `idEmpleado` claim to JWT in `AuthService.generarToken()`.
+- **BD setup**: `usuario_perfiles` join table links users to profiles. Profile id=1 is "admin", id=2 is "puntero".
 
 ## Implementation Notes
 
@@ -194,5 +212,31 @@ Key dependencies:
 - **CuadrillaDetails** allows inline editing of squad members: add/remove employees, assign a "Puntero/Capataz", and sync changes via `sincronizarEmpleados` endpoint.
 - **Empleados page** uses `FormModalComplete` with select/checkbox/date fields and client-side pagination in `EmpleadoList`.
 - **Asignar Tratamientos** (`/asignar-tratamientos`) uses a two-panel layout: left side shows a Campo→Rodal→Parcela tree with checkbox selection (selecting a Rodal auto-selects all its Parcelas); right side shows the assignment form (tratamiento, fechas, observaciones) and existing assignments filtered by selected parcels. Backend auto-creates one record per parcel when bulk-assigning by rodal. Dependencies (`TratamientoDependencia`) are displayed as info alerts but validated server-side.
-- **No global auth context** exists yet; auth state is local to `Login.tsx` and `api.ts`.
 - **No test framework** is configured.
+
+## Puntero Panel (EN PROGRESO)
+
+Mobile-first panel for the puntero (squad foreman) to register daily tasks for their workers.
+
+### Current State
+- Auth with roles works: admin → `/dashboard`, puntero → `/puntero`
+- JWT includes `idEmpleado` claim (links usuario → empleado)
+- PunteroPanel shows: cuadrilla info, members, parcelas with active treatments
+- Task creation modal: tipo de tarea (catalog), empleado, horas, descripcion, observaciones
+- CSS: mobile-first, FAB button for new task, responsive cards
+
+### Pending
+- **Parcelas filtering**: Currently shows ALL asignaciones in EN_EJECUCION/PLANIFICADO, not just those belonging to the puntero's cuadrilla. Needs HistoricoTratamiento endpoint by cuadrilla or backend filtering.
+- **TareaDTO structure**: Backend may need a simplified DTO (IDs only, not nested objects) for task creation. Untested against real backend.
+- **RegistroDiario**: Service exists but not wired into the puntero flow yet. The plan was to create daily records per employee after tasks.
+- **Task editing/deletion**: Not implemented yet.
+- **Real-time task count per parcela**: Currently filtered by name matching, needs proper HistoricoTratamiento linkage.
+- **Dashboard**: Empty placeholder — will show progress/stats from tareas.
+- **Liquidaciones**: Empty placeholder — will calculate from registros diarios.
+- **Reportes**: Empty placeholder — will generate from tareas + registros.
+
+### Backend Dependencies Needed
+1. Endpoint: `GET /asignaciones-tratamiento/cuadrilla/{idCuadrilla}` — filter assignments by cuadrilla
+2. HistoricoTratamiento: created automatically when an assignment is linked to a cuadrilla, or needs manual creation endpoint
+3. TareaDTO: verify if backend accepts nested objects or needs flat IDs
+4. Endpoint: `GET /registros-diarios/empleado/{idEmpleado}/fecha/{fecha}` — daily records by employee and date
