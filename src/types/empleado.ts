@@ -32,4 +32,5 @@ export interface EmpleadoResponse {
   activo: boolean;
   idCategoria: number;
   nombreCategoria: string;
+  diasRestantes: number;
 }

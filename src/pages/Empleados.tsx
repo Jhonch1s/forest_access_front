@@ -2,7 +2,11 @@ import { useState, useMemo } from 'react';
 import EmpleadoList from "../components/EmpleadoList";
 import { useCategorias } from "../hooks/useCategorias";
 import { useEmpleados } from '../hooks/useEmpleados';
-import { createEmpleado, updateEmpleado, deleteEmpleado } from "../services/empleadoService";
+import { 
+  createEmpleado, 
+  updateEmpleado, 
+  deleteEmpleado 
+} from "../services/empleadoService";
 import { type EmpleadoDTO } from "../types";
 import FormModalComplete from '../components/FormModalComplete';
 import type { FieldConfigComplete } from '../components/FormModalComplete';

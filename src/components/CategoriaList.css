@@ -26,6 +26,11 @@
   overflow-x: auto;
 }
 
+.categoria-table-container th,
+.categoria-table-container td {
+  text-align: center;
+}
+
 /* Mobile: cards (oculto en desktop) */
 .categoria-cards {
   display: none;
@@ -34,6 +39,29 @@
 .categoria-actions {
   display: flex;
   gap: var(--space-sm);
+   justify-content: center;
+}
+
+.botones{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .proximo-vencer {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.vencida {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+/* Para la fila completa, si aplicaste clase al tr */
+tr.vencida {
+  background-color: #f8d7da;
+}
+tr.proximo-vencer {
+  background-color: #fff3cd;
 }
 
 /* Mobile */
@@ -112,9 +140,5 @@
     flex: 1;
   }
 
-  .botones{
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
+  
 }

@@ -118,8 +118,7 @@
   color: var(--text-main);
   transition: border-color 0.2s, box-shadow 0.2s;
   cursor: pointer;
-  /* Opcional: elimina la flecha nativa en algunos navegadores si quieres personalizarla después */
-  appearance: auto; /* mantener la flecha nativa */
+  appearance: auto; 
   width: 100%;
 }
 
@@ -142,14 +141,12 @@
   cursor: not-allowed;
 }
 
-/* Estilos para las opciones (option) */
 .modal-form .form-field select option {
   background-color: var(--bg-surface);
   color: var(--text-main);
-  padding: 8px; /* opcional, algunos navegadores lo soportan */
+  padding: 8px; 
 }
 
-/* Opción seleccionada o hover (soporte variable) */
 .modal-form .form-field select option:checked {
   background-color: var(--forest-secondary);
   color: white;

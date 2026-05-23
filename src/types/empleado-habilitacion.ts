@@ -6,7 +6,9 @@ export interface EmpleadoHabilitacionDTO {
 }
 
 export interface EmpleadoHabilitacionResponse {
-  nombreEmpleado: string;
+  idEmpleado: number;
+  idHabilitacion:number;
+  nombreEmpleado: string
   nombreHabilitacion: string;
   fechaEmision: string;
   fechaVencimiento: string;
