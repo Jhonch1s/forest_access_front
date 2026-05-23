@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { EmpleadoDTO,EmpleadoResponse } from '../types/empleado';
+import type { EmpleadoResponse } from '../types/empleado';
 import { getEmpleados } from '../services/empleadoService';
 
 export function useEmpleados() {
