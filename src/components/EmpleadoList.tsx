@@ -20,11 +20,11 @@ const getDiasRestantesClass = (dias?: number | null) => {
   return '';
 };
 
-const getDiasRestantesText = (dias?: number | null) => {
+/*const getDiasRestantesText = (dias?: number | null) => {
   if (dias === null || dias === undefined) return 'Sin habilitaciones';
   if (dias < 0) return 'Vencida';
   return `${dias} días`;
-};
+}; */
 
 
 
