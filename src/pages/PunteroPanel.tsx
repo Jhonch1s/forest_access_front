@@ -1,14 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 import { getAsignaciones } from '../services/asignacionTratamientoService';
 import { getTareas, createTarea } from '../services/tareaService';
 import { getCatalogoTareas } from '../services/catalogoTareaService';
 import { getEstados } from '../services/estadoService';
+import { getAsignadasVigentesByCuadrilla } from '../services/tareaAsignadaService';
 import Button from '../components/Button';
 import type { EmpleadoCuadrillaResponse } from '../types/empleado-cuadrilla';
 import type { AsignacionTratamientoResponse } from '../types/asignacion-tratamiento';
-import type { TareaResponse, TareaDTO, CatalogoTareaResponse, EstadoDTO } from '../types/tarea';
+import type { TareaResponse, TareaRequest, CatalogoTareaResponse, EstadoDTO } from '../types/tarea';
+import type { TareaAsignadaResponse } from '../types/tarea-asignada';
 import './PunteroPanel.css';
 
 type Vista = 'parcelas' | 'tareas';
@@ -24,13 +26,6 @@ function getBadgeClass(estado: string): string {
   }
 }
 
-function getInitials(nombre: string): string {
-  const parts = nombre.trim().split(' ');
-  return parts.length > 1
-    ? (parts[0][0] + parts[1][0]).toUpperCase()
-    : (parts[0][0] + (parts[0][1] || '')).toUpperCase();
-}
-
 function PunteroPanel() {
   const { user } = useAuth();
 
@@ -43,6 +38,7 @@ function PunteroPanel() {
   const [tareas, setTareas] = useState<TareaResponse[]>([]);
   const [catalogos, setCatalogos] = useState<CatalogoTareaResponse[]>([]);
   const [estados, setEstados] = useState<EstadoDTO[]>([]);
+  const [tareasAsignadas, setTareasAsignadas] = useState<TareaAsignadaResponse[]>([]);
 
   const [vista, setVista] = useState<Vista>('parcelas');
   const [asignacionSeleccionada, setAsignacionSeleccionada] = useState<AsignacionTratamientoResponse | null>(null);
@@ -50,6 +46,8 @@ function PunteroPanel() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formTouched, setFormTouched] = useState(false);
+  const [asignadaForm, setAsignadaForm] = useState<Record<number, { idEmpleado: string; horas: string }>>({});
+  const [registrandoAsignada, setRegistrandoAsignada] = useState<number | null>(null);
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -96,16 +94,11 @@ function PunteroPanel() {
           (r) => r.idCuadrilla === miRelacion.idCuadrilla && r.esActivo,
         );
 
-        const idsParcelasCuadrilla = new Set<number>();
-        for (const rel of relaciones) {
-          if (rel.idCuadrilla === miRelacion.idCuadrilla && rel.esActivo) {
-            idsParcelasCuadrilla.add(rel.idEmpleado);
-          }
-        }
-
         const asignacionesActivas = asignacionesData.filter(
           (a) => a.estado === 'EN_EJECUCION' || a.estado === 'PLANIFICADO',
         );
+
+        const asignadasData = await getAsignadasVigentesByCuadrilla(miRelacion.idCuadrilla);
 
         setMiCuadrilla(miRelacion);
         setMiembros(activos);
@@ -113,6 +106,7 @@ function PunteroPanel() {
         setTareas(tareasData);
         setCatalogos(catalogosData);
         setEstados(estadosData);
+        setTareasAsignadas(asignadasData);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Error al cargar datos');
       } finally {
@@ -125,22 +119,32 @@ function PunteroPanel() {
 
   const tareasDeAsignacion = useMemo(() => {
     if (!asignacionSeleccionada) return [];
-    return tareas.filter(
-      (t) =>
-        t.nombreTareaCatalogo === asignacionSeleccionada.nombreTratamiento ||
-        t.descripcion?.toLowerCase().includes(asignacionSeleccionada.nombreParcela.toLowerCase()),
-    );
+    return tareas.filter((t) => t.idAsignacion === asignacionSeleccionada.idAsignacion);
   }, [tareas, asignacionSeleccionada]);
 
   const tareasDeHoy = useMemo(() => {
-    return tareas.filter((t) => {
-      if (!t.fechaFinalizacion) return true;
-      return t.fechaFinalizacion >= today;
-    });
+    return tareas.filter((t) => t.fecha === today);
   }, [tareas, today]);
+
+  const asignadasDeParcela = useMemo(() => {
+    if (!asignacionSeleccionada) return [];
+    return tareasAsignadas.filter((ta) => ta.idAsignacion === asignacionSeleccionada.idAsignacion);
+  }, [tareasAsignadas, asignacionSeleccionada]);
+
+  const contarAsignadas = (idAsignacion: number) => {
+    return tareasAsignadas.filter((ta) => ta.idAsignacion === idAsignacion).length;
+  };
+
+  const updateAsignadaForm = useCallback((idTareaAsignada: number, field: string, value: string) => {
+    setAsignadaForm((prev) => ({
+      ...prev,
+      [idTareaAsignada]: { ...prev[idTareaAsignada], [field]: value },
+    }));
+  }, []);
 
   const handleSeleccionarAsignacion = (asignacion: AsignacionTratamientoResponse) => {
     setAsignacionSeleccionada(asignacion);
+    setAsignadaForm({});
     setVista('tareas');
   };
 
@@ -162,6 +166,72 @@ function PunteroPanel() {
     setShowModal(true);
   };
 
+  const handleAbrirModalParaPeon = (miembro: EmpleadoCuadrillaResponse) => {
+    setForm({
+      idCatalogoTarea: '',
+      idEmpleado: String(miembro.idEmpleado),
+      horas: '',
+      descripcion: '',
+      observaciones: '',
+    });
+    setFormTouched(false);
+    setSubmitError(null);
+    setShowModal(true);
+  };
+
+  const handleRegistrarDesdeAsignada = async (ta: TareaAsignadaResponse) => {
+    const formData = asignadaForm[ta.idTareaAsignada];
+    if (!formData?.idEmpleado) return;
+
+    const estadoInicial = estados.find((e) => e.nombre === 'PENDIENTE' || e.nombre === 'EN_PROGRESO');
+
+    const request: TareaRequest = {
+      idAsignacion: asignacionSeleccionada!.idAsignacion,
+      idEmpleado: Number(formData.idEmpleado),
+      idEstado: estadoInicial?.idEstado ?? 1,
+      idCatalogoTarea: ta.idCatalogoTarea,
+      fecha: today,
+      descripcion: ta.descripcion ?? '',
+      horas: Number(formData.horas) || 0,
+      observaciones: '',
+    };
+
+    try {
+      setRegistrandoAsignada(ta.idTareaAsignada);
+      const nueva = await createTarea(request);
+      setTareas((prev) => [...prev, nueva]);
+      setTareasAsignadas((prev) => prev.filter((a) => a.idTareaAsignada !== ta.idTareaAsignada));
+      setAsignadaForm((prev) => {
+        const next = { ...prev };
+        delete next[ta.idTareaAsignada];
+        return next;
+      });
+
+      // Update local state: PLANIFICADO → EN_EJECUCION
+      if (asignacionSeleccionada?.estado === 'PLANIFICADO') {
+        setAsignaciones((prev) =>
+          prev.map((a) =>
+            a.idAsignacion === asignacionSeleccionada.idAsignacion
+              ? { ...a, estado: 'EN_EJECUCION' }
+              : a,
+          ),
+        );
+        setAsignacionSeleccionada((prev) => (prev ? { ...prev, estado: 'EN_EJECUCION' } : prev));
+      }
+    } catch (err: unknown) {
+      let msg = 'Error al registrar tarea.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: string | { message?: string; error?: string } } };
+        const data = axiosErr.response?.data;
+        if (typeof data === 'string') msg = data;
+        else msg = data?.message ?? data?.error ?? msg;
+      }
+      alert(msg);
+    } finally {
+      setRegistrandoAsignada(null);
+    }
+  };
+
   const handleCrearTarea = async () => {
     setSubmitError(null);
     setFormTouched(true);
@@ -171,60 +241,19 @@ function PunteroPanel() {
       return;
     }
 
-    const catalogo = catalogos.find((c) => c.idCatalogoTarea === Number(form.idCatalogoTarea));
-    const miembro = miembros.find((m) => m.idEmpleado === Number(form.idEmpleado));
-    const estadoInicial = estados.find((e) => e.nombre === 'PENDIENTE' || e.nombre === 'EN_PROGRESO');
-
-    if (!catalogo || !miembro) {
-      setSubmitError('Datos inválidos.');
+    if (!asignacionSeleccionada) {
+      setSubmitError('No hay una asignación seleccionada.');
       return;
     }
 
-    const dto: TareaDTO = {
-      idTarea: 0,
-      catalogoTarea: {
-        idCatalogoTarea: catalogo.idCatalogoTarea,
-        nombre: catalogo.nombre,
-        descripcion: catalogo.descripcion,
-        requiereHabilitacion: { idHabilitacion: 0, nombre: '', descripcion: '' },
-      },
-      estado: estadoInicial
-        ? { idEstado: estadoInicial.idEstado, nombre: estadoInicial.nombre }
-        : { idEstado: 1, nombre: 'PENDIENTE' },
-      empleado: {
-        idEmpleado: miembro.idEmpleado,
-        nombre: miembro.nombreEmpleado,
-        cedula: '',
-        telefono: '',
-        email: '',
-        fechaIngreso: '',
-        activo: true,
-        idCategoria: 0,
-      },
-      historicoTratamiento: {
-        idHistorico: 0,
-        idParcela: asignacionSeleccionada?.idParcela ?? 0,
-        idTratamiento: asignacionSeleccionada?.idTratamiento ?? 0,
-        cuadrilla: miCuadrilla?.idCuadrilla ?? 0,
-        fechaInicio: today,
-        fechaFin: '',
-        observaciones: '',
-      },
-      plantilla: {
-        idPlantilla: 0,
-        nombre: catalogo.nombre,
-        descripcion: catalogo.descripcion,
-        catalogoTarea: {
-          idCatalogoTarea: catalogo.idCatalogoTarea,
-          nombre: catalogo.nombre,
-          descripcion: catalogo.descripcion,
-          requiereHabilitacion: { idHabilitacion: 0, nombre: '', descripcion: '' },
-        },
-      },
-      fechaCreacion: today,
-      fechaInicio: today,
-      fechaFinEstimada: '',
-      fechaFinalizacion: '',
+    const estadoInicial = estados.find((e) => e.nombre === 'PENDIENTE' || e.nombre === 'EN_PROGRESO');
+
+    const request: TareaRequest = {
+      idAsignacion: asignacionSeleccionada.idAsignacion,
+      idEmpleado: Number(form.idEmpleado),
+      idEstado: estadoInicial?.idEstado ?? 1,
+      idCatalogoTarea: Number(form.idCatalogoTarea),
+      fecha: today,
       descripcion: form.descripcion,
       horas: Number(form.horas),
       observaciones: form.observaciones,
@@ -232,9 +261,21 @@ function PunteroPanel() {
 
     try {
       setSubmitting(true);
-      const nueva = await createTarea(dto);
+      const nueva = await createTarea(request);
       setTareas((prev) => [...prev, nueva]);
       setShowModal(false);
+
+      // Update local state: PLANIFICADO → EN_EJECUCION
+      if (asignacionSeleccionada?.estado === 'PLANIFICADO') {
+        setAsignaciones((prev) =>
+          prev.map((a) =>
+            a.idAsignacion === asignacionSeleccionada.idAsignacion
+              ? { ...a, estado: 'EN_EJECUCION' }
+              : a,
+          ),
+        );
+        setAsignacionSeleccionada((prev) => (prev ? { ...prev, estado: 'EN_EJECUCION' } : prev));
+      }
     } catch (err: unknown) {
       let msg = 'Error al crear tarea.';
       if (err && typeof err === 'object' && 'response' in err) {
@@ -292,13 +333,111 @@ function PunteroPanel() {
           </div>
         </div>
 
+        {asignadasDeParcela.length > 0 && (
+          <>
+            <div className="puntero-section-header">
+              <h3>Tareas Asignadas ({asignadasDeParcela.length})</h3>
+            </div>
+            <div className="puntero-asignadas-list">
+              {asignadasDeParcela.map((ta) => (
+                <div key={ta.idTareaAsignada} className="puntero-asignada-card">
+                  <div className="puntero-asignada-header">
+                    <span className="puntero-asignada-tipo">{ta.nombreCatalogoTarea}</span>
+                    {ta.descripcion && <span className="puntero-asignada-desc">{ta.descripcion}</span>}
+                  </div>
+                  <div className="puntero-asignada-form">
+                    <select
+                      value={asignadaForm[ta.idTareaAsignada]?.idEmpleado ?? ''}
+                      onChange={(e) => updateAsignadaForm(ta.idTareaAsignada, 'idEmpleado', e.target.value)}
+                    >
+                      <option value="">Seleccionar peón...</option>
+                      {miembros.map((m) => (
+                        <option key={m.idEmpleado} value={m.idEmpleado}>
+                          {m.nombreEmpleado}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      placeholder="Horas"
+                      value={asignadaForm[ta.idTareaAsignada]?.horas ?? ''}
+                      onChange={(e) => updateAsignadaForm(ta.idTareaAsignada, 'horas', e.target.value)}
+                    />
+                    <Button
+                      variant="primary"
+                      size="small"
+                      loading={registrandoAsignada === ta.idTareaAsignada}
+                      disabled={!asignadaForm[ta.idTareaAsignada]?.idEmpleado}
+                      onClick={() => handleRegistrarDesdeAsignada(ta)}
+                    >
+                      Registrar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         <div className="puntero-section-header">
-          <h3>Tareas ({tareasDeAsignacion.length})</h3>
+          <h3>Cuadrilla ({miembros.length})</h3>
+        </div>
+
+        <div className="puntero-miembros-list">
+          {miembros.map((m) => {
+            const tareasPeon = tareasDeAsignacion.filter((t) => t.idEmpleado === m.idEmpleado);
+            const totalHoras = tareasPeon.reduce((sum, t) => sum + t.horas, 0);
+
+            const asignadasPendientes = asignadasDeParcela.filter((ta) => {
+              const yaHecha = tareas.some(
+                (t) =>
+                  t.idAsignacion === ta.idAsignacion &&
+                  t.idCatalogoTarea === ta.idCatalogoTarea &&
+                  t.idEmpleado === m.idEmpleado &&
+                  t.fecha === today,
+              );
+              return !yaHecha;
+            });
+
+            return (
+              <div key={m.idEmpleado} className="puntero-miembro-card">
+                <div className="puntero-miembro-info">
+                  <span className="puntero-miembro-nombre">{m.nombreEmpleado}</span>
+                  {tareasPeon.length > 0 ? (
+                    <span className="puntero-miembro-tareas">
+                      {totalHoras}h ({tareasPeon.length} tarea{tareasPeon.length > 1 ? 's' : ''})
+                    </span>
+                  ) : asignadasPendientes.length > 0 ? (
+                    <span className="puntero-miembro-asignadas">
+                      asignada{asignadasPendientes.length > 1 ? 's' : ''}: {asignadasPendientes.map((a) => a.nombreCatalogoTarea).join(', ')}
+                    </span>
+                  ) : (
+                    <span className="puntero-miembro-sin-tareas">sin tareas</span>
+                  )}
+                </div>
+                {tareasPeon.length === 0 && (
+                  <button
+                    className="puntero-miembro-add"
+                    onClick={() => handleAbrirModalParaPeon(m)}
+                    aria-label={`Nueva tarea para ${m.nombreEmpleado}`}
+                  >
+                    +tarea
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="puntero-section-header">
+          <h3>Tareas Registradas ({tareasDeAsignacion.length})</h3>
         </div>
 
         {tareasDeAsignacion.length === 0 ? (
           <div className="puntero-empty">
-            <p>No hay tareas para esta parcela.</p>
+            <p>No hay tareas registradas para esta parcela.</p>
           </div>
         ) : (
           <div className="puntero-tareas-list">
@@ -439,17 +578,6 @@ function PunteroPanel() {
         <p className="puntero-cuadrilla-count">{miembros.length} miembros activos</p>
       </div>
 
-      <div className="puntero-miembros-row">
-        {miembros.slice(0, 6).map((m) => (
-          <div key={m.idEmpleado} className="puntero-avatar" title={`${m.nombreEmpleado} — ${m.rol}`}>
-            {getInitials(m.nombreEmpleado)}
-          </div>
-        ))}
-        {miembros.length > 6 && (
-          <div className="puntero-avatar puntero-avatar-more">+{miembros.length - 6}</div>
-        )}
-      </div>
-
       <div className="puntero-section-header">
         <h3>Parcelas en Tratamiento ({asignaciones.length})</h3>
       </div>
@@ -462,10 +590,9 @@ function PunteroPanel() {
         <div className="puntero-parcelas-list">
           {asignaciones.map((a) => {
             const tareasParcela = tareasDeHoy.filter(
-              (t) =>
-                t.descripcion?.toLowerCase().includes(a.nombreParcela.toLowerCase()) ||
-                t.nombreTareaCatalogo === a.nombreTratamiento,
+              (t) => t.idAsignacion === a.idAsignacion,
             );
+            const asignadasCount = contarAsignadas(a.idAsignacion);
             return (
               <button
                 key={a.idAsignacion}
@@ -474,7 +601,12 @@ function PunteroPanel() {
               >
                 <div className="puntero-parcela-header">
                   <span className="puntero-parcela-nombre">{a.nombreParcela}</span>
-                  <span className={`badge ${getBadgeClass(a.estado)}`}>{a.estado}</span>
+                  <div className="puntero-parcela-badges">
+                    {asignadasCount > 0 && (
+                      <span className="badge badge-asignadas">{asignadasCount} asignada{asignadasCount > 1 ? 's' : ''}</span>
+                    )}
+                    <span className={`badge ${getBadgeClass(a.estado)}`}>{a.estado}</span>
+                  </div>
                 </div>
                 <div className="puntero-parcela-meta">
                   <span>{a.nombreTratamiento}</span>

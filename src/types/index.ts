@@ -43,11 +43,8 @@ export type {
   CatalogoTareaDTO,
   CatalogoTareaResponse,
   Tarea,
-  TareaDTO,
+  TareaRequest,
   TareaResponse,
-  HistoricoTratamiento,
-  HistoricoTratamientoDTO,
-  HistoricoTratamientoResponse,
   Tratamiento,
   TratamientoDTO,
   TratamientoDependenciaDTO,
@@ -71,3 +68,7 @@ export type {
   AsignacionTratamientoDTO,
   EstadoAsignacion,
 } from './asignacion-tratamiento';
+export type {
+  TareaAsignadaResponse,
+  TareaAsignadaRequest,
+} from './tarea-asignada';

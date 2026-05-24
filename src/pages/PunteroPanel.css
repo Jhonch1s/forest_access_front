@@ -160,6 +160,12 @@
   gap: var(--space-sm);
 }
 
+.puntero-parcela-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 .puntero-parcela-nombre {
   font-weight: 600;
   font-size: 15px;
@@ -366,6 +372,151 @@
   color: var(--status-error);
 }
 
+.badge-asignadas {
+  background: rgba(255, 152, 0, 0.1);
+  color: #e65100;
+}
+
+/* Tareas asignadas inline */
+.puntero-asignadas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.puntero-asignada-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-left: 3px solid #e65100;
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.puntero-asignada-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.puntero-asignada-tipo {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.puntero-asignada-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.puntero-asignada-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.puntero-asignada-form select {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: var(--sans);
+  background: var(--bg-surface);
+  min-height: 40px;
+}
+
+.puntero-asignada-form input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: var(--sans);
+  min-height: 40px;
+}
+
+/* Miembros list detallada */
+.puntero-miembros-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.puntero-miembro-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  min-height: 48px;
+}
+
+.puntero-miembro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.puntero-miembro-nombre {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.puntero-miembro-tareas {
+  font-size: 12px;
+  color: var(--status-success);
+  font-weight: 500;
+}
+
+.puntero-miembro-asignadas {
+  font-size: 12px;
+  color: #e65100;
+  font-weight: 500;
+}
+
+.puntero-miembro-sin-tareas {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.puntero-miembro-add {
+  background: none;
+  border: 1px solid var(--forest-secondary);
+  color: var(--forest-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 32px;
+  font-family: var(--sans);
+  transition: background 0.15s, color 0.15s;
+}
+
+.puntero-miembro-add:active {
+  background: var(--forest-secondary);
+  color: #ffffff;
+}
+
+@media (hover: hover) {
+  .puntero-miembro-add:hover {
+    background: var(--forest-secondary);
+    color: #ffffff;
+  }
+}
+
 /* Modal overrides for mobile */
 .modal-overlay {
   position: fixed;
@@ -487,5 +638,17 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--space-md);
+  }
+
+  .puntero-asignadas-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .puntero-miembros-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-sm);
   }
 }

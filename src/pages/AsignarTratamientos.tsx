@@ -198,7 +198,7 @@ function AsignarTratamientos() {
           fechaInicioEstimada,
           fechaFinEstimada,
           observaciones,
-          estado: 'PENDIENTE',
+          estado: 'PLANIFICADO',
         });
         setSubmitSuccess(`Tratamiento asignado a rodal completo.`);
       } else {
@@ -212,7 +212,7 @@ function AsignarTratamientos() {
               fechaInicioEstimada,
               fechaFinEstimada,
               observaciones,
-              estado: 'PENDIENTE',
+              estado: 'PLANIFICADO',
             })
           )
         );
