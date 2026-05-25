@@ -15,6 +15,7 @@ export type {
   UsuarioResponse,
   LoginRequest,
   RegisterRequest,
+  AuthUser,
 } from './auth';
 export type {
   Cuadrilla,
@@ -36,6 +37,29 @@ export type {
   HabilitacionDTO,
 } from './habilitacion';
 export type {
+  Estado,
+  EstadoDTO,
+  CatalogoTarea,
+  CatalogoTareaDTO,
+  CatalogoTareaResponse,
+  Tarea,
+  TareaRequest,
+  TareaResponse,
+  Tratamiento,
+  TratamientoDTO,
+  TratamientoDependenciaDTO,
+  TratamientoDependenciaResponse,
+  RegistroDiario,
+  RegistroDiarioDTO,
+  RegistroDiarioResponse,
+  Liquidacion,
+  LiquidacionDTO,
+  LiquidacionResponse,
+  Producto,
+  ProductoDTO,
+  ProductoTratamiento,
+  ProductoTratamientoDTO,
+  ProductoTratamientoResponse,
   TareaDependenciaDTO,
   TareaDependenciaResponse,
 } from './tarea';
@@ -44,3 +68,7 @@ export type {
   AsignacionTratamientoDTO,
   EstadoAsignacion,
 } from './asignacion-tratamiento';
+export type {
+  TareaAsignadaResponse,
+  TareaAsignadaRequest,
+} from './tarea-asignada';

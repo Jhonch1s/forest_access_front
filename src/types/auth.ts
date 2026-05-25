@@ -33,3 +33,9 @@ export interface RegisterRequest {
   nombreUsuario: string;
   password: string;
 }
+
+export interface AuthUser {
+  nombreUsuario: string;
+  perfiles: string[];
+  idEmpleado?: number;
+}

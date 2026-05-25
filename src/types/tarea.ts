@@ -1,7 +1,4 @@
-import type { Empleado, EmpleadoDTO } from './empleado';
-import type { Parcela } from './predio';
-import type { Cuadrilla } from './cuadrilla';
-import type { HabilitacionDTO } from './habilitacion';
+import type { Empleado } from './empleado';
 
 export interface Estado {
   idEstado: number;
@@ -30,7 +27,7 @@ export interface CatalogoTareaDTO {
   idCatalogoTarea: number;
   nombre: string;
   descripcion: string;
-  requiereHabilitacion: HabilitacionDTO;
+  requiereHabilitacion: import('./habilitacion').HabilitacionDTO;
 }
 
 export interface CatalogoTareaResponse {
@@ -65,31 +62,22 @@ export interface PlantillaTareaResponse {
 
 export interface Tarea {
   idTarea: number;
+  idAsignacion: number;
   catalogoTarea: CatalogoTarea;
   estado: Estado;
   empleado: Empleado;
-  historicoTratamiento: HistoricoTratamiento;
-  plantilla: PlantillaTarea;
-  fechaCreacion: string;
-  fechaInicio: string;
-  fechaEstimada: string;
-  fechaFinalizacion: string;
+  fecha: string;
   descripcion: string;
   horas: number;
   observaciones: string;
 }
 
-export interface TareaDTO {
-  idTarea: number;
-  catalogoTarea: CatalogoTareaDTO;
-  estado: EstadoDTO;
-  empleado: EmpleadoDTO;
-  historicoTratamiento: HistoricoTratamientoDTO;
-  plantilla: PlantillaTareaDTO;
-  fechaCreacion: string;
-  fechaInicio: string;
-  fechaFinEstimada: string;
-  fechaFinalizacion: string;
+export interface TareaRequest {
+  idAsignacion: number;
+  idEmpleado: number;
+  idEstado: number;
+  idCatalogoTarea: number;
+  fecha: string;
   descripcion: string;
   horas: number;
   observaciones: string;
@@ -97,40 +85,16 @@ export interface TareaDTO {
 
 export interface TareaResponse {
   idTarea: number;
+  idAsignacion: number;
+  idEmpleado: number;
+  nombreEmpleado: string;
+  idEstado: number;
+  nombreEstado: string;
+  idCatalogoTarea: number;
+  nombreTareaCatalogo: string;
+  fecha: string;
   descripcion: string;
   horas: number;
-  fechaFinalizacion: string;
-  nombreEmpleado: string;
-  nombreEstado: string;
-  nombreTareaCatalogo: string;
-}
-
-export interface HistoricoTratamiento {
-  idHistorico: number;
-  parcela: Parcela;
-  tratamiento: Tratamiento;
-  cuadrilla: Cuadrilla;
-  fechaInicio: string;
-  fechaFin: string;
-  observaciones: string;
-}
-
-export interface HistoricoTratamientoDTO {
-  idHistorico: number;
-  idParcela: number;
-  idTratamiento: number;
-  cuadrilla: number;
-  fechaInicio: string;
-  fechaFin: string;
-  observaciones: string;
-}
-
-export interface HistoricoTratamientoResponse {
-  nombreParcela: string;
-  nombreTratamiento: string;
-  nombreCuadrilla: string;
-  fechaInicio: string;
-  fechaFin: string;
   observaciones: string;
 }
 
@@ -171,7 +135,7 @@ export interface RegistroDiario {
 
 export interface RegistroDiarioDTO {
   idRegistro: number;
-  empleado: EmpleadoDTO;
+  empleado: import('./empleado').EmpleadoDTO;
   fecha: string;
   jornales: number;
   adelanto: number;
@@ -205,7 +169,7 @@ export interface Liquidacion {
 
 export interface LiquidacionDTO {
   idLiquidacion: number;
-  empleado: EmpleadoDTO;
+  empleado: import('./empleado').EmpleadoDTO;
   periodoInicio: string;
   periodoFin: string;
   totalJornales: number;

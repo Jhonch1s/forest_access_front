@@ -1,15 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import Button from '../components/Button';
-import { login } from '../services/authService';
 import './Login.css';
+
+function getRedirectPath(perfiles: string[]): string {
+  if (perfiles.includes('admin')) return '/dashboard';
+  if (perfiles.includes('puntero')) return '/puntero';
+  return '/dashboard';
+}
 
 function Login() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, hasProfile, loading: authLoading } = useAuth();
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      if (hasProfile('admin')) navigate('/dashboard', { replace: true });
+      else if (hasProfile('puntero')) navigate('/puntero', { replace: true });
+    }
+  }, [authLoading, isAuthenticated, hasProfile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,15 +44,16 @@ function Login() {
 
     setLoading(true);
     try {
-      const token = await login({ usuario: u, password: p });
-      localStorage.setItem('token', token);
-      navigate('/dashboard');
+      const user = await login({ usuario: u, password: p });
+      navigate(getRedirectPath(user.perfiles), { replace: true });
     } catch {
       setError('Credenciales incorrectas.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (authLoading) return null;
 
   return (
     <div className="login-container">
