@@ -199,6 +199,9 @@ function PunteroPanel() {
     try {
       setRegistrandoAsignada(ta.idTareaAsignada);
       const nueva = await createTarea(request);
+      if (!nueva || typeof nueva.idTarea !== 'number') {
+        throw new Error('Respuesta inválida del servidor');
+      }
       setTareas((prev) => [...prev, nueva]);
       setTareasAsignadas((prev) => prev.filter((a) => a.idTareaAsignada !== ta.idTareaAsignada));
       setAsignadaForm((prev) => {
@@ -220,11 +223,16 @@ function PunteroPanel() {
       }
     } catch (err: unknown) {
       let msg = 'Error al registrar tarea.';
+      let status: number | undefined;
       if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: string | { message?: string; error?: string } } };
+        const axiosErr = err as { response?: { status?: number; data?: string | { message?: string; error?: string } } };
+        status = axiosErr.response?.status;
         const data = axiosErr.response?.data;
         if (typeof data === 'string') msg = data;
         else msg = data?.message ?? data?.error ?? msg;
+      }
+      if (status === 401 || status === 403) {
+        msg = 'No tenés permisos para registrar tareas. Contactá al administrador.';
       }
       alert(msg);
     } finally {
@@ -262,6 +270,9 @@ function PunteroPanel() {
     try {
       setSubmitting(true);
       const nueva = await createTarea(request);
+      if (!nueva || typeof nueva.idTarea !== 'number') {
+        throw new Error('Respuesta inválida del servidor');
+      }
       setTareas((prev) => [...prev, nueva]);
       setShowModal(false);
 
@@ -278,11 +289,16 @@ function PunteroPanel() {
       }
     } catch (err: unknown) {
       let msg = 'Error al crear tarea.';
+      let status: number | undefined;
       if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as { response?: { data?: string | { message?: string; error?: string } } };
+        const axiosErr = err as { response?: { status?: number; data?: string | { message?: string; error?: string } } };
+        status = axiosErr.response?.status;
         const data = axiosErr.response?.data;
         if (typeof data === 'string') msg = data;
         else msg = data?.message ?? data?.error ?? msg;
+      }
+      if (status === 401 || status === 403) {
+        msg = 'No tenés permisos para crear tareas. Contactá al administrador.';
       }
       setSubmitError(msg);
     } finally {

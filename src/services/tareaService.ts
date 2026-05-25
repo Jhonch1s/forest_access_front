@@ -1,5 +1,20 @@
+import axios from 'axios';
 import api from './api';
 import type { TareaRequest, TareaResponse } from '../types/tarea';
+
+// Local instance sin el interceptor de redirect 401/403 del api global
+const apiLocal = axios.create({
+  baseURL: '/forest_access/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+apiLocal.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export async function getTareas(): Promise<TareaResponse[]> {
   const { data } = await api.get('/tareas');
@@ -12,7 +27,7 @@ export async function getTareaById(id: number): Promise<TareaResponse> {
 }
 
 export async function createTarea(request: TareaRequest): Promise<TareaResponse> {
-  const { data } = await api.post('/tareas/create', request);
+  const { data } = await apiLocal.post('/tareas/create', request);
   return data;
 }
 
