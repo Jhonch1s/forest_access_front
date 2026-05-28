@@ -21,7 +21,7 @@ export async function createAsignacion(dto: AsignacionTratamientoDTO): Promise<A
   return data;
 }
 
-export async function updateAsignacion(id: number, dto: AsignacionTratamientoDTO): Promise<AsignacionTratamientoResponse> {
+export async function updateAsignacion(id: number, dto: Partial<AsignacionTratamientoDTO>): Promise<AsignacionTratamientoResponse> {
   const { data } = await api.put(`/asignaciones-tratamiento/${id}`, dto);
   return data;
 }

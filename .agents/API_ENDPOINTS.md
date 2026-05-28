@@ -298,6 +298,20 @@
 
 ---
 
+## 25. Tarea Asignada (bridge Cuadrilla ↔ AsignacionTratamiento)
+
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/tareas-asignadas` | — | `TareaAsignadaResponse[]` |
+| GET | `/tareas-asignadas/{id}` | — | `TareaAsignadaResponse` |
+| GET | `/tareas-asignadas/cuadrilla/{idCuadrilla}/vigentes` | — | `TareaAsignadaResponse[]` |
+| GET | `/tareas-asignadas/cuadrilla/{idCuadrilla}/asignacion/{idAsignacion}` | — | `TareaAsignadaResponse[]` |
+| POST | `/tareas-asignadas/create` | `TareaAsignadaRequest` | `TareaAsignadaResponse` |
+| PUT | `/tareas-asignadas/{id}` | `TareaAsignadaRequest` | `TareaAsignadaResponse` |
+| DELETE | `/tareas-asignadas/{id}` | — | — |
+
+---
+
 ## DTOs (Request Bodies)
 
 ### LoginRequest
@@ -471,6 +485,11 @@
 { idEmpleado: number; idHabilitacion: number; fechaEmision: string; fechaVencimiento: string }
 ```
 
+### TareaAsignadaRequest
+```ts
+{ idAsignacion: number; idCuadrilla: number; idCatalogoTarea: number; descripcion: string; fechaLimite: string }
+```
+
 ### PerfilDTO
 ```ts
 { id: number; nombre: string }
@@ -565,4 +584,11 @@
 ### EmpleadoHabilitacionResponse
 ```ts
 { nombreEmpleado: string; nombreHabilitacion: string; fechaEmision: string; fechaVencimiento: string }
+```
+
+### TareaAsignadaResponse
+```ts
+{ idTareaAsignada: number; idAsignacion: number; nombreParcela: string; idCuadrilla: number; 
+  nombreCuadrilla: string; idCatalogoTarea: number; nombreCatalogoTarea: string; 
+  descripcion: string; fechaLimite: string }
 ```

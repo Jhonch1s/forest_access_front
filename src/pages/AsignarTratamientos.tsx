@@ -5,23 +5,13 @@ import { useRodalParcelas } from '../hooks/useRodalParcelas';
 import { useTratamientos } from '../hooks/useTratamientos';
 import { useAsignaciones } from '../hooks/useAsignaciones';
 import { useTratamientoDependencias } from '../hooks/useTratamientoDependencias';
-import { createAsignacion, deleteAsignacion } from '../services/asignacionTratamientoService';
+import { createAsignacion, updateAsignacion, deleteAsignacion } from '../services/asignacionTratamientoService';
 import Button from '../components/Button';
 import type { Parcela } from '../types/predio';
+import type { EstadoAsignacion } from '../types/asignacion-tratamiento';
 
 function formatDateInput(d: Date): string {
   return d.toISOString().split('T')[0];
-}
-
-function getEstadoBadgeClass(estado: string): string {
-  switch (estado) {
-    case 'PENDIENTE': return 'badge-pendiente';
-    case 'PLANIFICADO': return 'badge-planificado';
-    case 'EN_EJECUCION': return 'badge-en-ejecucion';
-    case 'COMPLETADO': return 'badge-completado';
-    case 'CANCELADO': return 'badge-cancelado';
-    default: return 'badge-pendiente';
-  }
 }
 
 function AsignarTratamientos() {
@@ -92,8 +82,19 @@ function AsignarTratamientos() {
   const asignacionesVisibles = useMemo(() => {
     return asignaciones
       .filter((a) => selectedParcelas.has(a.idParcela))
+      .filter((a) => ['PENDIENTE', 'PLANIFICADO', 'EN_EJECUCION'].includes(a.estado))
       .filter((a) => !deletedIds.has(a.idAsignacion));
   }, [asignaciones, selectedParcelas, deletedIds]);
+
+  const asignacionesPorParcela = useMemo(() => {
+    const groups = new Map<string, typeof asignacionesVisibles>();
+    for (const a of asignacionesVisibles) {
+      const key = a.nombreParcela;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(a);
+    }
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [asignacionesVisibles]);
 
   const dependenciasDelTratamiento = useMemo(() => {
     if (!idTratamiento) return [];
@@ -122,6 +123,22 @@ function AsignarTratamientos() {
         return next;
       });
       let msg = 'Error al eliminar asignación.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: string | { message?: string; error?: string } } };
+        const data = axiosErr.response?.data;
+        if (typeof data === 'string') msg = data;
+        else msg = data?.message ?? data?.error ?? msg;
+      }
+      setSubmitError(msg);
+    }
+  };
+
+  const handleCambiarEstado = async (idAsignacion: number, nuevoEstado: string) => {
+    try {
+      await updateAsignacion(idAsignacion, { estado: nuevoEstado as EstadoAsignacion });
+      await refetch();
+    } catch (err: unknown) {
+      let msg = 'Error al cambiar estado.';
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: string | { message?: string; error?: string } } };
         const data = axiosErr.response?.data;
@@ -476,33 +493,44 @@ function AsignarTratamientos() {
               Asignaciones Existentes ({asignacionesVisibles.length})
             </h3>
             <div className="asignaciones-list">
-              {asignacionesVisibles.length === 0 && (
+              {asignacionesPorParcela.length === 0 && (
                 <p className="arbol-empty">No hay asignaciones para las parcelas seleccionadas.</p>
               )}
-              {asignacionesVisibles.map((a) => (
-                <div key={a.idAsignacion} className="asignacion-card">
-                  <div className="asignacion-info">
-                    <span className="asignacion-tratamiento">{a.nombreTratamiento}</span>
-                    <span className="asignacion-meta">
-                      {a.nombreParcela} &bull; {a.fechaInicioEstimada} a {a.fechaFinEstimada}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className={`badge ${getEstadoBadgeClass(a.estado)}`}>{a.estado}</span>
-                    {a.estado === 'PENDIENTE' && (
-                      <button
-                        className="icon-button danger-hover"
-                        onClick={() => handleEliminarAsignacion(a.idAsignacion, a.nombreTratamiento)}
-                        title="Eliminar asignación"
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)', display: 'flex' }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"/>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+              {asignacionesPorParcela.map(([nombreParcela, asignaciones]) => (
+                <div key={nombreParcela} className="asignacion-grupo">
+                  <h4 className="asignacion-grupo-title">{nombreParcela}</h4>
+                  {asignaciones.map((a) => (
+                    <div key={a.idAsignacion} className="asignacion-card">
+                      <div className="asignacion-info">
+                        <span className="asignacion-tratamiento">{a.nombreTratamiento}</span>
+                        <span className="asignacion-meta">
+                          {a.fechaInicioEstimada} a {a.fechaFinEstimada}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <select
+                          className={`asignacion-estado-select estado-${a.estado.toLowerCase()}`}
+                          value={a.estado}
+                          onChange={(e) => handleCambiarEstado(a.idAsignacion, e.target.value)}
+                        >
+                          <option value="PENDIENTE">PENDIENTE</option>
+                          <option value="PLANIFICADO">PLANIFICADO</option>
+                          <option value="EN_EJECUCION">EN EJECUCION</option>
+                        </select>
+                        <button
+                          className="icon-button danger-hover"
+                          onClick={() => handleEliminarAsignacion(a.idAsignacion, a.nombreTratamiento)}
+                          title="Eliminar asignación"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)', display: 'flex' }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>

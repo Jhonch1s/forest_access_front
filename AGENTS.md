@@ -10,7 +10,7 @@ Domain: forest access management — personnel administration, employee categori
 - **Package**: `com.example.forest_access`
 - **Stack**: Java 24, Spring Boot, Spring Security, Spring Data JPA, Jakarta EE, Lombok
 - **Security**: JWT (stateless) via `io.jsonwebtoken`, validated in `SeguridadConfig` filter
-- **Known entities**: `CategoriaEmpleado`, `Campo`, `Rodal`, `Parcela`, `Empleado`, `Cuadrilla`, `Tarea`, `Liquidacion`, `Habilitacion`, `Perfil`, `Usuario`, `Producto`
+- **Known entities**: `CategoriaEmpleado`, `Campo`, `Rodal`, `Parcela`, `Empleado`, `Cuadrilla`, `Tarea`, `TareaAsignada`, `Liquidacion`, `Habilitacion`, `Perfil`, `Usuario`, `Producto`, `CatalogoTarea`, `Estado`, `AsignacionTratamiento`
 - **Coordinate precision**: `BigDecimal(precision=11, scale=8)` — 8 decimal places
 - **CORS**: Handled by backend `SeguridadConfig` — must allow `http://localhost:5173`
 - **Custom DTOs**: When a feature needs data from multiple entities or only a subset of fields, create custom request/response DTOs in the backend. This avoids over-fetching and keeps frontend logic simple. Always suggest this approach when the existing DTOs don't fit the use case.
@@ -112,6 +112,7 @@ src/
     tratamientoService.ts       # CRUD for tratamientos (catalog)
     asignacionTratamientoService.ts  # Planificación: assign treatments to parcels/rodales
     tareaService.ts             # CRUD for tareas + liquidacion query
+    tareaAsignadaService.ts     # GET tareas-asignadas by cuadrilla (vigentes)
     catalogoTareaService.ts     # GET catalogo de tareas
     estadoService.ts            # GET estados
     registroDiarioService.ts    # CRUD for registros diarios
@@ -125,7 +126,8 @@ src/
     empleado-habilitacion.ts
     habilitacion.ts
     predio.ts             # Campo, CampoDTO, Rodal, RodalDTO, RodalResponse, Parcela, ParcelaDTO, ParcelaResponse
-    tarea.ts              # Estado, CatalogoTarea, PlantillaTarea, Tarea, Liquidacion, RegistroDiario, Tratamiento, Producto, etc.
+    tarea.ts              # Estado, CatalogoTarea, PlantillaTarea, Tarea, TareaRequest, TareaResponse, Liquidacion, RegistroDiario, Tratamiento, Producto, etc.
+    tarea-asignada.ts     # TareaAsignadaResponse, TareaAsignadaRequest
     asignacion-tratamiento.ts # AsignacionTratamientoResponse, AsignacionTratamientoDTO, EstadoAsignacion
   hooks/                  # Custom hooks
     useAuth.ts            # useAuth() — consumes AuthContext
@@ -218,25 +220,37 @@ Key dependencies:
 
 Mobile-first panel for the puntero (squad foreman) to register daily tasks for their workers.
 
+### Backend Architecture (Important)
+
+- **No HistoricoTratamiento entity exists.** The bridge between Cuadrilla and AsignacionTratamiento is `TareaAsignada`.
+- **Relationship chain**: `Cuadrilla ←[TareaAsignada]→ AsignacionTratamiento → Parcela → Rodal → Campo`
+- **`Tarea` has NO cuadrilla FK.** To find tareas by cuadrilla, get TareaAsignada records first (which contain `idAsignacion`), then query tareas by `idAsignacion`.
+- **`TareaRequest` uses flat IDs** (NOT nested objects): `idAsignacion`, `idEmpleado`, `idEstado`, `idCatalogoTarea`, `fecha`, `descripcion`, `horas`, `observaciones`
+- **`PlantillaTarea`** is a template catalog, NOT a FK on Tarea. The entity has no `plantilla` field.
+- **Filtering by cuadrilla** is done via `TareaAsignada` endpoints, not via `AsignacionTratamiento`.
+- **Auto-transition**: When creating a Tarea, if the linked AsignacionTratamiento is `PLANIFICADO`, backend auto-transitions it to `EN_EJECUCION`.
+
+### Key Backend Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /tareas-asignadas/cuadrilla/{id}/vigentes` | Tasks assigned to a squad (fechaLimite >= today) |
+| `GET /tareas-asignadas/cuadrilla/{id}/asignacion/{idAsignacion}` | Specific assignment for a squad |
+| `GET /tareas/asignacion/{idAsignacion}` | Tareas by asignacion |
+| `POST /tareas/create` | Create tarea (flat IDs in TareaRequest) |
+| `GET /estados/all` | List all estados |
+
 ### Current State
 - Auth with roles works: admin → `/dashboard`, puntero → `/puntero`
 - JWT includes `idEmpleado` claim (links usuario → empleado)
-- PunteroPanel shows: cuadrilla info, members, parcelas with active treatments
-- Task creation modal: tipo de tarea (catalog), empleado, horas, descripcion, observaciones
+- PunteroPanel shows: cuadrilla info, members, parcelas from tareas-asignadas vigentes
+- TareaAsignada flow: inline form per assignment (select employee + hours → register)
+- Task creation modal: tipo de tarea (catalog), empleado, horas, fecha, descripcion, observaciones
 - CSS: mobile-first, FAB button for new task, responsive cards
 
 ### Pending
-- **Parcelas filtering**: Currently shows ALL asignaciones in EN_EJECUCION/PLANIFICADO, not just those belonging to the puntero's cuadrilla. Needs HistoricoTratamiento endpoint by cuadrilla or backend filtering.
-- **TareaDTO structure**: Backend may need a simplified DTO (IDs only, not nested objects) for task creation. Untested against real backend.
-- **RegistroDiario**: Service exists but not wired into the puntero flow yet. The plan was to create daily records per employee after tasks.
 - **Task editing/deletion**: Not implemented yet.
-- **Real-time task count per parcela**: Currently filtered by name matching, needs proper HistoricoTratamiento linkage.
+- **RegistroDiario**: Service exists but not wired into the puntero flow yet. The plan was to create daily records per employee after tasks.
 - **Dashboard**: Empty placeholder — will show progress/stats from tareas.
 - **Liquidaciones**: Empty placeholder — will calculate from registros diarios.
 - **Reportes**: Empty placeholder — will generate from tareas + registros.
-
-### Backend Dependencies Needed
-1. Endpoint: `GET /asignaciones-tratamiento/cuadrilla/{idCuadrilla}` — filter assignments by cuadrilla
-2. HistoricoTratamiento: created automatically when an assignment is linked to a cuadrilla, or needs manual creation endpoint
-3. TareaDTO: verify if backend accepts nested objects or needs flat IDs
-4. Endpoint: `GET /registros-diarios/empleado/{idEmpleado}/fecha/{fecha}` — daily records by employee and date
