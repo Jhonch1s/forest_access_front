@@ -14,12 +14,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 1024px) {
-  .asignar-layout {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-  }
-}
+
 
 .asignar-panel {
   background: var(--bg-surface);
@@ -454,6 +449,7 @@
   gap: var(--space-sm);
   flex: 1;
   min-height: 0;
+  max-height: 400px;
   overflow: hidden;
 }
 
@@ -598,4 +594,20 @@
 .icon-button:hover {
   background: rgba(196, 30, 58, 0.08);
   color: var(--status-error);
+}
+
+@media (max-width: 1024px) {
+  .asignar-layout {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .asignaciones-section {
+    max-height: 300px;
+  }
+
+  .form-section {
+    display: flex;
+    flex-direction: column;
+  }
 }

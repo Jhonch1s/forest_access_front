@@ -27,7 +27,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .puntero-error p {
@@ -429,6 +431,7 @@
   font-family: var(--sans);
   background: var(--bg-surface);
   min-height: 40px;
+  color: var(--forest-primary)
 }
 
 .puntero-asignada-form input {
@@ -439,6 +442,8 @@
   font-size: 14px;
   font-family: var(--sans);
   min-height: 40px;
+  background-color: var(--bg-surface);
+  color: var(--forest-primary);
 }
 
 /* Miembros list detallada */
@@ -651,4 +656,73 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--space-sm);
   }
+}
+
+/* Tarea completada card */
+.puntero-tarea-card.completada {
+  opacity: 0.6;
+  border-color: rgba(48, 130, 48, 0.2);
+  background: rgba(48, 130, 48, 0.02);
+}
+
+.puntero-tarea-card.completada .puntero-tarea-empleado {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.puntero-tarea-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Check button to mark task as completed */
+.puntero-tarea-complete-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: var(--radius-full);
+  background: rgba(48, 130, 48, 0.08);
+  border: 1px solid rgba(48, 130, 48, 0.2);
+  color: var(--status-success);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.puntero-tarea-complete-btn:active {
+  transform: scale(0.9);
+  background: rgba(48, 130, 48, 0.2);
+}
+
+@media (hover: hover) {
+  .puntero-tarea-complete-btn:hover {
+    background: rgba(48, 130, 48, 0.15);
+    border-color: var(--status-success);
+  }
+}
+
+/* Checkbox in modal form */
+.form-field-checkbox {
+  padding: var(--space-xs) 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--forest-secondary);
+  cursor: pointer;
 }

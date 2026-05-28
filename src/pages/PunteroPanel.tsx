@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 import { getAsignaciones } from '../services/asignacionTratamientoService';
-import { getTareas, createTarea } from '../services/tareaService';
+import { getTareas, createTarea, updateTarea } from '../services/tareaService';
 import { getCatalogoTareas } from '../services/catalogoTareaService';
 import { getEstados } from '../services/estadoService';
-import { getAsignadasVigentesByCuadrilla } from '../services/tareaAsignadaService';
+import { getAsignadasVigentesByCuadrilla, createTareaAsignada } from '../services/tareaAsignadaService';
 import Button from '../components/Button';
 import type { EmpleadoCuadrillaResponse } from '../types/empleado-cuadrilla';
 import type { AsignacionTratamientoResponse } from '../types/asignacion-tratamiento';
@@ -16,14 +16,21 @@ import './PunteroPanel.css';
 type Vista = 'parcelas' | 'tareas';
 
 function getBadgeClass(estado: string): string {
-  switch (estado) {
-    case 'PENDIENTE': return 'badge-pendiente';
-    case 'PLANIFICADO': return 'badge-planificado';
-    case 'EN_EJECUCION': return 'badge-en-ejecucion';
-    case 'COMPLETADO': return 'badge-completado';
-    case 'CANCELADO': return 'badge-cancelado';
-    default: return 'badge-pendiente';
-  }
+  const upper = estado.toUpperCase();
+  if (upper.includes('PENDIENT')) return 'badge-pendiente';
+  if (upper.includes('PLANIFIC')) return 'badge-planificado';
+  if (upper.includes('PROCESO') || upper.includes('EJECUC')) return 'badge-en-ejecucion';
+  if (upper.includes('FINALIZ') || upper.includes('COMPLET')) return 'badge-completado';
+  if (upper.includes('CANCEL')) return 'badge-cancelado';
+  return 'badge-pendiente';
+}
+
+function getEstadoIdPorNombre(nombre: string): number {
+  const upper = nombre.toUpperCase();
+  if (upper.includes('FINALIZ')) return 3;
+  if (upper.includes('PENDIENT')) return 2;
+  if (upper.includes('PROCESO') || upper.includes('EJECUC')) return 1;
+  return 1;
 }
 
 function PunteroPanel() {
@@ -57,6 +64,7 @@ function PunteroPanel() {
     horas: '',
     descripcion: '',
     observaciones: '',
+    marcarCompletada: false,
   });
 
   useEffect(() => {
@@ -160,6 +168,7 @@ function PunteroPanel() {
       horas: '',
       descripcion: '',
       observaciones: '',
+      marcarCompletada: false,
     });
     setFormTouched(false);
     setSubmitError(null);
@@ -173,6 +182,7 @@ function PunteroPanel() {
       horas: '',
       descripcion: '',
       observaciones: '',
+      marcarCompletada: false,
     });
     setFormTouched(false);
     setSubmitError(null);
@@ -183,12 +193,14 @@ function PunteroPanel() {
     const formData = asignadaForm[ta.idTareaAsignada];
     if (!formData?.idEmpleado) return;
 
-    const estadoInicial = estados.find((e) => e.nombre === 'PENDIENTE' || e.nombre === 'EN_PROGRESO');
+    const estadoInicial = estados.find(
+      (e) => e.nombre.toUpperCase().includes('PENDIENT') || e.nombre.toUpperCase().includes('PROCESO'),
+    );
 
     const request: TareaRequest = {
       idAsignacion: asignacionSeleccionada!.idAsignacion,
       idEmpleado: Number(formData.idEmpleado),
-      idEstado: estadoInicial?.idEstado ?? 1,
+      idEstado: estadoInicial ? getEstadoIdPorNombre(estadoInicial.nombre) : 1,
       idCatalogoTarea: ta.idCatalogoTarea,
       fecha: today,
       descripcion: ta.descripcion ?? '',
@@ -240,6 +252,54 @@ function PunteroPanel() {
     }
   };
 
+  const handleFinalizarTarea = async (tarea: TareaResponse) => {
+    const estadoCompletado = estados.find(
+      (e) => e.nombre.toUpperCase().includes('FINALIZ'),
+    );
+    if (!estadoCompletado) return;
+
+    const estadoId = getEstadoIdPorNombre(estadoCompletado.nombre);
+
+    try {
+      const actualizada = await updateTarea(tarea.idTarea, {
+        idAsignacion: tarea.idAsignacion,
+        idEmpleado: tarea.idEmpleado,
+        idEstado: estadoId,
+        idCatalogoTarea: tarea.idCatalogoTarea,
+        fecha: tarea.fecha,
+        descripcion: tarea.descripcion,
+        horas: tarea.horas,
+        observaciones: tarea.observaciones,
+      });
+      setTareas((prev) => prev.map((t) => (t.idTarea === actualizada.idTarea ? actualizada : t)));
+
+      if (miCuadrilla) {
+        const nuevaAsignada = await createTareaAsignada({
+          idAsignacion: tarea.idAsignacion,
+          idCuadrilla: miCuadrilla.idCuadrilla,
+          idCatalogoTarea: tarea.idCatalogoTarea,
+          descripcion: tarea.descripcion,
+          fechaLimite: today,
+        });
+        setTareasAsignadas((prev) => [...prev, nuevaAsignada]);
+      }
+    } catch (err: unknown) {
+      let msg = 'Error al finalizar tarea.';
+      let status: number | undefined;
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { status?: number; data?: string | { message?: string; error?: string } } };
+        status = axiosErr.response?.status;
+        const data = axiosErr.response?.data;
+        if (typeof data === 'string') msg = data;
+        else msg = data?.message ?? data?.error ?? msg;
+      }
+      if (status === 401 || status === 403) {
+        msg = 'No tenés permisos para finalizar tareas. Contactá al administrador.';
+      }
+      alert(msg);
+    }
+  };
+
   const handleCrearTarea = async () => {
     setSubmitError(null);
     setFormTouched(true);
@@ -254,12 +314,16 @@ function PunteroPanel() {
       return;
     }
 
-    const estadoInicial = estados.find((e) => e.nombre === 'PENDIENTE' || e.nombre === 'EN_PROGRESO');
+    const estadoInicial = form.marcarCompletada
+      ? estados.find((e) => e.nombre.toUpperCase().includes('FINALIZ'))
+      : estados.find(
+          (e) => e.nombre.toUpperCase().includes('PENDIENT') || e.nombre.toUpperCase().includes('PROCESO'),
+        );
 
     const request: TareaRequest = {
       idAsignacion: asignacionSeleccionada.idAsignacion,
       idEmpleado: Number(form.idEmpleado),
-      idEstado: estadoInicial?.idEstado ?? 1,
+      idEstado: estadoInicial ? getEstadoIdPorNombre(estadoInicial.nombre) : 1,
       idCatalogoTarea: Number(form.idCatalogoTarea),
       fecha: today,
       descripcion: form.descripcion,
@@ -458,12 +522,25 @@ function PunteroPanel() {
         ) : (
           <div className="puntero-tareas-list">
             {tareasDeAsignacion.map((t) => (
-              <div key={t.idTarea} className="puntero-tarea-card">
+              <div key={t.idTarea} className={`puntero-tarea-card${t.nombreEstado === 'Finalizada' ? ' completada' : ''}`}>
                 <div className="puntero-tarea-header">
                   <span className="puntero-tarea-empleado">{t.nombreEmpleado}</span>
-                  <span className={`badge ${t.nombreEstado === 'COMPLETADO' ? 'badge-success' : 'badge-warning'}`}>
-                    {t.nombreEstado}
-                  </span>
+                  <div className="puntero-tarea-header-right">
+                    <span className={`badge ${t.nombreEstado === 'Finalizada' ? 'badge-success' : 'badge-warning'}`}>
+                      {t.nombreEstado}
+                    </span>
+                    {t.nombreEstado !== 'Finalizada' && (
+                      <button
+                        className="puntero-tarea-complete-btn"
+                        onClick={() => handleFinalizarTarea(t)}
+                        aria-label="Marcar como completada"
+                      >
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="puntero-tarea-body">
                   <span className="puntero-tarea-tipo">{t.nombreTareaCatalogo}</span>
@@ -568,6 +645,17 @@ function PunteroPanel() {
                     placeholder="Opcional..."
                     rows={2}
                   />
+                </div>
+
+                <div className="form-field form-field-checkbox">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={form.marcarCompletada}
+                      onChange={(e) => setForm((f) => ({ ...f, marcarCompletada: e.target.checked }))}
+                    />
+                    Marcar como completada
+                  </label>
                 </div>
 
                 <div className="modal-actions">

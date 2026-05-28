@@ -32,7 +32,7 @@ export async function createTarea(request: TareaRequest): Promise<TareaResponse>
 }
 
 export async function updateTarea(id: number, request: TareaRequest): Promise<TareaResponse> {
-  const { data } = await api.put(`/tareas/${id}`, request);
+  const { data } = await apiLocal.put(`/tareas/${id}`, request);
   return data;
 }
 
