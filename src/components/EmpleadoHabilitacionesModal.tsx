@@ -9,7 +9,7 @@ import {
     updateEmpleadoHabilitacion, 
     deleteEmpleadoHabilitacion } from '../services/empleadoHabilitacionService';
 
-    import "./EmpleadoHabilitacionesModal.css";
+import "./EmpleadoHabilitacionesModal.css";
 
 interface Props {
   empleadoId: number;
