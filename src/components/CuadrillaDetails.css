@@ -110,8 +110,6 @@
   color: var(--text-secondary, #585662);
 }
 
-/* Edit Mode Styles */
-
 .remove-member-btn {
   background: none;
   border: none;
@@ -163,7 +161,7 @@
 .autocomplete-dropdown {
   position: absolute;
   top: 100%;
-  left: 56px; /* Alinear con el input, saltando el avatar */
+  left: 56px;
   right: 0;
   margin-top: 4px;
   background: var(--bg-surface);

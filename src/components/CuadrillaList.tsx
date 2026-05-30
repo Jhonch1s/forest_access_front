@@ -4,7 +4,6 @@ import { terminarCuadrilla } from '../services/cuadrillaService';
 import ConfirmModal from './ConfirmModal';
 import './CuadrillaList.css';
 
-// Ahora el hijo recibe todo por Props desde el Padre
 interface CuadrillaListProps {
   cuadrillas: CuadrillaUI[];
   loading: boolean;
@@ -12,15 +11,28 @@ interface CuadrillaListProps {
   selectedId: number | null;
   onSelect: (id: number) => void;
   onRefetch: () => void;
+  paginaActual: number;
+  totalPaginas: number;
+  onCambiarPagina: (nuevaPagina: number) => void;
 }
 
-export default function CuadrillaList({ cuadrillas, loading, error, selectedId, onSelect, onRefetch }: CuadrillaListProps) {
+export default function CuadrillaList({ 
+  cuadrillas, 
+  loading, 
+  error, 
+  selectedId, 
+  onSelect, 
+  onRefetch,
+  paginaActual,
+  totalPaginas,
+  onCambiarPagina 
+}: CuadrillaListProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation(); // Evitar que seleccione la tarjeta
+    e.stopPropagation();
     setDeletingId(id);
     setModalOpen(true);
   };
@@ -31,9 +43,9 @@ export default function CuadrillaList({ cuadrillas, loading, error, selectedId, 
       setIsDeleting(true);
       await terminarCuadrilla(deletingId);
       setModalOpen(false);
-      onRefetch(); // Recargar datos
+      onRefetch();
       if (selectedId === deletingId) {
-        onSelect(0); // Deseleccionar
+        onSelect(0);
       }
     } catch (err) {
       console.error(err);
@@ -63,46 +75,73 @@ export default function CuadrillaList({ cuadrillas, loading, error, selectedId, 
 
   return (
     <div className="cuadrilla-list-pane">
-      {cuadrillas.map((cuadrilla) => (
-        <div 
-          key={cuadrilla.idCuadrilla} 
-          className={`cuadrilla-card ${selectedId === cuadrilla.idCuadrilla ? 'selected' : ''}`}
-          onClick={() => onSelect(cuadrilla.idCuadrilla)}
-        >   
-          <div className="cuadrilla-card-header">
-              <h3 className="cuadrilla-title">{cuadrilla.nombre}</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`status-badge ${cuadrilla.activa ? 'active' : 'inactive'}`}>
-                    {cuadrilla.activa ? 'Activa' : 'Inactiva'}
-                </span>
-                
-                {cuadrilla.activa && (
-                  <button 
-                    className="icon-button danger-hover" 
-                    onClick={(e) => handleDeleteClick(e, cuadrilla.idCuadrilla)}
-                    title="Terminar Cuadrilla"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '4px', color: 'var(--text-secondary)' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                  </button>
-                )}
-                <span className="chevron">›</span>
-              </div>
+      <div className="cuadrilla-list-scrollable">
+        {cuadrillas.map((cuadrilla) => (
+          <div 
+            key={cuadrilla.idCuadrilla} 
+            className={`cuadrilla-card ${selectedId === cuadrilla.idCuadrilla ? 'selected' : ''}`}
+            onClick={() => onSelect(cuadrilla.idCuadrilla)}
+          >   
+            <div className="cuadrilla-card-header">
+                <h3 className="cuadrilla-title">{cuadrilla.nombre}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className={`status-badge ${cuadrilla.activa ? 'active' : 'inactive'}`}>
+                      {cuadrilla.activa ? 'Activa' : 'Inactiva'}
+                  </span>
+                  
+                  {cuadrilla.activa && (
+                    <button 
+                      className="delete-btn" 
+                      onClick={(e) => handleDeleteClick(e, cuadrilla.idCuadrilla)}
+                      title="Terminar Cuadrilla"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                      Finalizar
+                    </button>
+                  )}
+                  <span className="chevron">›</span>
+                </div>
+            </div>
+            
+            <div className="cuadrilla-card-info">
+                <p>Puntero: {cuadrilla.puntero}</p>
+                <p className="miembros-text">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  {cuadrilla.miembros.length} miembros
+                </p>
+            </div>
           </div>
+        ))}
+      </div>
+
+      {totalPaginas > 1 && (
+        <div className="cuadrilla-pagination">
+          <button 
+            onClick={() => onCambiarPagina(paginaActual - 1)} 
+            disabled={paginaActual === 1}
+            className="pagination-btn"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Anterior
+          </button>
           
-          <div className="cuadrilla-card-info">
-              <p>Puntero: {cuadrilla.puntero}</p>
-              <p className="miembros-text">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                {/* Ahora miembros es un array, así que pedimos su longitud (.length) */}
-                {cuadrilla.miembros.length} miembros
-              </p>
-          </div>
+          <span className="pagination-info">
+            Página {paginaActual} de {totalPaginas}
+          </span>
+          
+          <button 
+            onClick={() => onCambiarPagina(paginaActual + 1)} 
+            disabled={paginaActual === totalPaginas}
+            className="pagination-btn"
+          >
+            Siguiente
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
-      ))}
+      )}
 
       <ConfirmModal 
         isOpen={modalOpen}

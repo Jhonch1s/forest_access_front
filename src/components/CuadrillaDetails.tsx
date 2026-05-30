@@ -6,6 +6,7 @@ import { sincronizarEmpleados } from '../services/cuadrillaService';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 import './CuadrillaDetails.css';
 import Button from './Button';
+import AsignarTareasCuadrillaModal from './AsignarTareasCuadrillaModal';
 
 interface CuadrillaDetailsProps {
   cuadrilla: CuadrillaUI | null;
@@ -17,6 +18,7 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
   const [isEditing, setIsEditing] = useState(false);
   const [editMembers, setEditMembers] = useState<CuadrillaUI['miembros']>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [showAsignarModal, setShowAsignarModal] = useState(false);
   
   const { empleados } = useEmpleados();
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,7 +99,6 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
       return;
     }
     
-    // Calcular iniciales para la UI local
     const nameParts = emp.nombre.trim().split(' ');
     const iniciales = nameParts.length > 1 
       ? nameParts[0].charAt(0) + nameParts[1].charAt(0) 
@@ -290,16 +291,37 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
             </Button>
           </>
         ) : (
-          <Button 
-            variant="secondary" 
-            size="medium" 
-            onClick={() => setIsEditing(true)}
-            disabled={!cuadrilla.activa}
-          >
-            Editar Cuadrilla
-          </Button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <Button 
+              variant="secondary" 
+              size="medium" 
+              onClick={() => setIsEditing(true)}
+              disabled={!cuadrilla.activa}
+            >
+              Editar Cuadrilla
+            </Button>
+            <Button 
+              variant="primary" 
+              size="medium" 
+              onClick={() => setShowAsignarModal(true)}
+              disabled={!cuadrilla.activa}
+            >
+              Asignar Tarea
+            </Button>
+          </div>
         )}
       </div>
+
+      {showAsignarModal && (
+        <AsignarTareasCuadrillaModal
+          idCuadrilla={cuadrilla.idCuadrilla}
+          onClose={() => setShowAsignarModal(false)}
+          onSuccess={() => {
+            setShowAsignarModal(false);
+            alert("Tareas asignadas correctamente.");
+          }}
+        />
+      )}
     </div>
   );
 }

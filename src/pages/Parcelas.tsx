@@ -60,6 +60,7 @@ function Parcelas() {
   const [rodalExpandido, setRodalExpandido] = useState<number | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const [mapVersion, setMapVersion] = useState(0);
+  const [parcelaSeleccionada, setParcelaSeleccionada] = useState<Parcela | null>(null);
 
   const campoActual = useMemo(() => {
     if (campoActualId !== null && Number.isFinite(campoActualId)) {
@@ -131,6 +132,7 @@ function Parcelas() {
   const handleSeleccionarCampo = (campo: Campo) => {
     setCampoActualId(campo.idCampo);
     setRodalExpandido(null);
+    setParcelaSeleccionada(null);
     setModal(null);
   };
 
@@ -205,6 +207,15 @@ function Parcelas() {
     handleRefresh();
   };
 
+  const handleBuscarParcela = (parcela: Parcela) => {
+    if (parcela.coordLat !== 0 && parcela.coordLng !== 0) {
+      setParcelaSeleccionada(parcela);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      alert('Esta parcela no tiene coordenadas definidas.');
+    }
+  };
+
   // --- Render ---
   const loading = loadingCampos || loadingDatos;
 
@@ -213,6 +224,7 @@ function Parcelas() {
       <CampoHeader
         key={`${campoActual?.idCampo ?? 'empty'}-${mapVersion}`}
         campo={campoActual}
+        parcelaSeleccionada={parcelaSeleccionada}
         onEdit={() => campoActual && setModal({ type: 'editarCampo', campo: campoActual })}
         onDelete={handleEliminarCampo}
         onChangeCampo={() => setModal({ type: 'selectorCampo' })}
@@ -223,7 +235,8 @@ function Parcelas() {
         <h2>Parcelas</h2>
         {campoActual && (
           <Button variant="primary" onClick={() => setModal({ type: 'crearRodal' })}>
-            + Nuevo Rodal
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: 16, height: 16, marginRight: 6}}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Nuevo Rodal
           </Button>
         )}
       </div>
@@ -239,7 +252,8 @@ function Parcelas() {
         <div className="parcelas-status">
           <p>No hay rodales en este campo.</p>
           <Button variant="primary" onClick={() => setModal({ type: 'crearRodal' })}>
-            + Crear Primer Rodal
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: 16, height: 16, marginRight: 6}}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Crear Primer Rodal
           </Button>
         </div>
       )}
@@ -262,6 +276,7 @@ function Parcelas() {
                 setModal({ type: 'editarParcela', parcela: p, idRodal: rodal.idRodal })
               }
               onDeleteParcela={handleEliminarParcela}
+              onBuscarParcela={handleBuscarParcela}
             />
           ))}
         </div>

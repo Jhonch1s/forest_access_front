@@ -104,9 +104,9 @@ function Layout({ children }: LayoutProps) {
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const avatar = user?.nombreUsuario.charAt(0).toUpperCase() ?? 'A';
+  const avatar = user?.nombreUsuario?.charAt(0).toUpperCase() ?? 'A';
   const displayName = user?.nombreUsuario ?? 'Usuario';
-  const displayRole = user?.perfiles.includes('admin') ? 'Administrador' : 'Puntero';
+  const displayRole = user?.perfiles?.includes('admin') ? 'Administrador' : 'Puntero';
 
   return (
     <div className="layout">

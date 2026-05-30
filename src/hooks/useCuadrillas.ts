@@ -17,11 +17,16 @@ export interface CuadrillaUI {
   miembros: MiembroUI[]; 
 }
 
-export function useCuadrillas(mostrarHistorial: boolean = false) {
-  const [cuadrillas, setCuadrillas] = useState<CuadrillaUI[]>([]);
+export function useCuadrillas(mostrarHistorial: boolean = false, itemsPorPagina: number = 4) {
+  const [allCuadrillas, setAllCuadrillas] = useState<CuadrillaUI[]>([]);
+  const [paginaActual, setPaginaActual] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [mostrarHistorial]);
 
   useEffect(() => {
     async function fetchData() {
@@ -33,26 +38,17 @@ export function useCuadrillas(mostrarHistorial: boolean = false) {
         ]);
 
         const cuadrillasProcesadas = cuadrillasData.map((cuadrilla) => {
-          // Si el backend no manda 'esActivo' bien, usamos 'fechaFin' nula como alternativa para saber si está activo
-                    const miembros = empleadosData.filter((emp) => {
-            // Si no es de esta cuadrilla, lo ignoramos
+          const miembros = empleadosData.filter((emp) => {
             if (emp.idCuadrilla !== cuadrilla.idCuadrilla) return false;
-            
-            // Si estamos viendo el historial, queremos ver a TODOS los que pasaron por ahí
             if (mostrarHistorial) return true;
-            
-            //Si es una cuadrilla activa, solo mostramos a los activos actualmente
             return emp.esActivo === true || !emp.fechaFin;
           });
 
-          
-          // El backend mandó 'rol: null'. Le ponemos validación segura
           const punteroObj = miembros.find((emp) => 
             emp.rol && (emp.rol.toLowerCase().includes('puntero') || emp.rol.toLowerCase().includes('capataz'))
           );
           const nombrePuntero = punteroObj ? punteroObj.nombreEmpleado : 'Sin asignar';
 
-          // Mapeamos los miembros para sacarles las iniciales dinámicamente
           const miembrosCompletos: MiembroUI[] = miembros.map(emp => {
             const partes = emp.nombreEmpleado.split(' ');
             const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
@@ -60,7 +56,7 @@ export function useCuadrillas(mostrarHistorial: boolean = false) {
               id: emp.idEmpleado,
               nombre: emp.nombreEmpleado,
               iniciales: iniciales.toUpperCase(),
-              rol: emp.rol || 'Sin rol' // Si viene null, mostramos esto
+              rol: emp.rol || 'Sin rol'
             };
           });
 
@@ -73,7 +69,7 @@ export function useCuadrillas(mostrarHistorial: boolean = false) {
           };
         });
 
-        setCuadrillas(cuadrillasProcesadas);
+        setAllCuadrillas(cuadrillasProcesadas);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Error al cargar cuadrillas');
       } finally {
@@ -82,10 +78,29 @@ export function useCuadrillas(mostrarHistorial: boolean = false) {
     }
 
     fetchData();
-    }, [refreshKey, mostrarHistorial]);
-
+  }, [refreshKey, mostrarHistorial]);
 
   const refetch = () => setRefreshKey(k => k + 1);
 
-  return { cuadrillas, loading, error, refetch };
+  const totalPaginas = Math.ceil(allCuadrillas.length / itemsPorPagina) || 1;
+  
+  const indiceUltimoItem = paginaActual * itemsPorPagina;
+  const indicePrimerItem = indiceUltimoItem - itemsPorPagina;
+  const cuadrillasPaginadas = allCuadrillas.slice(indicePrimerItem, indiceUltimoItem);
+
+  const cambiarPagina = (nuevaPagina: number) => {
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+      setPaginaActual(nuevaPagina);
+    }
+  };
+
+  return { 
+    cuadrillas: cuadrillasPaginadas, 
+    loading, 
+    error, 
+    refetch,
+    paginaActual,
+    totalPaginas,
+    cambiarPagina
+  };
 }
