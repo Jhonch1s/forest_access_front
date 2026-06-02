@@ -20,6 +20,8 @@ export default function AsignarTareasCuadrillaModal({ idCuadrilla, onClose, onSu
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [idCampoSeleccionado, setIdCampoSeleccionado] = useState<string>('');
+  const [idRodalSeleccionado, setIdRodalSeleccionado] = useState<string>('');
   const [idAsignacionSeleccionada, setIdAsignacionSeleccionada] = useState<string>('');
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState<Set<number>>(new Set());
   const [fechaLimite, setFechaLimite] = useState<string>(
@@ -53,6 +55,19 @@ export default function AsignarTareasCuadrillaModal({ idCuadrilla, onClose, onSu
     }
     loadData();
   }, []);
+
+  // Derivar listas únicas de campos y rodales
+  const camposUnicos = Array.from(new Map(
+    asignaciones.map(a => [a.idCampo, { id: a.idCampo, nombre: a.nombreCampo }])
+  ).values());
+
+  const rodalesUnicos = Array.from(new Map(
+    asignaciones
+      .filter(a => a.idCampo === Number(idCampoSeleccionado))
+      .map(a => [a.idRodal, { id: a.idRodal, nombre: a.nombreRodal }])
+  ).values());
+
+  const parcelasFiltradas = asignaciones.filter(a => a.idRodal === Number(idRodalSeleccionado));
 
   const handleToggleTarea = (id: number) => {
     setTareasSeleccionadas(prev => {
@@ -141,25 +156,68 @@ export default function AsignarTareasCuadrillaModal({ idCuadrilla, onClose, onSu
         <div className="asignar-tareas-modal-content">
           {error && <div className="input-error-message" style={{ display: 'block', padding: '10px', backgroundColor: 'rgba(231, 76, 60, 0.1)', borderRadius: '4px' }}>{error}</div>}
 
-          <div className="asignar-tareas-section">
-            <label htmlFor="select-asignacion">Parcela en Tratamiento *</label>
-            <select 
-              id="select-asignacion"
-              className="asignar-tareas-select"
-              value={idAsignacionSeleccionada}
-              onChange={(e) => setIdAsignacionSeleccionada(e.target.value)}
-            >
-              <option value="" disabled>Selecciona la parcela/tratamiento a realizar...</option>
-              {asignaciones.map(a => (
-                <option key={a.idAsignacion} value={a.idAsignacion}>
-                  {a.nombreParcela} ({a.nombreRodal}) — Tratamiento: {a.nombreTratamiento} [{a.estado}]
-                </option>
-              ))}
-            </select>
-            {asignaciones.length === 0 && (
-              <span style={{ fontSize: '0.8rem', color: 'var(--error-color)' }}>
-                No hay parcelas con tratamientos activos (Planificado o En Ejecución). Debes planificar un tratamiento primero.
-              </span>
+          <div className="asignar-tareas-section-group">
+            <div className="asignar-tareas-section">
+              <label htmlFor="select-campo">Campo *</label>
+              <select 
+                id="select-campo"
+                className="asignar-tareas-select"
+                value={idCampoSeleccionado}
+                onChange={(e) => {
+                  setIdCampoSeleccionado(e.target.value);
+                  setIdRodalSeleccionado('');
+                  setIdAsignacionSeleccionada('');
+                }}
+              >
+                <option value="" disabled>Selecciona un campo...</option>
+                {camposUnicos.map(c => (
+                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                ))}
+              </select>
+              {asignaciones.length === 0 && (
+                <span style={{ fontSize: '0.8rem', color: 'var(--status-error)' }}>
+                  No hay parcelas con tratamientos activos.
+                </span>
+              )}
+            </div>
+
+            {idCampoSeleccionado && (
+              <div className="asignar-tareas-section">
+                <label htmlFor="select-rodal">Rodal *</label>
+                <select 
+                  id="select-rodal"
+                  className="asignar-tareas-select"
+                  value={idRodalSeleccionado}
+                  onChange={(e) => {
+                    setIdRodalSeleccionado(e.target.value);
+                    setIdAsignacionSeleccionada('');
+                  }}
+                >
+                  <option value="" disabled>Selecciona un rodal...</option>
+                  {rodalesUnicos.map(r => (
+                    <option key={r.id} value={r.id}>{r.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {idRodalSeleccionado && (
+              <div className="asignar-tareas-section">
+                <label htmlFor="select-asignacion">Parcela en Tratamiento *</label>
+                <select 
+                  id="select-asignacion"
+                  className="asignar-tareas-select"
+                  value={idAsignacionSeleccionada}
+                  onChange={(e) => setIdAsignacionSeleccionada(e.target.value)}
+                >
+                  <option value="" disabled>Selecciona una parcela...</option>
+                  {parcelasFiltradas.map(a => (
+                    <option key={a.idAsignacion} value={a.idAsignacion}>
+                      {a.nombreParcela} — Trat: {a.nombreTratamiento}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
           </div>
 
@@ -217,7 +275,7 @@ export default function AsignarTareasCuadrillaModal({ idCuadrilla, onClose, onSu
                           type="checkbox" 
                           className="asignar-tareas-checkbox"
                           checked={tareasSeleccionadas.has(cat.idCatalogoTarea)}
-                          onChange={() => {}} // handled by row click
+                          onChange={() => handleToggleTarea(cat.idCatalogoTarea)}
                           onClick={e => e.stopPropagation()}
                         />
                       </td>
@@ -251,6 +309,10 @@ export default function AsignarTareasCuadrillaModal({ idCuadrilla, onClose, onSu
         <div className="asignar-tareas-modal-footer">
           <Button variant="secondary" onClick={onClose} disabled={submitting}>Cancelar</Button>
           <Button variant="primary" onClick={handleSubmit} loading={submitting}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'text-bottom' }}>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
             Confirmar Asignación
           </Button>
         </div>

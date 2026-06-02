@@ -25,6 +25,8 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [activeAssignments, setActiveAssignments] = useState<Map<number, string>>(new Map());
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 5;
 
   useEffect(() => {
     if (cuadrilla) {
@@ -33,7 +35,12 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
     setIsEditing(false);
     setSearchTerm('');
     setShowDropdown(false);
+    setPaginaActual(1);
   }, [cuadrilla]);
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [isEditing]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -156,6 +163,14 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
   const displayMembers = isEditing ? editMembers : cuadrilla.miembros;
   const currentPuntero = displayMembers.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
 
+  const totalPaginas = Math.ceil(displayMembers.length / itemsPorPagina) || 1;
+  const indiceUltimoItem = paginaActual * itemsPorPagina;
+  const indicePrimerItem = indiceUltimoItem - itemsPorPagina;
+  const miembrosPaginados = displayMembers.slice(indicePrimerItem, indiceUltimoItem);
+
+  const paginaAnterior = () => setPaginaActual(prev => Math.max(1, prev - 1));
+  const paginaSiguiente = () => setPaginaActual(prev => Math.min(totalPaginas, prev + 1));
+
   return (
     <div className="cuadrilla-details-pane">
          <div className="details-header">
@@ -204,7 +219,7 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
         <label>Miembros ({displayMembers.length})</label>
         
         <div className="miembros-list">
-          {displayMembers.map((miembro) => (
+          {miembrosPaginados.map((miembro) => (
             <div key={miembro.id} className="miembro-item">
               <div className="miembro-avatar">{miembro.iniciales}</div>
               <div className="miembro-info">
@@ -229,6 +244,30 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
 
           {displayMembers.length === 0 && !isEditing && (
              <p className="empty-members">No hay miembros asignados.</p>
+          )}
+
+          {totalPaginas > 1 && (
+            <div className="cuadrilla-pagination" style={{ marginTop: '16px', justifyContent: 'center', borderTop: 'none', paddingTop: 0 }}>
+              <Button 
+                variant="secondary" 
+                size="small" 
+                onClick={paginaAnterior} 
+                disabled={paginaActual === 1}
+              >
+                Anterior
+              </Button>
+              <span className="pagination-info" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                Pág. {paginaActual} de {totalPaginas}
+              </span>
+              <Button 
+                variant="secondary" 
+                size="small" 
+                onClick={paginaSiguiente} 
+                disabled={paginaActual === totalPaginas}
+              >
+                Siguiente
+              </Button>
+            </div>
           )}
 
           {isEditing && (
@@ -298,6 +337,10 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
               onClick={() => setIsEditing(true)}
               disabled={!cuadrilla.activa}
             >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'text-bottom' }}>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
               Editar Cuadrilla
             </Button>
             <Button 
@@ -306,6 +349,10 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
               onClick={() => setShowAsignarModal(true)}
               disabled={!cuadrilla.activa}
             >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'text-bottom' }}>
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              </svg>
               Asignar Tarea
             </Button>
           </div>
