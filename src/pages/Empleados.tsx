@@ -1,19 +1,23 @@
 import { useState, useMemo } from 'react';
 import EmpleadoList from "../components/EmpleadoList";
 import { useCategorias } from "../hooks/useCategorias";
+import { useHabilitaciones } from '../hooks/useHabilitaciones';
 import { useEmpleados } from '../hooks/useEmpleados';
 import { 
   createEmpleado, 
   updateEmpleado, 
   deleteEmpleado 
 } from "../services/empleadoService";
+import  type {  EmpleadoHabilitacionDTO } from '../types/empleado-habilitacion';
 import { type EmpleadoDTO } from "../types";
 import FormModalComplete from '../components/FormModalComplete';
 import type { FieldConfigComplete } from '../components/FormModalComplete';
 import Button from "../components/Button";
+import { createEmpleadoHabilitacion, updateEmpleadoHabilitacion,deleteEmpleadoHabilitacion } from '../services/empleadoHabilitacionService';
 function Empleados() {
 
   const { categorias } = useCategorias();
+  const { habilitaciones } = useHabilitaciones();
   const { refetch, empleados, loading, error } = useEmpleados();
 
   const categoriaOptions = useMemo(() =>
@@ -22,6 +26,14 @@ function Empleados() {
       label: cat.nombre
     })),
     [categorias]
+  );
+
+  const habilitacionesOptions = useMemo( () =>
+    habilitaciones.map( hab => ({
+      value: hab.idHabilitacion,
+      label: hab.nombre
+    })),
+    [habilitaciones]
   );
 
   const empleadoFields: FieldConfigComplete[] = [
@@ -40,8 +52,15 @@ function Empleados() {
     }
   ];
 
+  const HabilitacionesFields: FieldConfigComplete[] = [
+    { name: 'idHabilitacion', label: 'Habilitacion', type:'select',options: habilitacionesOptions,required: true},
+    { name: 'fechaEmision', label: 'Fecha De Emisión', type:'date',required:true},
+    { name: 'fechaVencimiento', label: 'Fecha De Vencimiento', type:'date',required:true}
+  ]
+
 
   const [modal, setModal] = useState<{ type: 'crear' } | { type: 'editar'; empleado: EmpleadoDTO } | null>(null);
+  const [habModal, setHabModal] =  useState<{ type: 'crear'; idEmpleado:number } | { type: 'editar'; habilitacion: EmpleadoHabilitacionDTO } | null>(null);
 
 
   const getInitialValues = (empleado?: EmpleadoDTO) => {
@@ -57,6 +76,17 @@ function Empleados() {
     };
   };
 
+  const getInitialValuesHab = (habilitacion?: EmpleadoHabilitacionDTO) =>{
+    if(!habilitacion) return undefined;
+    return{
+      idHabilitacion: habilitacion.idHabilitacion,
+      fechaEmision: habilitacion.fechaEmision,
+      fechaVencimiento: habilitacion.fechaVencimiento
+    };
+  };
+
+
+
 
   const handleCrearEmpleado = async (values: Record<string, string | number>) => {
     await createEmpleado({
@@ -71,6 +101,20 @@ function Empleados() {
     });
     await refetch();
     setModal(null);
+  }
+
+  const handleCrearHabilitacion = async (values: Record<string, string|number>) =>{
+    if (!habModal || habModal.type !== 'crear') return;
+    const { idEmpleado } = habModal;
+
+    await createEmpleadoHabilitacion({
+      idEmpleado: idEmpleado as number,
+      idHabilitacion: values.idHabilitacion as number,
+      fechaEmision: values.fechaEmision as string,
+      fechaVencimiento: values.fechaVencimiento as string
+    });
+    await refetch();
+    setHabModal(null);
   }
 
   const handleEditar = async (values: Record<string, string | number>) => {
@@ -93,11 +137,30 @@ function Empleados() {
     setModal(null);
   };
 
+  const handleEditarHabilitacion = async (values: Record<string, string|number>) =>{
+    if (!habModal || habModal.type !== 'editar') return;
+    const { habilitacion } = habModal;
+    await updateEmpleadoHabilitacion(habilitacion.idEmpleado,habilitacion.idHabilitacion,{
+      idEmpleado: habilitacion.idEmpleado,
+      idHabilitacion: habilitacion.idHabilitacion,
+      fechaEmision: values.fechaEmision as string,
+      fechaVencimiento: values.fechaVencimiento as string
+    });
+    await refetch();
+    setHabModal(null);
+  }
+
   const handleEliminar = async (empleado: EmpleadoDTO) => {
     if (!confirm(`¿Eliminar al empleado "${empleado.nombre}"?`)) return;
     await deleteEmpleado(empleado.idEmpleado);
     await refetch();
   };
+
+  const handleEliminarHabilitacion = async (habilitacion: EmpleadoHabilitacionDTO) =>{
+    if(!confirm(`¿Eliminar Habilitacion de empleado?`)) return;
+    await deleteEmpleadoHabilitacion(habilitacion.idEmpleado,habilitacion.idHabilitacion);
+    await refetch();
+  }
 
 
 
@@ -132,14 +195,20 @@ function Empleados() {
 
       {!loading && !error && (
         <EmpleadoList
+
       empleados={empleados}
         onEdit={(emp) => {
           setModal({ type: 'editar', empleado: emp })
         }
 
         }
-
+        onEditHab={(hab) =>{
+          setHabModal({ type: 'editar', habilitacion: hab })
+        }}
+        onCreateHab={(idEmpleado) => setHabModal({ type: 'crear', idEmpleado })}
         onDelete={handleEliminar}
+        onDeleteHab={handleEliminarHabilitacion}
+
       />
       )}
 
@@ -161,7 +230,30 @@ function Empleados() {
           onClose={() => setModal(null)}
         />
       )}
+
+      {habModal?.type === 'crear' && (
+        <FormModalComplete
+          title="Nueva Habilitación de empleado"
+          fields={HabilitacionesFields}
+          onSubmit={handleCrearHabilitacion}
+          onClose={() => setHabModal(null)}
+        />
+      )}
+
+      {habModal?.type == 'editar' && (
+      <FormModalComplete
+          title="Editar Habilitacion de Empleado"
+          fields={HabilitacionesFields}
+          initialValues={getInitialValuesHab(habModal.habilitacion)}
+          onSubmit={handleEditarHabilitacion}
+          onClose={() => setHabModal(null)}
+        />
+    )}
     </div>
+
+    
+
+
 
 
   );
