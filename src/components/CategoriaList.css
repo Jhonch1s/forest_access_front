@@ -26,9 +26,32 @@
   overflow-x: auto;
 }
 
+.visually-hidden {
+  position: absolute;
+  top: auto;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  /* IE 6/7 */
+  clip: rect(1px, 1px, 1px, 1px);
+  width: 1px;
+  height: 1px;
+  white-space: nowrap;
+}
+
 .categoria-table-container th,
 .categoria-table-container td {
   text-align: center;
+}
+
+.td-button Button svg {
+  width: 1.25em;
+  height: 1.25em;
+  transition: transform 0.25s ease-in;
+  transform-origin: center 45%;
+}
+
+.td-button Button[aria-expanded="true"] svg {
+  transform: rotate(90deg);
 }
 
 /* Mobile: cards (oculto en desktop) */
@@ -39,33 +62,37 @@
 .categoria-actions {
   display: flex;
   gap: var(--space-sm);
-   justify-content: center;
+  justify-content: center;
 }
 
-.botones{
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
+.botones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
 
-  .proximo-vencer {
+.proximo-vencer {
   background-color: #fff3cd;
   color: #856404;
 }
+
 .vencida {
   background-color: #f8d7da;
   color: #721c24;
 }
+
 /* Para la fila completa, si aplicaste clase al tr */
 tr.vencida {
   background-color: #f8d7da;
 }
+
 tr.proximo-vencer {
   background-color: #fff3cd;
 }
 
 /* Mobile */
 @media (max-width: 768px) {
+
   /* Ocultar tabla en movil */
   .categoria-table-container {
     display: none;
@@ -140,5 +167,5 @@ tr.proximo-vencer {
     flex: 1;
   }
 
-  
+
 }
