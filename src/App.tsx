@@ -11,7 +11,6 @@ import Cuadrillas from './pages/Cuadrillas';
 import Parcelas from './pages/Parcelas';
 import Tareas from './pages/Tareas';
 import Reportes from './pages/Reportes';
-import Liquidaciones from './pages/Liquidaciones';
 import Configuracion from './pages/Configuracion';
 import Categorias from './pages/Categorias';
 import AsignarTratamientos from './pages/AsignarTratamientos';
@@ -92,16 +91,6 @@ function App() {
               <ProtectedRoute requiredProfile="admin">
                 <Layout>
                   <Reportes />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/liquidaciones"
-            element={
-              <ProtectedRoute requiredProfile="admin">
-                <Layout>
-                  <Liquidaciones />
                 </Layout>
               </ProtectedRoute>
             }

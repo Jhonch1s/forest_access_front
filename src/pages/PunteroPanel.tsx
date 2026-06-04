@@ -127,8 +127,10 @@ function PunteroPanel() {
 
   const tareasDeAsignacion = useMemo(() => {
     if (!asignacionSeleccionada) return [];
-    return tareas.filter((t) => t.idAsignacion === asignacionSeleccionada.idAsignacion);
-  }, [tareas, asignacionSeleccionada]);
+    return tareas.filter(
+      (t) => t.idAsignacion === asignacionSeleccionada.idAsignacion && t.fecha === today,
+    );
+  }, [tareas, asignacionSeleccionada, today]);
 
   const tareasDeHoy = useMemo(() => {
     return tareas.filter((t) => t.fecha === today);
