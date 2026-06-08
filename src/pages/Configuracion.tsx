@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import ConfigCard from '../components/ConfigCard';
 import CatalogModal from '../components/CatalogModal';
+import PunteroUsersModal from '../components/PunteroUsersModal';
 import { useCategorias } from '../hooks/useCategorias';
 import { useProductos } from '../hooks/useProductos';
 import { useHabilitaciones } from '../hooks/useHabilitaciones';
+import { useUsuariosPuntero } from '../hooks/useUsuariosPuntero';
 import {
   createCategoria,
   updateCategoria,
@@ -67,9 +69,11 @@ function Configuracion() {
   const { categorias, loading: loadingCategorias, refetch: refetchCategorias } = useCategorias();
   const { productos, loading: loadingProductos, refetch: refetchProductos } = useProductos();
   const { habilitaciones, loading: loadingHabilitaciones, refetch:refetchHabilitaciones} = useHabilitaciones();
+  const { usuariosPuntero, punterosDisponibles, loading: loadingUsuarios, refetch: refetchUsuarios } = useUsuariosPuntero();
   const [modalHabilitacion, setModalHabilitacion] = useState(false);
   const [modalCategoria, setModalCategoria] = useState(false);
   const [modalProducto, setModalProducto] = useState(false);
+  const [modalUsuarios, setModalUsuarios] = useState(false);
 
   return (
     <div className="config-page">
@@ -110,6 +114,17 @@ function Configuracion() {
           description="Habilitaciones existentes"
           count={habilitaciones.length}
           onClick={() => setModalHabilitacion(true)}
+        />
+        <ConfigCard
+          icon={
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+          }
+          title="Usuarios Punteros"
+          description="Credenciales de acceso para punteros"
+          count={usuariosPuntero.length}
+          onClick={() => setModalUsuarios(true)}
         />
       </div>
 
@@ -179,6 +194,16 @@ function Configuracion() {
           }}
           onClose={() => setModalHabilitacion(false)}
           onRefresh={refetchHabilitaciones}
+        />
+      )}
+
+      {modalUsuarios && (
+        <PunteroUsersModal
+          usuarios={usuariosPuntero}
+          punterosDisponibles={punterosDisponibles}
+          loading={loadingUsuarios}
+          onClose={() => setModalUsuarios(false)}
+          onRefresh={refetchUsuarios}
         />
       )}
 

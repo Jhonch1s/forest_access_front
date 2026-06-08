@@ -24,6 +24,20 @@ export interface UsuarioResponse {
   perfiles: PerfilResponse[];
 }
 
+export interface PunteroUsuarioCreateRequest {
+  nombreUsuario: string;
+  password: string;
+  idEmpleado: number;
+}
+
+export interface PunteroUsuarioResponse {
+  id: number;
+  nombreUsuario: string;
+  perfiles: PerfilResponse[];
+  idEmpleado: number;
+  nombreEmpleado: string;
+}
+
 export interface LoginRequest {
   usuario: string;
   password: string;

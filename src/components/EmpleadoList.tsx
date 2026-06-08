@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import React from 'react';
 import EmpleadoHabilitacionesModal from './EmpleadoHabilitacionesModal';
 import { useEmpleadoHabilitaciones } from '../hooks/useEmpleadoHabilitacion';
@@ -36,7 +36,7 @@ function EmpleadoList({ empleados, onEdit, onDelete,onEditHab,onDeleteHab,onCrea
   const [expandidos, setExpandidos] = useState(new Set());
 
   const [modalHabilitacionesOpen, setModalHabilitacionesOpen] = useState(false);
-  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<EmpleadoResponse | null>(null);
+  const [empleadoSeleccionado] = useState<EmpleadoResponse | null>(null);
 
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 5;

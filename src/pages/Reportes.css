@@ -13,10 +13,10 @@
 
 .reportes-top {
   background: var(--bg-surface);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   border-radius: var(--radius-lg);
 }
 
@@ -84,6 +84,12 @@
   gap: 5px;
 }
 
+.reportes-filtros-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 .reportes-select {
   padding: 5px 10px;
   border: 1px solid var(--border-light);
@@ -93,6 +99,24 @@
   background: var(--bg-main);
   color: var(--text-main);
   min-height: 32px;
+}
+
+.reportes-select-date {
+  padding: 2px 6px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-family: var(--sans);
+  font-size: 12px;
+  background: var(--bg-main);
+  color: var(--text-main);
+  min-height: 26px;
+  cursor: pointer;
+}
+
+.reportes-filtros-sep {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0 2px;
 }
 
 .reportes-view-toggle {
@@ -136,15 +160,15 @@
   background: var(--bg-main);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: var(--space-sm);
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
 }
 
 .reportes-resumen-icon {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
@@ -158,7 +182,7 @@
 .reportes-resumen-valor {
   display: block;
   font-family: var(--mono);
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-main);
   line-height: 1.2;
@@ -173,7 +197,7 @@
 
 .reportes-resumen-label {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   font-weight: 500;
   margin-top: 2px;
@@ -341,7 +365,7 @@
 
 .reporte-card-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 3fr;
   gap: var(--space-md);
   border-top: 1px solid var(--border-light);
   padding-top: var(--space-sm);
@@ -421,19 +445,15 @@
 /* ── Right column: stats ── */
 
 .reporte-card-stats-col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
 }
 
 .reporte-stat-block {
   background: var(--bg-main);
   border-radius: var(--radius-md);
-  padding: var(--space-sm);
-}
-
-.reporte-stat-block + .reporte-stat-block {
-  margin-top: 0;
+  padding: var(--space-xs);
 }
 
 .reporte-stat-block-header {
@@ -451,7 +471,7 @@
 /* ── Jornada bar ── */
 
 .reporte-jornada-bar-track {
-  height: 8px;
+  height: 6px;
   background: var(--border-light);
   border-radius: var(--radius-full);
   position: relative;
@@ -496,20 +516,20 @@
 
 .reporte-stat-incentivo {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-sm);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .reporte-inc-horas {
   font-family: var(--mono);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .reporte-inc-valor {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -532,13 +552,17 @@
 .reporte-hab-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 0;
-  font-size: 12px;
+  gap: 3px;
+  padding: 2px 0;
+  font-size: 11px;
 }
 
 .reporte-hab-nombre {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 500;
   color: var(--text-main);
 }
@@ -726,6 +750,10 @@
     border: 1px solid #ccc;
   }
 
+  .reporte-card-stats-col {
+    grid-template-columns: 1fr;
+  }
+
   .reporte-tarea-row,
   .reporte-stat-block {
     background: #f9f9f9;
@@ -771,6 +799,10 @@
     gap: var(--space-sm);
   }
 
+  .reporte-card-stats-col {
+    grid-template-columns: 1fr;
+  }
+
   .reporte-card-body {
     padding: var(--space-sm);
   }
@@ -787,11 +819,5 @@
 
   .reporte-tarea-row {
     flex-wrap: wrap;
-  }
-
-  .reporte-stat-incentivo {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
   }
 }

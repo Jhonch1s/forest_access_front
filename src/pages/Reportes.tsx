@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Button from '../components/Button';
+import { getReporteBatch, esPageResponse } from '../services/reporteService';
+import type { ReporteEmpleadoDTO, ReporteBatchPage } from '../types/reporte';
 import './Reportes.css';
 
 /* ─── SVG icons ─────────────────────────── */
@@ -107,135 +109,36 @@ interface ReporteEmpleado {
   habilitaciones: HabilitacionInfo[];
 }
 
-/* ─── Mock data ─────────────────────────── */
+/* ─── Mapper DTO → interno ─────────────── */
 
-const VALOR_JORNAL_BASE = 1200;
-
-const MOCK_EMPLEADOS: ReporteEmpleado[] = [
-  {
-    idEmpleado: 1,
-    nombre: 'Juan Pérez',
-    cedula: '5.123.456-7',
-    categoria: 'Operario',
-    valorJornal: VALOR_JORNAL_BASE,
-    totalTareas: 4,
-    totalHoras: 10.5,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Desmalezado manual', cantidad: 2, horas: 5.0 },
-      { nombreCatalogo: 'Aplicaci\u00f3n herbicida', cantidad: 1, horas: 3.5 },
-      { nombreCatalogo: 'Poda de formaci\u00f3n', cantidad: 1, horas: 2.0 },
-    ],
-    habilitaciones: [
-      { nombre: 'Motosierra', fechaVencimiento: '2026-06-15', diasRestantes: 12 },
-      { nombre: 'Manejo de agroqu\u00edmicos', fechaVencimiento: '2026-09-20', diasRestantes: 109 },
-    ],
-  },
-  {
-    idEmpleado: 2,
-    nombre: 'Mar\u00eda Garc\u00eda',
-    cedula: '3.987.654-1',
-    categoria: 'Tractorista',
-    valorJornal: VALOR_JORNAL_BASE + 300,
-    totalTareas: 3,
-    totalHoras: 7.0,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Arado', cantidad: 2, horas: 4.5 },
-      { nombreCatalogo: 'Rastraje', cantidad: 1, horas: 2.5 },
-    ],
-    habilitaciones: [],
-  },
-  {
-    idEmpleado: 3,
-    nombre: 'Carlos L\u00f3pez',
-    cedula: '2.456.789-3',
-    categoria: 'Operario',
-    valorJornal: VALOR_JORNAL_BASE,
-    totalTareas: 5,
-    totalHoras: 12.0,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Desmalezado manual', cantidad: 3, horas: 7.5 },
-      { nombreCatalogo: 'Poda de formaci\u00f3n', cantidad: 2, horas: 4.5 },
-    ],
-    habilitaciones: [
-      { nombre: 'Motosierra', fechaVencimiento: '2026-05-30', diasRestantes: -4 },
-      { nombre: 'Manejo de agroqu\u00edmicos', fechaVencimiento: '2026-07-01', diasRestantes: 28 },
-    ],
-  },
-  {
-    idEmpleado: 4,
-    nombre: 'Ana Mart\u00ednez',
-    cedula: '4.567.890-2',
-    categoria: 'Capataz',
-    valorJornal: VALOR_JORNAL_BASE + 600,
-    totalTareas: 2,
-    totalHoras: 8.0,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Supervisi\u00f3n', cantidad: 2, horas: 8.0 },
-    ],
-    habilitaciones: [
-      { nombre: 'Manejo de agroqu\u00edmicos', fechaVencimiento: '2026-06-10', diasRestantes: 7 },
-    ],
-  },
-  {
-    idEmpleado: 5,
-    nombre: 'Pedro Rodr\u00edguez',
-    cedula: '2.345.678-9',
-    categoria: 'Operario',
-    valorJornal: VALOR_JORNAL_BASE,
-    totalTareas: 4,
-    totalHoras: 9.5,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Aplicaci\u00f3n herbicida', cantidad: 2, horas: 5.0 },
-      { nombreCatalogo: 'Fertilizaci\u00f3n', cantidad: 1, horas: 2.5 },
-      { nombreCatalogo: 'Desmalezado manual', cantidad: 1, horas: 2.0 },
-    ],
-    habilitaciones: [
-      { nombre: 'Manejo de agroqu\u00edmicos', fechaVencimiento: '2026-11-15', diasRestantes: 165 },
-      { nombre: 'Motosierra', fechaVencimiento: '2026-08-01', diasRestantes: 59 },
-    ],
-  },
-  {
-    idEmpleado: 6,
-    nombre: 'Luc\u00eda Fern\u00e1ndez',
-    cedula: '3.456.789-0',
-    categoria: 'Tractorista',
-    valorJornal: VALOR_JORNAL_BASE + 300,
-    totalTareas: 3,
-    totalHoras: 6.5,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Arado', cantidad: 2, horas: 4.0 },
-      { nombreCatalogo: 'Nivelaci\u00f3n', cantidad: 1, horas: 2.5 },
-    ],
-    habilitaciones: [
-      { nombre: 'Motosierra', fechaVencimiento: '2026-05-20', diasRestantes: -16 },
-    ],
-  },
-  {
-    idEmpleado: 7,
-    nombre: 'Diego Ram\u00edrez',
-    cedula: '4.789.012-5',
-    categoria: 'Operario',
-    valorJornal: VALOR_JORNAL_BASE,
-    totalTareas: 5,
-    totalHoras: 11.0,
-    diasConTrabajo: 1,
-    tareasAgrupadas: [
-      { nombreCatalogo: 'Desmalezado manual', cantidad: 2, horas: 5.0 },
-      { nombreCatalogo: 'Poda de formaci\u00f3n', cantidad: 2, horas: 4.0 },
-      { nombreCatalogo: 'Aplicaci\u00f3n herbicida', cantidad: 1, horas: 2.0 },
-    ],
-    habilitaciones: [
-      { nombre: 'Manejo de agroqu\u00edmicos', fechaVencimiento: '2026-06-05', diasRestantes: 2 },
-      { nombre: 'Motosierra', fechaVencimiento: '2026-07-15', diasRestantes: 42 },
-    ],
-  },
-];
+function mapEmpleadoDTO(dto: ReporteEmpleadoDTO): ReporteEmpleado {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return {
+    idEmpleado: dto.idEmpleado,
+    nombre: dto.nombre,
+    cedula: dto.cedula,
+    categoria: dto.nombreCategoria,
+    valorJornal: dto.valorJornal,
+    totalTareas: dto.totalTareas,
+    totalHoras: dto.totalHoras,
+    diasConTrabajo: dto.diasTrabajados,
+    tareasAgrupadas: dto.tareas.map((t) => ({
+      nombreCatalogo: t.nombreCatalogo,
+      cantidad: t.cantidad,
+      horas: t.horas,
+    })),
+    habilitaciones: dto.habilitaciones.map((h) => {
+      const venc = new Date(h.fechaVencimiento + 'T00:00:00');
+      const diff = Math.ceil((venc.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        nombre: h.nombreHabilitacion,
+        fechaVencimiento: h.fechaVencimiento,
+        diasRestantes: diff,
+      };
+    }),
+  };
+}
 
 /* ─── Helpers ───────────────────────────── */
 
@@ -271,6 +174,7 @@ function incentivoValor(incentivoH: number, valorJornal: number): number {
 }
 
 function jornadaPct(totalHoras: number, diasConTrabajo: number): number {
+  if (diasConTrabajo <= 0) return 0;
   return Math.min(100, (totalHoras / (diasConTrabajo * 8)) * 100);
 }
 
@@ -279,6 +183,15 @@ const RANGO_LABELS: Record<RangoKey, string> = {
   semana: 'Semana',
   mes: 'Mes',
 };
+
+const MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+function rangeOptions(from: number, to: number): number[] {
+  return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+}
 
 /* ─── Componente ReporteEmpleadoCard ────── */
 
@@ -364,7 +277,7 @@ function ReporteEmpleadoCard({ emp }: { emp: ReporteEmpleado }) {
               </div>
               <div className="reporte-jornada-bar-track">
                 <div className="reporte-jornada-bar-fill" style={{ width: `${pct}%` }} />
-                <div className="reporte-jornada-bar-marker" style={{ left: `${(8 / (emp.diasConTrabajo * 8)) * 100}%` }} />
+                <div className="reporte-jornada-bar-marker" style={{ left: `${emp.diasConTrabajo > 0 ? (8 / (emp.diasConTrabajo * 8)) * 100 : 0}%` }} />
               </div>
               <div className="reporte-jornada-labels">
                 <span className="reporte-jornada-hrs">{emp.totalHoras.toFixed(1)}h</span>
@@ -436,9 +349,106 @@ function Reportes() {
   const [sortBy, setSortBy] = useState<SortKey>('nombre');
   const [viewMode, setViewMode] = useState<ViewMode>('paginado');
   const [pagina, setPagina] = useState(1);
+  const today = new Date();
+  const [inicioDia, setInicioDia] = useState(today.getDate());
+  const [inicioMes, setInicioMes] = useState(today.getMonth());
+  const [inicioAnio, setInicioAnio] = useState(today.getFullYear());
+  const [finDia, setFinDia] = useState(today.getDate());
+  const [finMes, setFinMes] = useState(today.getMonth());
+  const [finAnio, setFinAnio] = useState(today.getFullYear());
+  const [empleadosDTO, setEmpleadosDTO] = useState<ReporteEmpleadoDTO[]>([]);
+  const [paginaDTO, setPaginaDTO] = useState<ReporteEmpleadoDTO[]>([]);
+  const [totalPaginasBackend, setTotalPaginasBackend] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const getDates = useCallback(() => {
+    const inicioDate = new Date(inicioAnio, inicioMes, inicioDia);
+    const finDate = new Date(finAnio, finMes, finDia);
+    if (inicioDate > finDate) return null;
+    const inicio = `${String(inicioAnio).padStart(4, '0')}-${String(inicioMes + 1).padStart(2, '0')}-${String(inicioDia).padStart(2, '0')}`;
+    const hasta = `${String(finAnio).padStart(4, '0')}-${String(finMes + 1).padStart(2, '0')}-${String(finDia).padStart(2, '0')}`;
+    return { inicio, hasta };
+  }, [inicioAnio, inicioMes, inicioDia, finAnio, finMes, finDia]);
+
+  function fetchReporte() {
+    const dates = getDates();
+    if (!dates) {
+      setError('La fecha de inicio no puede ser posterior a la fecha fin');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    getReporteBatch(dates)
+      .then((data) => {
+        const arr = Array.isArray(data) ? data : (data as ReporteBatchPage).content;
+        setEmpleadosDTO(arr);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }
+
+  function handleRangoChange(key: RangoKey) {
+    setRango(key);
+    setPagina(1);
+    const now = new Date();
+    const diaSemana = now.getDay() === 0 ? 7 : now.getDay();
+    let dInicio: { dia: number; mes: number; anio: number };
+    let dFin: { dia: number; mes: number; anio: number };
+    switch (key) {
+      case 'hoy':
+        dInicio = dFin = { dia: now.getDate(), mes: now.getMonth(), anio: now.getFullYear() };
+        break;
+      case 'semana': {
+        const diffLunes = 1 - diaSemana;
+        const lunes = new Date(now);
+        lunes.setDate(now.getDate() + diffLunes);
+        const domingo = new Date(lunes);
+        domingo.setDate(lunes.getDate() + 6);
+        dInicio = { dia: lunes.getDate(), mes: lunes.getMonth(), anio: lunes.getFullYear() };
+        dFin = { dia: domingo.getDate(), mes: domingo.getMonth(), anio: domingo.getFullYear() };
+        break;
+      }
+      case 'mes': {
+        const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+        const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        dInicio = { dia: primerDia.getDate(), mes: primerDia.getMonth(), anio: primerDia.getFullYear() };
+        dFin = { dia: ultimoDia.getDate(), mes: ultimoDia.getMonth(), anio: ultimoDia.getFullYear() };
+        break;
+      }
+    }
+    setInicioDia(dInicio.dia);
+    setInicioMes(dInicio.mes);
+    setInicioAnio(dInicio.anio);
+    setFinDia(dFin.dia);
+    setFinMes(dFin.mes);
+    setFinAnio(dFin.anio);
+  }
+
+  useEffect(() => {
+    fetchReporte();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inicioDia, inicioMes, inicioAnio, finDia, finMes, finAnio]);
+
+  useEffect(() => {
+    if (viewMode !== 'paginado') return;
+    const dates = getDates();
+    if (!dates) return;
+    getReporteBatch({ ...dates, page: pagina - 1, size: PAGE_SIZE })
+      .then((data) => {
+        if (esPageResponse(data)) {
+          setPaginaDTO(data.content);
+          setTotalPaginasBackend(data.totalPages);
+        }
+      })
+      .catch(() => {});
+  }, [viewMode, pagina, getDates]);
+
+  const empleados = useMemo(() => empleadosDTO.map(mapEmpleadoDTO), [empleadosDTO]);
 
   const empleadosOrdenados = useMemo(() => {
-    const copia = [...MOCK_EMPLEADOS];
+    const copia = [...empleados];
     switch (sortBy) {
       case 'nombre':
         copia.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -455,26 +465,38 @@ function Reportes() {
         break;
     }
     return copia;
-  }, [sortBy]);
+  }, [sortBy, empleados]);
 
-  const totalPaginas = Math.ceil(empleadosOrdenados.length / PAGE_SIZE);
-  const empleadosPagina = viewMode === 'paginado'
-    ? empleadosOrdenados.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE)
-    : empleadosOrdenados;
+  const totalPaginas = useMemo(() => {
+    return viewMode === 'paginado'
+      ? Math.max(totalPaginasBackend, 1)
+      : Math.ceil(empleadosOrdenados.length / PAGE_SIZE);
+  }, [viewMode, totalPaginasBackend, empleadosOrdenados.length]);
 
-  const totalTareas = useMemo(() => MOCK_EMPLEADOS.reduce((s, e) => s + e.totalTareas, 0), []);
-  const totalHoras = useMemo(() => MOCK_EMPLEADOS.reduce((s, e) => s + e.totalHoras, 0), []);
+  const empleadosPagina = useMemo(() => {
+    if (viewMode === 'paginado') {
+      if (paginaDTO.length > 0) {
+        const mapped = paginaDTO.map(mapEmpleadoDTO);
+        return mapped;
+      }
+      return empleadosOrdenados.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE);
+    }
+    return empleadosOrdenados;
+  }, [viewMode, pagina, empleadosOrdenados, paginaDTO]);
+
+  const totalTareas = useMemo(() => empleados.reduce((s, e) => s + e.totalTareas, 0), [empleados]);
+  const totalHoras = useMemo(() => empleados.reduce((s, e) => s + e.totalHoras, 0), [empleados]);
   const totalIncentivoH = useMemo(
-    () => MOCK_EMPLEADOS.reduce((s, e) => s + incentivoHoras(e.totalHoras, e.diasConTrabajo), 0),
-    [],
+    () => empleados.reduce((s, e) => s + incentivoHoras(e.totalHoras, e.diasConTrabajo), 0),
+    [empleados],
   );
   const totalIncentivoV = useMemo(
     () =>
-      MOCK_EMPLEADOS.reduce(
+      empleados.reduce(
         (s, e) => s + incentivoValor(incentivoHoras(e.totalHoras, e.diasConTrabajo), e.valorJornal),
         0,
       ),
-    [],
+    [empleados],
   );
 
   return (
@@ -497,14 +519,34 @@ function Reportes() {
               <button
                 key={key}
                 className={`reportes-rango-btn ${rango === key ? 'active' : ''}`}
-                onClick={() => setRango(key)}
+                onClick={() => handleRangoChange(key)}
               >
                 {RANGO_LABELS[key]}
               </button>
             ))}
             <span className="reportes-filtros-fechas">
               <IconCalendar size={12} />
-              01/06/2026 &mdash; 01/06/2026
+              <span className="reportes-filtros-label">Inicio:</span>
+              <select className="reportes-select-date" value={inicioDia} onChange={e => setInicioDia(Number(e.target.value))}>
+                {rangeOptions(1, 31).map(d => <option key={d} value={d}>{String(d).padStart(2, '0')}</option>)}
+              </select>
+              <select className="reportes-select-date" value={inicioMes} onChange={e => setInicioMes(Number(e.target.value))}>
+                {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+              </select>
+              <select className="reportes-select-date" value={inicioAnio} onChange={e => setInicioAnio(Number(e.target.value))}>
+                {rangeOptions(2024, 2028).map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+              <span className="reportes-filtros-sep">&mdash;</span>
+              <span className="reportes-filtros-label">Fin:</span>
+              <select className="reportes-select-date" value={finDia} onChange={e => setFinDia(Number(e.target.value))}>
+                {rangeOptions(1, 31).map(d => <option key={d} value={d}>{String(d).padStart(2, '0')}</option>)}
+              </select>
+              <select className="reportes-select-date" value={finMes} onChange={e => setFinMes(Number(e.target.value))}>
+                {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+              </select>
+              <select className="reportes-select-date" value={finAnio} onChange={e => setFinAnio(Number(e.target.value))}>
+                {rangeOptions(2024, 2028).map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
             </span>
           </div>
 
@@ -560,7 +602,7 @@ function Reportes() {
             <div>
               <span className="reportes-resumen-valor">{totalHoras.toFixed(1)}<small>h</small></span>
               <span className="reportes-resumen-label">
-                Horas totales &middot; {MOCK_EMPLEADOS.length} empleados
+                Horas totales &middot; {empleados.length} empleados
               </span>
             </div>
           </div>
@@ -591,7 +633,7 @@ function Reportes() {
           </span>
         </div>
 
-        {viewMode === 'paginado' && empleadosOrdenados.length > PAGE_SIZE && (
+        {viewMode === 'paginado' && totalPaginas > 1 && (
           <div className="reportes-pagination-top">
             <span className="reportes-pag-info">
               P&aacute;g. {pagina} de {totalPaginas}
@@ -615,13 +657,28 @@ function Reportes() {
           </div>
         )}
 
-        <div className="reportes-list">
-          {empleadosPagina.map((emp) => (
-            <ReporteEmpleadoCard key={emp.idEmpleado} emp={emp} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="reportes-list" style={{ padding: '20px 0', textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
+            Cargando reporte...
+          </div>
+        ) : error ? (
+          <div className="reportes-list" style={{ padding: '20px 0', textAlign: 'center', color: 'var(--status-error)', fontSize: 13 }}>
+            {error}
+            <div style={{ marginTop: 12 }}>
+              <Button variant="secondary" onClick={fetchReporte}>
+                Reintentar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="reportes-list">
+            {empleadosPagina.map((emp) => (
+              <ReporteEmpleadoCard key={emp.idEmpleado} emp={emp} />
+            ))}
+          </div>
+        )}
 
-        {viewMode === 'paginado' && empleadosOrdenados.length > PAGE_SIZE && (
+        {viewMode === 'paginado' && totalPaginas > 1 && (
           <div className="reportes-pagination-bottom">
             <div className="reportes-pag-pages">
               {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((p) => (

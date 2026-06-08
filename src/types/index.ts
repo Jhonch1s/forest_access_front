@@ -13,6 +13,8 @@ export type {
   PerfilResponse,
   UsuarioDTO,
   UsuarioResponse,
+  PunteroUsuarioCreateRequest,
+  PunteroUsuarioResponse,
   LoginRequest,
   RegisterRequest,
   AuthUser,

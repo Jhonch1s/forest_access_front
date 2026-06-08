@@ -52,6 +52,7 @@ function PunteroPanel() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [editandoTarea, setEditandoTarea] = useState<TareaResponse | null>(null);
   const [formTouched, setFormTouched] = useState(false);
   const [asignadaForm, setAsignadaForm] = useState<Record<number, { idEmpleado: string; horas: string }>>({});
   const [registrandoAsignada, setRegistrandoAsignada] = useState<number | null>(null);
@@ -163,6 +164,12 @@ function PunteroPanel() {
     setAsignacionSeleccionada(null);
   };
 
+  const handleCerrarModal = useCallback(() => {
+    setShowModal(false);
+    setEditandoTarea(null);
+    setSubmitError(null);
+  }, []);
+
   const handleAbrirModal = () => {
     setForm({
       idCatalogoTarea: '',
@@ -174,6 +181,7 @@ function PunteroPanel() {
     });
     setFormTouched(false);
     setSubmitError(null);
+    setEditandoTarea(null);
     setShowModal(true);
   };
 
@@ -188,6 +196,22 @@ function PunteroPanel() {
     });
     setFormTouched(false);
     setSubmitError(null);
+    setEditandoTarea(null);
+    setShowModal(true);
+  };
+
+  const handleAbrirEdicion = (tarea: TareaResponse) => {
+    setForm({
+      idCatalogoTarea: String(tarea.idCatalogoTarea),
+      idEmpleado: String(tarea.idEmpleado),
+      horas: String(tarea.horas),
+      descripcion: tarea.descripcion,
+      observaciones: tarea.observaciones,
+      marcarCompletada: tarea.nombreEstado === 'Finalizada',
+    });
+    setFormTouched(false);
+    setSubmitError(null);
+    setEditandoTarea(tarea);
     setShowModal(true);
   };
 
@@ -335,15 +359,21 @@ function PunteroPanel() {
 
     try {
       setSubmitting(true);
-      const nueva = await createTarea(request);
-      if (!nueva || typeof nueva.idTarea !== 'number') {
-        throw new Error('Respuesta inválida del servidor');
+      let result: TareaResponse;
+      if (editandoTarea) {
+        result = await updateTarea(editandoTarea.idTarea, request);
+        setTareas((prev) => prev.map((t) => (t.idTarea === result.idTarea ? result : t)));
+      } else {
+        result = await createTarea(request);
+        if (!result || typeof result.idTarea !== 'number') {
+          throw new Error('Respuesta inválida del servidor');
+        }
+        setTareas((prev) => [...prev, result]);
       }
-      setTareas((prev) => [...prev, nueva]);
-      setShowModal(false);
+      handleCerrarModal();
 
-      // Update local state: PLANIFICADO → EN_EJECUCION
-      if (asignacionSeleccionada?.estado === 'PLANIFICADO') {
+      // Update local state: PLANIFICADO → EN_EJECUCION (only for new tasks)
+      if (!editandoTarea && asignacionSeleccionada?.estado === 'PLANIFICADO') {
         setAsignaciones((prev) =>
           prev.map((a) =>
             a.idAsignacion === asignacionSeleccionada.idAsignacion
@@ -531,7 +561,7 @@ function PunteroPanel() {
                     <span className={`badge ${t.nombreEstado === 'Finalizada' ? 'badge-success' : 'badge-warning'}`}>
                       {t.nombreEstado}
                     </span>
-                    {t.nombreEstado !== 'Finalizada' && (
+                    {t.nombreEstado !== 'Finalizada' ? (
                       <button
                         className="puntero-tarea-complete-btn"
                         onClick={() => handleFinalizarTarea(t)}
@@ -539,6 +569,16 @@ function PunteroPanel() {
                       >
                         <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <button
+                        className="puntero-tarea-edit-btn"
+                        onClick={() => handleAbrirEdicion(t)}
+                        aria-label="Editar tarea"
+                      >
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                         </svg>
                       </button>
                     )}
@@ -561,11 +601,11 @@ function PunteroPanel() {
         </button>
 
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-content" role="dialog" aria-modal="true" aria-label="Nueva tarea" onClick={(e) => e.stopPropagation()}>
+           <div className="modal-overlay" onClick={handleCerrarModal}>
+            <div className="modal-content" role="dialog" aria-modal="true" aria-label={editandoTarea ? 'Editar tarea' : 'Nueva tarea'} onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h3>Nueva Tarea</h3>
-                <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Cerrar">
+                <h3>{editandoTarea ? 'Editar Tarea' : 'Nueva Tarea'}</h3>
+                <button className="modal-close" onClick={handleCerrarModal} aria-label="Cerrar">
                   &times;
                 </button>
               </div>
@@ -611,20 +651,33 @@ function PunteroPanel() {
                   </select>
                 </div>
 
-                <div className="form-field">
-                  <label htmlFor="horas">
-                    Horas trabajadas <span className="required">*</span>
-                  </label>
-                  <input
-                    id="horas"
-                    type="number"
-                    min="0.5"
-                    step="0.5"
-                    value={form.horas}
-                    onChange={(e) => setForm((f) => ({ ...f, horas: e.target.value }))}
-                    placeholder="Ej: 6"
-                    className={formTouched && !form.horas ? 'error' : ''}
-                  />
+                <div className="form-field-row">
+                  <div className="form-field">
+                    <label htmlFor="horas">
+                      Horas trabajadas <span className="required">*</span>
+                    </label>
+                    <input
+                      id="horas"
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      value={form.horas}
+                      onChange={(e) => setForm((f) => ({ ...f, horas: e.target.value }))}
+                      placeholder="Ej: 6"
+                      className={formTouched && !form.horas ? 'error' : ''}
+                    />
+                  </div>
+
+                  <div className="form-field form-field-checkbox">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={form.marcarCompletada}
+                        onChange={(e) => setForm((f) => ({ ...f, marcarCompletada: e.target.checked }))}
+                      />
+                      Marcar como completada
+                    </label>
+                  </div>
                 </div>
 
                 <div className="form-field">
@@ -649,23 +702,12 @@ function PunteroPanel() {
                   />
                 </div>
 
-                <div className="form-field form-field-checkbox">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={form.marcarCompletada}
-                      onChange={(e) => setForm((f) => ({ ...f, marcarCompletada: e.target.checked }))}
-                    />
-                    Marcar como completada
-                  </label>
-                </div>
-
                 <div className="modal-actions">
-                  <Button variant="secondary" onClick={() => setShowModal(false)} type="button">
+                  <Button variant="secondary" onClick={handleCerrarModal} type="button">
                     Cancelar
                   </Button>
                   <Button variant="primary" onClick={handleCrearTarea} loading={submitting}>
-                    Guardar Tarea
+                    {editandoTarea ? 'Actualizar Tarea' : 'Guardar Tarea'}
                   </Button>
                 </div>
               </div>

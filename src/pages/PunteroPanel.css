@@ -321,7 +321,8 @@
 .puntero-fab {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 56px;
   height: 56px;
   border-radius: var(--radius-full);
@@ -338,12 +339,12 @@
 }
 
 .puntero-fab:active {
-  transform: scale(0.95);
+  transform: translateX(-50%) scale(0.95);
 }
 
 @media (hover: hover) {
   .puntero-fab:hover {
-    transform: scale(1.05);
+    transform: translateX(-50%) scale(1.05);
     box-shadow: 0 6px 16px rgba(34, 101, 131, 0.4);
   }
 }
@@ -703,6 +704,52 @@
     background: rgba(48, 130, 48, 0.15);
     border-color: var(--status-success);
   }
+}
+
+/* Edit button on completed tasks */
+.puntero-tarea-edit-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: var(--radius-full);
+  background: rgba(34, 101, 131, 0.08);
+  border: 1px solid rgba(34, 101, 131, 0.2);
+  color: var(--forest-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.puntero-tarea-edit-btn:active {
+  transform: scale(0.9);
+  background: rgba(34, 101, 131, 0.2);
+}
+
+@media (hover: hover) {
+  .puntero-tarea-edit-btn:hover {
+    background: rgba(34, 101, 131, 0.15);
+    border-color: var(--forest-secondary);
+  }
+}
+
+/* Form field row (hours + checkbox) */
+.form-field-row {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-end;
+}
+
+.form-field-row .form-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-field-row .form-field-checkbox {
+  flex: 0 0 auto;
+  padding-bottom: 4px;
 }
 
 /* Checkbox in modal form */
