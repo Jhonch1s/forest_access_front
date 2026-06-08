@@ -3,22 +3,22 @@ import EmpleadoList from "../components/EmpleadoList";
 import { useCategorias } from "../hooks/useCategorias";
 import { useHabilitaciones } from '../hooks/useHabilitaciones';
 import { useEmpleados } from '../hooks/useEmpleados';
-import { 
-  createEmpleado, 
-  updateEmpleado, 
-  deleteEmpleado 
+import {
+  createEmpleado,
+  updateEmpleado,
+  deleteEmpleado
 } from "../services/empleadoService";
-import  type {  EmpleadoHabilitacionDTO } from '../types/empleado-habilitacion';
+import type { EmpleadoHabilitacionDTO } from '../types/empleado-habilitacion';
 import { type EmpleadoDTO } from "../types";
 import FormModalComplete from '../components/FormModalComplete';
 import type { FieldConfigComplete } from '../components/FormModalComplete';
 import Button from "../components/Button";
-import { createEmpleadoHabilitacion, updateEmpleadoHabilitacion,deleteEmpleadoHabilitacion } from '../services/empleadoHabilitacionService';
+import { createEmpleadoHabilitacion, updateEmpleadoHabilitacion, deleteEmpleadoHabilitacion } from '../services/empleadoHabilitacionService';
 function Empleados() {
 
   const { categorias } = useCategorias();
   const { habilitaciones } = useHabilitaciones();
-  const { refetch, empleados, loading, error } = useEmpleados();
+  const { refetch, empleados, loading, error, currentPage, totalPages, goToPage,filtrar,filtroActivo } = useEmpleados();
 
   const categoriaOptions = useMemo(() =>
     categorias.map(cat => ({
@@ -28,8 +28,8 @@ function Empleados() {
     [categorias]
   );
 
-  const habilitacionesOptions = useMemo( () =>
-    habilitaciones.map( hab => ({
+  const habilitacionesOptions = useMemo(() =>
+    habilitaciones.map(hab => ({
       value: hab.idHabilitacion,
       label: hab.nombre
     })),
@@ -53,14 +53,14 @@ function Empleados() {
   ];
 
   const HabilitacionesFields: FieldConfigComplete[] = [
-    { name: 'idHabilitacion', label: 'Habilitacion', type:'select',options: habilitacionesOptions,required: true},
-    { name: 'fechaEmision', label: 'Fecha De Emisión', type:'date',required:true},
-    { name: 'fechaVencimiento', label: 'Fecha De Vencimiento', type:'date',required:true}
+    { name: 'idHabilitacion', label: 'Habilitacion', type: 'select', options: habilitacionesOptions, required: true },
+    { name: 'fechaEmision', label: 'Fecha De Emisión', type: 'date', required: true },
+    { name: 'fechaVencimiento', label: 'Fecha De Vencimiento', type: 'date', required: true }
   ]
 
 
   const [modal, setModal] = useState<{ type: 'crear' } | { type: 'editar'; empleado: EmpleadoDTO } | null>(null);
-  const [habModal, setHabModal] =  useState<{ type: 'crear'; idEmpleado:number } | { type: 'editar'; habilitacion: EmpleadoHabilitacionDTO } | null>(null);
+  const [habModal, setHabModal] = useState<{ type: 'crear'; idEmpleado: number } | { type: 'editar'; habilitacion: EmpleadoHabilitacionDTO } | null>(null);
 
 
   const getInitialValues = (empleado?: EmpleadoDTO) => {
@@ -76,9 +76,9 @@ function Empleados() {
     };
   };
 
-  const getInitialValuesHab = (habilitacion?: EmpleadoHabilitacionDTO) =>{
-    if(!habilitacion) return undefined;
-    return{
+  const getInitialValuesHab = (habilitacion?: EmpleadoHabilitacionDTO) => {
+    if (!habilitacion) return undefined;
+    return {
       idHabilitacion: habilitacion.idHabilitacion,
       fechaEmision: habilitacion.fechaEmision,
       fechaVencimiento: habilitacion.fechaVencimiento
@@ -103,7 +103,7 @@ function Empleados() {
     setModal(null);
   }
 
-  const handleCrearHabilitacion = async (values: Record<string, string|number>) =>{
+  const handleCrearHabilitacion = async (values: Record<string, string | number>) => {
     if (!habModal || habModal.type !== 'crear') return;
     const { idEmpleado } = habModal;
 
@@ -129,18 +129,18 @@ function Empleados() {
       fechaIngreso: values.fechaIngreso as string,
       activo: values.activo === 'true',
       idCategoria: Number(values.idCategoria),
-      
+
     });
 
-    
+
     await refetch();
     setModal(null);
   };
 
-  const handleEditarHabilitacion = async (values: Record<string, string|number>) =>{
+  const handleEditarHabilitacion = async (values: Record<string, string | number>) => {
     if (!habModal || habModal.type !== 'editar') return;
     const { habilitacion } = habModal;
-    await updateEmpleadoHabilitacion(habilitacion.idEmpleado,habilitacion.idHabilitacion,{
+    await updateEmpleadoHabilitacion(habilitacion.idEmpleado, habilitacion.idHabilitacion, {
       idEmpleado: habilitacion.idEmpleado,
       idHabilitacion: habilitacion.idHabilitacion,
       fechaEmision: values.fechaEmision as string,
@@ -156,9 +156,9 @@ function Empleados() {
     await refetch();
   };
 
-  const handleEliminarHabilitacion = async (habilitacion: EmpleadoHabilitacionDTO) =>{
-    if(!confirm(`¿Eliminar Habilitacion de empleado?`)) return;
-    await deleteEmpleadoHabilitacion(habilitacion.idEmpleado,habilitacion.idHabilitacion);
+  const handleEliminarHabilitacion = async (habilitacion: EmpleadoHabilitacionDTO) => {
+    if (!confirm(`¿Eliminar Habilitacion de empleado?`)) return;
+    await deleteEmpleadoHabilitacion(habilitacion.idEmpleado, habilitacion.idHabilitacion);
     await refetch();
   }
 
@@ -172,11 +172,17 @@ function Empleados() {
           <p>Gestión de empleados.</p>
         </div>
         <div>
-          <Button variant="primary" onClick={() => setModal({ type: 'crear' })}>
-          + Registrar Empleado
-        </Button>
+          <Button variant="primary" 
+          onClick={filtrar} >
+            Filtrar por habilitaciones
+          </Button>
         </div>
-        
+        <div>
+          <Button variant="primary" onClick={() => setModal({ type: 'crear' })}>
+            + Registrar Empleado
+          </Button>
+        </div>
+
       </div>
 
       {loading && (
@@ -196,21 +202,34 @@ function Empleados() {
       {!loading && !error && (
         <EmpleadoList
 
-      empleados={empleados}
-        onEdit={(emp) => {
-          setModal({ type: 'editar', empleado: emp })
-        }
+          empleados={empleados}
+          onEdit={(emp) => {
+            setModal({ type: 'editar', empleado: emp })
+          }
 
-        }
-        onEditHab={(hab) =>{
-          setHabModal({ type: 'editar', habilitacion: hab })
-        }}
-        onCreateHab={(idEmpleado) => setHabModal({ type: 'crear', idEmpleado })}
-        onDelete={handleEliminar}
-        onDeleteHab={handleEliminarHabilitacion}
+          }
+          onEditHab={(hab) => {
+            setHabModal({ type: 'editar', habilitacion: hab })
+          }}
+          onCreateHab={(idEmpleado) => setHabModal({ type: 'crear', idEmpleado })}
+          onDelete={handleEliminar}
+          onDeleteHab={handleEliminarHabilitacion}
 
-      />
+        />
+
+
       )}
+      
+      <div style={{display: 'flex', justifyContent: 'space-between',marginTop: 10}}>
+        <Button variant='primary'
+          onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+          Anterior
+        </Button>
+        <Button variant='primary'
+          onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+          Siguiente
+        </Button>
+      </div>
 
       {modal?.type === 'crear' && (
         <FormModalComplete
@@ -241,17 +260,17 @@ function Empleados() {
       )}
 
       {habModal?.type == 'editar' && (
-      <FormModalComplete
+        <FormModalComplete
           title="Editar Habilitacion de Empleado"
           fields={HabilitacionesFields}
           initialValues={getInitialValuesHab(habModal.habilitacion)}
           onSubmit={handleEditarHabilitacion}
           onClose={() => setHabModal(null)}
         />
-    )}
+      )}
     </div>
 
-    
+
 
 
 

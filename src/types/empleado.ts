@@ -34,3 +34,11 @@ export interface EmpleadoResponse {
   nombreCategoria: string;
   diasRestantes: number;
 }
+
+export interface PaginadoEmpleado{
+  empleados: EmpleadoResponse[];
+  total: number;
+  pagina: number;
+  limite: number;
+
+}

@@ -6,7 +6,7 @@ import './FormModal.css';
 export interface FieldConfigComplete {
   name: string;
   label: string;
-  type?: 'text' | 'number' | 'select' | 'checkbox' | 'date';
+  type?: 'text' | 'number' | 'select' | 'checkbox' | 'date' | 'image';
   required?: boolean;
   step?: string;
   disabled?: boolean;
@@ -167,6 +167,14 @@ function FormModalComplete({ title, fields, initialValues, onSubmit, onClose }: 
                   disabled={field.disabled || submitting}
                   className={errors[field.name] ? 'error' : ''}
                 />
+              ) : field.type === 'image' ? (
+                <input 
+                id={field.name}
+                type="image"
+                value={values[field.name] ?? ''}
+                onChange={(e) => handleChange(field.name, e.target.value)}
+                disabled={field.disabled || submitting}
+                className={errors[field.name] ? 'error' : ''} />
               ) : (
                 <input
                   id={field.name}

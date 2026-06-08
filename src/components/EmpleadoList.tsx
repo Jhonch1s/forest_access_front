@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import React from 'react';
-import EmpleadoHabilitacionesModal from './EmpleadoHabilitacionesModal';
-import { useEmpleadoHabilitaciones } from '../hooks/useEmpleadoHabilitacion';
 import type { EmpleadoDTO, EmpleadoResponse } from "../types/empleado";
 import Button from "./Button";
 import './CategoriaList.css';
@@ -28,10 +26,9 @@ const getDiasRestantesClass = (dias?: number | null) => {
 };
 
 
-function EmpleadoList({ empleados, onEdit, onDelete,onEditHab,onDeleteHab,onCreateHab }: EmpleadoListProps) {
+function EmpleadoList({ empleados, onEdit, onDelete, onEditHab, onDeleteHab, onCreateHab }: EmpleadoListProps) {
 
   const [habilitacionesPorEmpleado, setHabilitacionesPorEmpleado] = useState<Map<number, EmpleadoHabilitacionResponse[]>>(new Map());
-  const { refetch: refetchEmpleadoHabilitaciones } = useEmpleadoHabilitaciones();
 
   const [expandidos, setExpandidos] = useState(new Set());
 
@@ -97,9 +94,6 @@ function EmpleadoList({ empleados, onEdit, onDelete,onEditHab,onDeleteHab,onCrea
 
 
 
-
-
-
   return (
     <>
       {/* Desktop: tabla */}
@@ -118,7 +112,7 @@ function EmpleadoList({ empleados, onEdit, onDelete,onEditHab,onDeleteHab,onCrea
             </tr>
           </thead>
           <tbody>
-            {empleadosPagina.map((emp) => (
+            {empleados.map((emp) => (
               <React.Fragment>
 
 
@@ -155,86 +149,62 @@ function EmpleadoList({ empleados, onEdit, onDelete,onEditHab,onDeleteHab,onCrea
                   </td>
                 </tr>
                 {expandidos.has(emp.idEmpleado) && (
-  <>
-    <tr>
-      <th colSpan={8}>Habilitaciones</th>
-    </tr>
-    <tr>
-      <th colSpan={2}>Nombre</th>
-      <th colSpan={2}>Emisión</th>
-      <th colSpan={2}>Vencimiento</th>
-      <th colSpan={2}>Acciones</th>
-    </tr>
-    {(() => {
-      const habs = habilitacionesPorEmpleado.get(emp.idEmpleado);
-      if (!habs || habs.length === 0) {
-        return (
-          <tr>
-            <td colSpan={8} style={{ textAlign: 'center', fontStyle: 'italic' }}>
-              No hay habilitaciones registradas para este empleado
-            </td>
-          </tr>
-        );
-      }
-      return habs.map((hab) => (
-        <tr key={hab.idHabilitacion}>
-          <td colSpan={2}>{hab.nombreHabilitacion}</td>
-          <td colSpan={2}>{hab.fechaEmision}</td>
-          <td colSpan={2}>{hab.fechaVencimiento}</td>
-          <td colSpan={2}>
-            <Button size="small" variant="secondary"  onClick={() => onEditHab(hab)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z" /></svg>
-              Editar</Button>
-            <Button size='small' variant='danger'  onClick={() => onDeleteHab(hab)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 2, verticalAlign: 'middle' }}>
-                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-              Eliminar
-            </Button>
-          </td>
-        </tr>
-      ));
-    })()}
-  </>
-)}
+                  <>
+                    <tr>
+                      <th colSpan={8}>Habilitaciones</th>
+                    </tr>
+                    <tr>
+                      <th colSpan={2}>Nombre</th>
+                      <th colSpan={2}>Emisión</th>
+                      <th colSpan={2}>Vencimiento</th>
+                      <th colSpan={2}>Acciones</th>
+                    </tr>
+                    {(() => {
+                      const habs = habilitacionesPorEmpleado.get(emp.idEmpleado);
+                      if (!habs || habs.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={8} style={{ textAlign: 'center', fontStyle: 'italic' }}>
+                              No hay habilitaciones registradas para este empleado
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return habs.map((hab) => (
+                        <tr key={hab.idHabilitacion}>
+                          <td colSpan={2}>{hab.nombreHabilitacion}</td>
+                          <td colSpan={2}>{hab.fechaEmision}</td>
+                          <td colSpan={2}>{hab.fechaVencimiento}</td>
+                          <td colSpan={2}>
+                            <Button size="small" variant="secondary" onClick={() => onEditHab(hab)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z" /></svg>
+                              Editar</Button>
+                            <Button size='small' variant='danger' onClick={() => onDeleteHab(hab)}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 2, verticalAlign: 'middle' }}>
+                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                              Eliminar
+                            </Button>
+                          </td>
+                        </tr>
+                      ));
+                    })()}
+                  </>
+                )}
 
               </React.Fragment>
             ))}
 
           </tbody>
         </table>
-        <div className='botones'>
-          <Button
-            onClick={paginaAnterior}
-            disabled={paginaActual === 1}
-            variant="primary"
-            size="medium"
-          >
-            Anterior
-          </Button>
-          <Button
-            onClick={paginaSiguiente}
-            disabled={paginaActual === totalPaginas}
-            variant="primary"
-            size="medium"
-          >
-            Siguiente
-          </Button>
-        </div>
-        <EmpleadoHabilitacionesModal
-          empleadoId={empleadoSeleccionado?.idEmpleado ?? 0}
-          empleadoNombre={empleadoSeleccionado?.nombre ?? ''}
-          open={modalHabilitacionesOpen}
-          onClose={() => setModalHabilitacionesOpen(false)}
-          onRefresh={refetchEmpleadoHabilitaciones}
-        />
+
       </div>
 
 
 
       {/* Mobile: cards */}
       <div className="categoria-cards">
-        {empleadosPagina.map((cat) => (
+        {empleados.map((cat) => (
           <div key={cat.idEmpleado} className="categoria-card">
             <div className="categoria-card-header">
               <h3 className="categoria-card-title">{cat.nombre}</h3>
@@ -270,24 +240,6 @@ function EmpleadoList({ empleados, onEdit, onDelete,onEditHab,onDeleteHab,onCrea
             </div>
           </div>
         ))}
-        <div className='botones'>
-          <Button
-            variant='primary'
-            size='medium'
-            onClick={paginaAnterior}
-            disabled={paginaActual === 1}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant='primary'
-            size='medium'
-            onClick={paginaSiguiente}
-            disabled={paginaActual === totalPaginas}
-          >
-            Siguiente
-          </Button>
-        </div>
       </div>
 
     </>

@@ -1,5 +1,5 @@
 import api from './api';
-import type { Empleado, EmpleadoDTO, EmpleadoResponse } from '../types/empleado';
+import type { Empleado, EmpleadoDTO, EmpleadoResponse, PaginadoEmpleado } from '../types/empleado';
 
 export async function getEmpleados(): Promise<EmpleadoResponse[]> {
   const { data } = await api.get('/empleados');
@@ -18,4 +18,9 @@ export async function updateEmpleado(id: number,empleado: EmpleadoDTO): Promise<
 
 export async function deleteEmpleado(id: number): Promise<void>{
     await api.delete(`/empleados/${id}`);
+}
+
+export async function obtenerEmpleadosPaginados(offset: number,limite:number,filtro: Boolean): Promise<PaginadoEmpleado>{
+    const {data} = await api.get(`/empleados/paginado/${offset}/${limite}/${filtro}`);
+    return data;
 }
