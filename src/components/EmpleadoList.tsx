@@ -32,30 +32,6 @@ function EmpleadoList({ empleados, onEdit, onDelete, onEditHab, onDeleteHab, onC
 
   const [expandidos, setExpandidos] = useState(new Set());
 
-  const [modalHabilitacionesOpen, setModalHabilitacionesOpen] = useState(false);
-  const [empleadoSeleccionado] = useState<EmpleadoResponse | null>(null);
-
-  const [paginaActual, setPaginaActual] = useState(1);
-  const itemsPorPagina = 5;
-
-  const indiceUltimoItem = paginaActual * itemsPorPagina;
-  const indicePrimerItem = indiceUltimoItem - itemsPorPagina;
-  const empleadosPagina = empleados.slice(indicePrimerItem, indiceUltimoItem);
-
-  const totalPaginas = Math.ceil(empleados.length / itemsPorPagina);
-
-  const paginaAnterior = () => {
-    if (paginaActual > 1) {
-      setPaginaActual(paginaActual - 1);
-    }
-  }
-
-  const paginaSiguiente = () => {
-    if (paginaActual < totalPaginas) {
-      setPaginaActual(paginaActual + 1);
-    }
-  }
-
 
 
   const toggleExpandir = async (idEmpleado: number) => {
@@ -117,7 +93,7 @@ function EmpleadoList({ empleados, onEdit, onDelete, onEditHab, onDeleteHab, onC
 
 
                 <tr key={emp.idEmpleado} className={getDiasRestantesClass(emp.diasRestantes)} id={String(emp.idEmpleado)} >
-                  <td className='td-button' id='{emp.idEmpleado}'>
+                  <td >
                     <button className='botonHab'
                       onClick={() => toggleExpandir(emp.idEmpleado)}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 12c0-6.627-5.373-12-12-12s-12 5.373-12 12 5.373 12 12 12 12-5.373 12-12zm-18.005-1.568l1.415-1.414 4.59 4.574 4.579-4.574 1.416 1.414-5.995 5.988-6.005-5.988z" /></svg>
@@ -205,40 +181,98 @@ function EmpleadoList({ empleados, onEdit, onDelete, onEditHab, onDeleteHab, onC
       {/* Mobile: cards */}
       <div className="categoria-cards">
         {empleados.map((cat) => (
-          <div key={cat.idEmpleado} className="categoria-card">
-            <div className="categoria-card-header">
-              <h3 className="categoria-card-title">{cat.nombre}</h3>
-              <span className="categoria-card-id">#{cat.idEmpleado}</span>
+          <React.Fragment>
+            <div key={cat.idEmpleado} className={`categoria-card ${getDiasRestantesClass(cat.diasRestantes)}`}>
+              <div className="categoria-card-header">
+                <h3 className="categoria-card-title">{cat.nombre}</h3>
+                <span className="categoria-card-id">#{cat.idEmpleado}</span>
+              </div>
+              <div className="categoria-card-body">
+                <div className="categoria-card-field">
+                  <span className="categoria-card-label">Email</span>
+                  <span className="categoria-card-value">{cat.email}</span>
+                </div>
+                <div className="categoria-card-field">
+                  <span className="categoria-card-label">Cedula</span>
+                  <span className="categoria-card-value">{cat.cedula}</span>
+                </div>
+                <div className="categoria-card-field">
+                  <span className="categoria-card-label">Telefono</span>
+                  <span className="categoria-card-value">{cat.telefono}</span>
+                </div>
+                <div className="categoria-card-field">
+                  <span className="categoria-card-label">Categoría</span>
+                  <span className="categoria-card-value">{cat.nombreCategoria}</span>
+                </div>
+              </div>
+              <div className="categoria-card-actions">
+                <div className='acciones-principales'>
+                  <Button variant="secondary" size="small" onClick={() => onEdit(cat)}>Editar</Button>
+                  <Button variant='secondary' size='small' onClick={() => onCreateHab(cat.idEmpleado)}>Habilitaciones</Button>
+                  <Button variant="danger" size="small" onClick={() => onDelete(cat)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, verticalAlign: 'middle' }}>
+                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Eliminar
+                  </Button>
+                </div>
+
+
+                <div className='expandirButton'>
+                  <button
+                    onClick={() => toggleExpandir(cat.idEmpleado)}
+                  >
+                    <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M0 3l12 18 12-18h-24zm12 16.197l-10.132-15.197h20.263l-10.131 15.197"/></svg>
+                  </button>
+                </div>
+
+                {expandidos.has(cat.idEmpleado) && (
+
+                  <>
+                      <div className="categoria-card-header">
+                        <h3 className="categoria-card-title">Habilitaciones</h3>
+                      </div>
+                    {(() => {
+                      const habs = habilitacionesPorEmpleado.get(cat.idEmpleado);
+                      if (!habs || habs.length === 0) {
+                        return (
+                          <div className="categoria-card-body">
+                            <div className="categoria-card-field">
+                              <span className='categoria-card-value'>No hay habilitaciones registradas</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return habs.map((hab) => (
+                        <div className="categoria-card-body">
+                          <div className="categoria-card-field">
+                            <span className="categoria-card-label">Nombre</span>
+                            <span className="categoria-card-value">{hab.nombreHabilitacion}</span>
+                          </div>
+                          <div className="categoria-card-field">
+                            <span className="categoria-card-label">Emision</span>
+                            <span className="categoria-card-value">{hab.fechaEmision}</span>
+                          </div>
+                          <div className="categoria-card-field">
+                            <span className="categoria-card-label">Vencimiento</span>
+                            <span className="categoria-card-value">{hab.fechaVencimiento}</span>
+                          </div>
+                          <div className='acciones-principales'>
+                            <Button variant='secondary' size='small' onClick={() => onEditHab(hab)}>
+                              Editar
+                            </Button>
+                            <Button variant='danger' size='small'  onClick={() => onDeleteHab(hab)} >
+                              Eliminar
+                            </Button>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </>
+                )}
+              </div>
             </div>
-            <div className="categoria-card-body">
-              <div className="categoria-card-field">
-                <span className="categoria-card-label">Email</span>
-                <span className="categoria-card-value">{cat.email}</span>
-              </div>
-              <div className="categoria-card-field">
-                <span className="categoria-card-label">Cedula</span>
-                <span className="categoria-card-value">{cat.cedula}</span>
-              </div>
-              <div className="categoria-card-field">
-                <span className="categoria-card-label">Telefono</span>
-                <span className="categoria-card-value">{cat.telefono}</span>
-              </div>
-              <div className="categoria-card-field">
-                <span className="categoria-card-label">Categoría</span>
-                <span className="categoria-card-value">{cat.nombreCategoria}</span>
-              </div>
-            </div>
-            <div className="categoria-card-actions">
-              <Button variant="secondary" size="small" onClick={() => onEdit(cat)}>Editar</Button>
-              <Button variant='secondary' size='small'>Habilitaciones</Button>
-              <Button variant="danger" size="small" onClick={() => onDelete(cat)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, verticalAlign: 'middle' }}>
-                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-                Eliminar
-              </Button>
-            </div>
-          </div>
+          </React.Fragment>
         ))}
       </div>
 

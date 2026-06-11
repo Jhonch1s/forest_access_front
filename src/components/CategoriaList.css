@@ -43,6 +43,7 @@
   text-align: center;
 }
 
+
 .td-button Button svg {
   width: 1.25em;
   height: 1.25em;
@@ -69,6 +70,45 @@
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+}
+
+.botonHab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  line-height: 0;
+}
+
+.botonHab:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.botonHab:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+.botonHab svg {
+  width: 20px;
+  height: 20px;
+  fill: #555;
+  transition: transform 0.25s ease;
+  pointer-events: none; 
+}
+
+.botonHab[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.botonHab.expandido svg {
+  transform: rotate(180deg);
 }
 
 .proximo-vencer {
@@ -111,6 +151,17 @@ tr.proximo-vencer {
     border-radius: var(--radius-lg);
     padding: var(--space-md);
   }
+
+  .categoria-card.proximo-vencer {
+  background: #fff3cd;  /* amarillo suave */
+  border-left: 4px solid #ffc107;
+}
+
+/* Días restantes negativos (vencida) */
+.categoria-card.vencida {
+  background: #f8d7da;  /* rojo suave */
+  border-left: 4px solid #dc3545;
+}
 
   .categoria-card-header {
     display: flex;
@@ -159,13 +210,33 @@ tr.proximo-vencer {
   .categoria-card-actions {
     display: flex;
     gap: var(--space-sm);
+    flex-direction: column;
     padding-top: var(--space-md);
     border-top: 1px solid var(--border-light);
   }
 
-  .categoria-card-actions .button {
-    flex: 1;
-  }
+  .acciones-principales {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  justify-content: space-between; /* o flex-start según diseño */
+}
+
+.expandirButton button {
+  width: 100%;   /* Toma todo el ancho disponible */
+  text-align: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  line-height: 0;
+}
 
 
 }
