@@ -26,7 +26,6 @@ import type { FieldConfig } from '../components/FormModal';
 import './Configuracion.css';
 
 const categoriaColumns = [
-  { key: 'idCategoria', label: 'ID'},
   { key: 'nombre', label: 'Nombre' },
   { key: 'valorJornal', label: 'Valor Jornal' },
   { key: 'descripcion', label: 'Descripción' },
@@ -39,7 +38,6 @@ const categoriaFields: FieldConfig[] = [
 ];
 
 const productoColumns = [
-  { key: 'idProducto', label: 'ID' },
   { key: 'nombre', label: 'Nombre' },
   { key: 'contenido', label: 'Contenido' },
   { key: 'concentracion', label: 'Concentración' },
@@ -53,8 +51,7 @@ const productoFields: FieldConfig[] = [
   { name: 'unidadBase', label: 'Unidad Base' },
 ];
 
-const habilitacionColumns = [ 
-  { key: 'idHabilitacion', label:'ID'},
+const habilitacionColumns = [
   { key: 'nombre', label:'Nombre'},
   { key: 'descripcion', label:'Descripcion'},
 ]

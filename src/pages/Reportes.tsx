@@ -82,6 +82,15 @@ function IconCalendar({ size = 16 }: { size?: number }) {
   );
 }
 
+function IconSearch({ size = 14 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
 /* ─── Tipos internos ────────────────────── */
 
 interface TareaAgrupada {
@@ -349,6 +358,7 @@ function Reportes() {
   const [sortBy, setSortBy] = useState<SortKey>('nombre');
   const [viewMode, setViewMode] = useState<ViewMode>('paginado');
   const [pagina, setPagina] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const today = new Date();
   const [inicioDia, setInicioDia] = useState(today.getDate());
   const [inicioMes, setInicioMes] = useState(today.getMonth());
@@ -447,8 +457,19 @@ function Reportes() {
 
   const empleados = useMemo(() => empleadosDTO.map(mapEmpleadoDTO), [empleadosDTO]);
 
+  const searchLower = searchTerm.toLowerCase();
+  const empleadosFiltrados = useMemo(() => {
+    if (!searchTerm) return empleados;
+    return empleados.filter(
+      (e) =>
+        e.nombre.toLowerCase().includes(searchLower) ||
+        e.cedula.toLowerCase().includes(searchLower) ||
+        e.categoria.toLowerCase().includes(searchLower),
+    );
+  }, [empleados, searchTerm]);
+
   const empleadosOrdenados = useMemo(() => {
-    const copia = [...empleados];
+    const copia = [...empleadosFiltrados];
     switch (sortBy) {
       case 'nombre':
         copia.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -465,24 +486,25 @@ function Reportes() {
         break;
     }
     return copia;
-  }, [sortBy, empleados]);
+  }, [sortBy, empleadosFiltrados]);
 
   const totalPaginas = useMemo(() => {
-    return viewMode === 'paginado'
-      ? Math.max(totalPaginasBackend, 1)
-      : Math.ceil(empleadosOrdenados.length / PAGE_SIZE);
-  }, [viewMode, totalPaginasBackend, empleadosOrdenados.length]);
+    if (viewMode === 'paginado' && !searchTerm) {
+      return Math.max(totalPaginasBackend, 1);
+    }
+    return Math.ceil(empleadosOrdenados.length / PAGE_SIZE);
+  }, [viewMode, totalPaginasBackend, empleadosOrdenados.length, searchTerm]);
 
   const empleadosPagina = useMemo(() => {
     if (viewMode === 'paginado') {
-      if (paginaDTO.length > 0) {
+      if (!searchTerm && paginaDTO.length > 0) {
         const mapped = paginaDTO.map(mapEmpleadoDTO);
         return mapped;
       }
       return empleadosOrdenados.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE);
     }
     return empleadosOrdenados;
-  }, [viewMode, pagina, empleadosOrdenados, paginaDTO]);
+  }, [viewMode, pagina, empleadosOrdenados, paginaDTO, searchTerm]);
 
   const totalTareas = useMemo(() => empleados.reduce((s, e) => s + e.totalTareas, 0), [empleados]);
   const totalHoras = useMemo(() => empleados.reduce((s, e) => s + e.totalHoras, 0), [empleados]);
@@ -625,12 +647,29 @@ function Reportes() {
       {/* SECCIÓN INFERIOR (oscura) */}
       <div className="reportes-bottom">
         <div className="reportes-bottom-header">
-          <h3>Empleados ({empleadosOrdenados.length})</h3>
-          <span className="reportes-bottom-subtitle">
-            {rango === 'hoy' && 'Reporte del d\u00eda de hoy'}
-            {rango === 'semana' && 'Reporte de la semana actual'}
-            {rango === 'mes' && 'Reporte del mes actual'}
-          </span>
+          <div className="reportes-bottom-header-left">
+            <h3>Empleados ({empleadosOrdenados.length})</h3>
+            <span className="reportes-bottom-subtitle">
+              {rango === 'hoy' && 'Reporte del d\u00eda de hoy'}
+              {rango === 'semana' && 'Reporte de la semana actual'}
+              {rango === 'mes' && 'Reporte del mes actual'}
+            </span>
+          </div>
+          <div className="reportes-search-wrap">
+            <IconSearch size={14} />
+            <input
+              className="reportes-search-input"
+              type="text"
+              placeholder="Buscar empleado..."
+              value={searchTerm}
+              onChange={(e) => { setPagina(1); setSearchTerm(e.target.value); }}
+            />
+            {searchTerm && (
+              <button className="reportes-search-clear" onClick={() => { setPagina(1); setSearchTerm(''); }} aria-label="Limpiar búsqueda">
+                &times;
+              </button>
+            )}
+          </div>
         </div>
 
         {viewMode === 'paginado' && totalPaginas > 1 && (

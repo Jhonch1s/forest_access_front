@@ -217,8 +217,16 @@
 
 .reportes-bottom-header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.reportes-bottom-header-left {
+  display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .reportes-bottom-header h3 {
@@ -230,6 +238,65 @@
 .reportes-bottom-subtitle {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.reportes-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 200px;
+}
+
+.reportes-search-wrap svg {
+  position: absolute;
+  left: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.reportes-search-input {
+  width: 100%;
+  padding: 7px 32px 7px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  font-family: var(--sans);
+  font-size: 13px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.reportes-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.reportes-search-input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.reportes-search-clear {
+  position: absolute;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  line-height: 1;
+}
+
+.reportes-search-clear:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ─── Cards de empleados ──────────────── */
