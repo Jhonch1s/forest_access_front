@@ -72,3 +72,21 @@
   gap: var(--space-sm);
   white-space: nowrap;
 }
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modal-header-left h3 {
+  margin: 0;
+}
