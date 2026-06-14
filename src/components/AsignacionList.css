@@ -1,0 +1,99 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.container>div {
+    flex: 1;
+    /* Cada columna ocupa el mismo ancho */
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+
+/* Mostrar cards en movil */
+.asignacion-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+     background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+}
+
+.asignacion-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+}
+
+.asignacion-card.proximo-vencer {
+    background: #fff3cd;
+    /* amarillo suave */
+    border-left: 4px solid #ffc107;
+}
+
+/* Días restantes negativos (vencida) */
+.asignacion-card.vencida {
+    background: #f8d7da;
+    /* rojo suave */
+    border-left: 4px solid #dc3545;
+}
+
+.asignacion-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.asignacion-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.asignacion-card-id {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--mono);
+}
+
+.asignacion-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.asignacion-card-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.asignacion-card-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.asignacion-card-value {
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.asignacion-card-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-direction: column;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-light);
+}

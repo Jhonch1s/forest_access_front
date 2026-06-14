@@ -27,3 +27,10 @@ export interface AsignacionTratamientoDTO {
   observaciones: string;
   estado?: EstadoAsignacion;
 }
+
+export interface AsignacionTratamientoPaginado{
+  asignaciones: AsignacionTratamientoResponse[];
+  total: number;
+  pagina: number;
+  limite: number;
+}
