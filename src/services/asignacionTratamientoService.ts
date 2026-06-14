@@ -1,5 +1,5 @@
 import api from './api';
-import type { AsignacionTratamientoResponse, AsignacionTratamientoDTO } from '../types/asignacion-tratamiento';
+import type { AsignacionTratamientoResponse, AsignacionTratamientoDTO, AsignacionTratamientoPaginado } from '../types/asignacion-tratamiento';
 
 export async function getAsignaciones(): Promise<AsignacionTratamientoResponse[]> {
   const { data } = await api.get('/asignaciones-tratamiento');
@@ -8,6 +8,11 @@ export async function getAsignaciones(): Promise<AsignacionTratamientoResponse[]
 
 export async function getAsignacionesByParcela(idParcela: number): Promise<AsignacionTratamientoResponse[]> {
   const { data } = await api.get(`/asignaciones-tratamiento/parcela/${idParcela}`);
+  return data;
+}
+
+export async function getAsignacionesByParcelaPaginado(idParcela:number, offset:number,limite:number): Promise<AsignacionTratamientoPaginado> {
+  const {data} = await api.get(`/asignaciones-tratamiento/parcela/${idParcela}/${offset}/${limite}`);
   return data;
 }
 

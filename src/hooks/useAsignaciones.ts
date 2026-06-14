@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { AsignacionTratamientoResponse } from '../types/asignacion-tratamiento';
-import { getAsignaciones, getAsignacionesByParcela, getAsignacionesByRodal } from '../services/asignacionTratamientoService';
+import { getAsignaciones, 
+  getAsignacionesByParcela,
+  getAsignacionesByParcelaPaginado, 
+  getAsignacionesByRodal } from '../services/asignacionTratamientoService';
 
 export function useAsignaciones() {
   const [asignaciones, setAsignaciones] = useState<AsignacionTratamientoResponse[]>([]);
@@ -73,6 +76,54 @@ export function useAsignacionesByParcela(idParcela: number | null) {
   }, [idParcela]);
 
   return { asignaciones, loading, error };
+}
+
+export function useAsignacionesByParcelaPaginado(idParcela:number | null = 10,pageSize:number = 5){
+
+  const [asignacionesPaginadas, setAsignaciones] = useState<AsignacionTratamientoResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const fetchAsignaciones = useCallback(async (page:number) => {
+      setLoading(true);
+      try {
+
+        if (idParcela === null) {
+      setAsignaciones([]);
+      return;
+    }
+        const offset = (page - 1 ) * pageSize;
+        const data = await getAsignacionesByParcelaPaginado(idParcela,offset,pageSize);
+        setAsignaciones(data.asignaciones);
+        setTotalItems(data.total);
+        setTotalPages(Math.ceil(data.total / pageSize));
+        setCurrentPage(page);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      } finally {
+        setLoading(false);
+      }
+    },[pageSize,idParcela]);
+  
+    const goToPage = (page: number) => {
+      if (page >= 1 && page <= totalPages) {
+        fetchAsignaciones(page);
+      }
+    };
+  
+  
+    const refetch = () => fetchAsignaciones(currentPage);
+  
+    useEffect(() => {
+      fetchAsignaciones(1);
+    }, [fetchAsignaciones]); 
+
+    return { asignacionesPaginadas, loading, error, goToPage,refetch,currentPage,totalPages };
+
 }
 
 export function useAsignacionesByRodal(idRodal: number | null) {
