@@ -99,7 +99,6 @@
   }
 }
 
-/* Delete Button */
 .delete-btn {
   background: none;
   border: 1px solid transparent;
@@ -120,7 +119,6 @@
   border-color: rgba(196, 30, 58, 0.2);
 }
 
-/* Paginación */
 .cuadrilla-pagination {
   display: flex;
   justify-content: center;

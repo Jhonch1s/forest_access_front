@@ -1,5 +1,5 @@
 import api from './api';
-import type { EmpleadoCuadrillaResponse, EmpleadoCuadrillaDTO } from '../types/empleado-cuadrilla';
+import type { EmpleadoCuadrillaResponse, EmpleadoCuadrillaDTO, PaginadoEmpleadoCuadrilla } from '../types/empleado-cuadrilla';
 
 export async function getEmpleadosCuadrillas(): Promise<EmpleadoCuadrillaResponse[]> {
   const { data } = await api.get('/empleados-cuadrillas');
@@ -12,8 +12,12 @@ export async function createEmpleadoCuadrilla(empleadoCuadrilla: EmpleadoCuadril
 }
 
 export async function deleteEmpleadoCuadrilla(idCuadrilla: number, idEmpleado: number, fechaInicio: string): Promise<void> {
-  // El endpoint real pide query params según API_ENDPOINTS.md
   await api.delete(`/empleados-cuadrillas/delete`, {
     params: { idCuadrilla, idEmpleado, fechaInicio }
   });
+}
+
+export async function obtenerEmpleadosPaginadosPorCuadrilla(idCuadrilla: number, offset: number, limite: number, mostrarHistorial: boolean): Promise<PaginadoEmpleadoCuadrilla> {
+  const { data } = await api.get(`/empleados-cuadrillas/cuadrilla/${idCuadrilla}/paginado/${offset}/${limite}/${mostrarHistorial}`);
+  return data;
 }

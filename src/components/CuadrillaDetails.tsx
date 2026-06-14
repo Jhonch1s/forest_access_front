@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import type { CuadrillaUI } from '../hooks/useCuadrillas';
-import { useEmpleados } from '../hooks/useEmpleados';
-import type { EmpleadoDTO } from '../types/empleado';
+import type { CuadrillaUI, MiembroUI } from '../hooks/useCuadrillas';
+import { getEmpleados } from '../services/empleadoService';
+import type { EmpleadoDTO, EmpleadoResponse } from '../types/empleado';
 import { sincronizarEmpleados } from '../services/cuadrillaService';
-import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
+import { getEmpleadosCuadrillas, obtenerEmpleadosPaginadosPorCuadrilla } from '../services/empleadoCuadrillaService';
 import './CuadrillaDetails.css';
 import Button from './Button';
 import AsignarTareasCuadrillaModal from './AsignarTareasCuadrillaModal';
@@ -16,11 +16,17 @@ interface CuadrillaDetailsProps {
 
 export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: CuadrillaDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editMembers, setEditMembers] = useState<CuadrillaUI['miembros']>([]);
+  const [editMembers, setEditMembers] = useState<MiembroUI[]>([]);
+  const [serverMembers, setServerMembers] = useState<MiembroUI[]>([]);
+  const [serverTotalPaginas, setServerTotalPaginas] = useState(1);
+  const [serverTotalMembers, setServerTotalMembers] = useState(0);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [currentPuntero, setCurrentPuntero] = useState<MiembroUI | undefined>(undefined);
+
   const [isSaving, setIsSaving] = useState(false);
   const [showAsignarModal, setShowAsignarModal] = useState(false);
   
-  const { empleados } = useEmpleados();
+  const [todosLosEmpleados, setTodosLosEmpleados] = useState<EmpleadoResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -29,9 +35,6 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
   const itemsPorPagina = 5;
 
   useEffect(() => {
-    if (cuadrilla) {
-      setEditMembers([...cuadrilla.miembros]);
-    }
     setIsEditing(false);
     setSearchTerm('');
     setShowDropdown(false);
@@ -77,6 +80,102 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
     }
   }, [isEditing, cuadrilla]);
 
+  // Cargar miembros paginados para la vista
+  useEffect(() => {
+    async function loadMembersPaginados() {
+      if (!cuadrilla || isEditing) return;
+      try {
+        setIsLoadingMembers(true);
+        const offset = (paginaActual - 1) * itemsPorPagina;
+        const res = await obtenerEmpleadosPaginadosPorCuadrilla(
+           cuadrilla.idCuadrilla, 
+           offset, 
+           itemsPorPagina, 
+           !cuadrilla.activa // si la cuadrilla no es activa, pasamos true al mostrarHistorial para q muestre todos
+        );
+        
+        if (!res || !res.empleadosCuadrilla) {
+            throw new Error("Respuesta inválida del servidor");
+        }
+
+        const mapped = res.empleadosCuadrilla.map(emp => {
+           const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
+           const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
+           return {
+             id: emp.idEmpleado,
+             nombre: emp.nombreEmpleado || 'Desconocido',
+             iniciales: iniciales ? iniciales.toUpperCase() : 'U',
+             rol: emp.rol || 'Sin rol'
+           };
+        });
+        
+        setServerMembers(mapped);
+        setServerTotalPaginas(Math.ceil(res.total / itemsPorPagina) || 1);
+        setServerTotalMembers(res.total);
+        
+        // El puntero podría no estar en esta página, así que lo buscamos dentro de la página o indicamos cargando/no encontrado
+        const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
+        if (p) setCurrentPuntero(p);
+
+      } catch (err) {
+        console.error("Error loading members paginated", err);
+      } finally {
+        setIsLoadingMembers(false);
+      }
+    }
+    
+    loadMembersPaginados();
+  }, [cuadrilla, isEditing, paginaActual]);
+
+  // Cargar todos los miembros para editar
+  useEffect(() => {
+    async function loadAllForEdit() {
+       if (!cuadrilla || !isEditing) return;
+       try {
+           setIsLoadingMembers(true);
+           const res = await obtenerEmpleadosPaginadosPorCuadrilla(cuadrilla.idCuadrilla, 0, 1000, !cuadrilla.activa);
+           
+           if (!res || !res.empleadosCuadrilla) {
+               throw new Error("Respuesta inválida del servidor");
+           }
+
+           const mapped = res.empleadosCuadrilla.map(emp => {
+               const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
+               const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
+               return {
+                 id: emp.idEmpleado,
+                 nombre: emp.nombreEmpleado || 'Desconocido',
+                 iniciales: iniciales ? iniciales.toUpperCase() : 'U',
+                 rol: emp.rol || 'Sin rol'
+               };
+           });
+           setEditMembers(mapped);
+           const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
+           setCurrentPuntero(p);
+       } catch (err) {
+           console.error("Error loading members for edit", err);
+       } finally {
+           setIsLoadingMembers(false);
+       }
+    }
+    
+    loadAllForEdit();
+  }, [isEditing, cuadrilla]);
+
+  useEffect(() => {
+    async function fetchTodosLosEmpleados() {
+      if (isEditing && todosLosEmpleados.length === 0) {
+        try {
+          const emp = await getEmpleados();
+          setTodosLosEmpleados(emp);
+        } catch (error) {
+          console.error("Error al cargar todos los empleados:", error);
+        }
+      }
+    }
+    fetchTodosLosEmpleados();
+  }, [isEditing, todosLosEmpleados.length]);
+
   if (!cuadrilla) {
     return (
       <div className="cuadrilla-details-pane empty-state">
@@ -89,6 +188,9 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
 
   const handleRemoveMember = (idEmpleado: number) => {
     setEditMembers(prev => prev.filter(m => m.id !== idEmpleado));
+    if (currentPuntero?.id === idEmpleado) {
+      setCurrentPuntero(undefined);
+    }
   };
 
   const handleSetPuntero = (idEmpleado: number) => {
@@ -98,6 +200,7 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
       if (m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz')) return { ...m, rol: 'Peón forestal' };
       return m;
     }));
+    setCurrentPuntero(editMembers.find(m => m.id === idEmpleado));
   };
 
   const handleAddMember = (emp: EmpleadoDTO) => {
@@ -125,7 +228,7 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
     const hasPuntero = editMembers.some(m => 
       m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz')
     );
-    if (!hasPuntero) {
+    if (!hasPuntero && editMembers.length > 0) {
       alert("Es obligatorio seleccionar un puntero/capataz para la cuadrilla.");
       return;
     }
@@ -147,26 +250,30 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
     }
   };
 
+
+
   const handleCancel = () => {
-    setEditMembers([...cuadrilla.miembros]);
     setIsEditing(false);
     setSearchTerm('');
   };
 
   // Filtrar empleados para el autocomplete (que no estén ya en editMembers)
-  const availableEmpleados = empleados.filter(e => 
+  const availableEmpleados = todosLosEmpleados.filter(e => 
     !editMembers.some(m => m.id === e.idEmpleado) &&
     (e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
      e.cedula.includes(searchTerm))
   );
 
-  const displayMembers = isEditing ? editMembers : cuadrilla.miembros;
-  const currentPuntero = displayMembers.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
-
-  const totalPaginas = Math.ceil(displayMembers.length / itemsPorPagina) || 1;
-  const indiceUltimoItem = paginaActual * itemsPorPagina;
-  const indicePrimerItem = indiceUltimoItem - itemsPorPagina;
-  const miembrosPaginados = displayMembers.slice(indicePrimerItem, indiceUltimoItem);
+  // Determinar miembros a mostrar
+  const displayMembers = isEditing ? editMembers : serverMembers;
+  
+  // Paginación local si estamos editando
+  const totalPaginas = isEditing ? Math.ceil(displayMembers.length / itemsPorPagina) || 1 : serverTotalPaginas;
+  const miembrosPaginados = isEditing ? 
+    displayMembers.slice((paginaActual - 1) * itemsPorPagina, paginaActual * itemsPorPagina) : 
+    displayMembers;
+  
+  const totalCount = isEditing ? displayMembers.length : serverTotalMembers;
 
   const paginaAnterior = () => setPaginaActual(prev => Math.max(1, prev - 1));
   const paginaSiguiente = () => setPaginaActual(prev => Math.min(totalPaginas, prev + 1));
@@ -197,128 +304,132 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
             <select 
               value={currentPuntero?.id || ""} 
               onChange={(e) => handleSetPuntero(Number(e.target.value))}
-              className={`puntero-select ${!currentPuntero ? 'input-error' : ''}`}
+              className={`puntero-select ${!currentPuntero && editMembers.length > 0 ? 'input-error' : ''}`}
             >
               <option value="" disabled>Selecciona un puntero de la lista...</option>
               {editMembers.map(m => (
                 <option key={m.id} value={m.id}>{m.nombre}</option>
               ))}
             </select>
-            {!currentPuntero && (
+            {!currentPuntero && editMembers.length > 0 && (
               <span className="puntero-warning-text">
                 * Es obligatorio seleccionar un puntero.
               </span>
             )}
           </div>
         ) : (
-          <p className="detail-value">{currentPuntero ? currentPuntero.nombre : 'Sin asignar'}</p>
+          <p className="detail-value">{currentPuntero ? currentPuntero.nombre : (isLoadingMembers ? 'Cargando...' : 'Ver en lista de miembros')}</p>
         )}
       </div>
 
       <div className="details-section">
-        <label>Miembros ({displayMembers.length})</label>
+        <label>Miembros ({totalCount})</label>
         
-        <div className="miembros-list">
-          {miembrosPaginados.map((miembro) => (
-            <div key={miembro.id} className="miembro-item">
-              <div className="miembro-avatar">{miembro.iniciales}</div>
-              <div className="miembro-info">
-                <span className="miembro-nombre">{miembro.nombre}</span>
-                <span className="miembro-rol">{miembro.rol}</span>
-              </div>
-              
-              {isEditing && (
-                <button 
-                  className="icon-button danger-hover remove-member-btn"
-                  onClick={() => handleRemoveMember(miembro.id)}
-                  title="Quitar empleado"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              )}
-            </div>
-          ))}
-
-          {displayMembers.length === 0 && !isEditing && (
-             <p className="empty-members">No hay miembros asignados.</p>
-          )}
-
-          {totalPaginas > 1 && (
-            <div className="cuadrilla-pagination" style={{ marginTop: '16px', justifyContent: 'center', borderTop: 'none', paddingTop: 0 }}>
-              <Button 
-                variant="secondary" 
-                size="small" 
-                onClick={paginaAnterior} 
-                disabled={paginaActual === 1}
-              >
-                Anterior
-              </Button>
-              <span className="pagination-info" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                Pág. {paginaActual} de {totalPaginas}
-              </span>
-              <Button 
-                variant="secondary" 
-                size="small" 
-                onClick={paginaSiguiente} 
-                disabled={paginaActual === totalPaginas}
-              >
-                Siguiente
-              </Button>
-            </div>
-          )}
-
-          {isEditing && (
-            <div className="add-member-row" ref={dropdownRef}>
-              <div className="miembro-avatar add-avatar">+</div>
-              <input 
-                type="text" 
-                className="add-member-input"
-                placeholder="Escribe para añadir empleado..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setShowDropdown(true);
-                }}
-                onFocus={() => setShowDropdown(true)}
-              />
-              
-              {showDropdown && searchTerm && (
-                <div className="autocomplete-dropdown">
-                  {availableEmpleados.length > 0 ? (
-                    availableEmpleados.map(emp => {
-                      const assignedSquadName = activeAssignments.get(emp.idEmpleado);
-                      return (
-                        <div 
-                          key={emp.idEmpleado} 
-                          className={`autocomplete-item ${assignedSquadName ? 'disabled' : ''}`}
-                          onClick={() => {
-                            if (assignedSquadName) return;
-                            handleAddMember(emp);
-                          }}
-                        >
-                          <div className="emp-search-info">
-                            <span className="emp-name">{emp.nombre}</span>
-                            {assignedSquadName && (
-                              <span className="assigned-squad-badge">
-                                En: {assignedSquadName}
-                              </span>
-                            )}
-                          </div>
-                          <span className="emp-cedula">CI: {emp.cedula}</span>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="autocomplete-empty">No se encontraron empleados.</div>
-                  )}
+        {isLoadingMembers && !isEditing ? (
+          <p style={{ color: 'var(--text-secondary)' }}>Cargando miembros...</p>
+        ) : (
+          <div className="miembros-list">
+            {miembrosPaginados.map((miembro) => (
+              <div key={miembro.id} className="miembro-item">
+                <div className="miembro-avatar">{miembro.iniciales}</div>
+                <div className="miembro-info">
+                  <span className="miembro-nombre">{miembro.nombre}</span>
+                  <span className="miembro-rol">{miembro.rol}</span>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+                
+                {isEditing && (
+                  <button 
+                    className="icon-button danger-hover remove-member-btn"
+                    onClick={() => handleRemoveMember(miembro.id)}
+                    title="Quitar empleado"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {displayMembers.length === 0 && (
+              <p className="empty-members">No hay miembros asignados.</p>
+            )}
+
+            {totalPaginas > 1 && (
+              <div className="cuadrilla-pagination" style={{ marginTop: '16px', justifyContent: 'center', borderTop: 'none', paddingTop: 0 }}>
+                <Button 
+                  variant="secondary" 
+                  size="small" 
+                  onClick={paginaAnterior} 
+                  disabled={paginaActual === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="pagination-info" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  Pág. {paginaActual} de {totalPaginas}
+                </span>
+                <Button 
+                  variant="secondary" 
+                  size="small" 
+                  onClick={paginaSiguiente} 
+                  disabled={paginaActual === totalPaginas}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            )}
+
+            {isEditing && (
+              <div className="add-member-row" ref={dropdownRef}>
+                <div className="miembro-avatar add-avatar">+</div>
+                <input 
+                  type="text" 
+                  className="add-member-input"
+                  placeholder="Escribe para añadir empleado..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                />
+                
+                {showDropdown && searchTerm && (
+                  <div className="autocomplete-dropdown">
+                    {availableEmpleados.length > 0 ? (
+                      availableEmpleados.map(emp => {
+                        const assignedSquadName = activeAssignments.get(emp.idEmpleado);
+                        return (
+                          <div 
+                            key={emp.idEmpleado} 
+                            className={`autocomplete-item ${assignedSquadName ? 'disabled' : ''}`}
+                            onClick={() => {
+                              if (assignedSquadName) return;
+                              handleAddMember(emp);
+                            }}
+                          >
+                            <div className="emp-search-info">
+                              <span className="emp-name">{emp.nombre}</span>
+                              {assignedSquadName && (
+                                <span className="assigned-squad-badge">
+                                  En: {assignedSquadName}
+                                </span>
+                              )}
+                            </div>
+                            <span className="emp-cedula">CI: {emp.cedula}</span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="autocomplete-empty">No se encontraron empleados.</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="details-actions">

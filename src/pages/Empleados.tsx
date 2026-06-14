@@ -18,7 +18,7 @@ function Empleados() {
 
   const { categorias } = useCategorias();
   const { habilitaciones } = useHabilitaciones();
-  const { refetch, empleados, loading, error, currentPage, totalPages, goToPage,filtrar,filtroActivo } = useEmpleados();
+  const { empleados, loading, error, currentPage, totalPages, goToPage, filtrar, refetch } = useEmpleados();
 
   const categoriaOptions = useMemo(() =>
     categorias.map(cat => ({

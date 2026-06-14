@@ -1,5 +1,5 @@
 import api from './api';
-import type { CuadrillaResponse, CuadrillaDTO } from '../types/cuadrilla';
+import type { CuadrillaResponse, CuadrillaDTO, PaginadoCuadrilla } from '../types/cuadrilla';
 
 export async function getCuadrillas(): Promise<CuadrillaResponse[]> {
   const { data } = await api.get('/cuadrillas');
@@ -47,4 +47,9 @@ export async function getHistorialCuadrillas(): Promise<CuadrillaResponse[]> {
   const { data } = await api.get('/cuadrillas'); 
   //Filtramos solo las que están terminadas (activa == false)
   return data.filter((c: CuadrillaResponse) => c.activa === false);
+}
+
+export async function obtenerCuadrillasPaginadas(offset: number, limite: number, filtroActivas: boolean): Promise<PaginadoCuadrilla> {
+  const { data } = await api.get(`/cuadrillas/paginado/${offset}/${limite}/${filtroActivas}`);
+  return data;
 }

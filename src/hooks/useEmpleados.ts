@@ -9,8 +9,6 @@ export function useEmpleados(pageSize:number = 5) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [filtroActivo,setFiltroActivo] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchEmpleados = useCallback(async (page:number) => {
     setLoading(true);
@@ -18,7 +16,6 @@ export function useEmpleados(pageSize:number = 5) {
       const offset = (page - 1 ) * pageSize;
       const data = await obtenerEmpleadosPaginados(offset,pageSize,filtroActivo);
       setEmpleados(data.empleados);
-      setTotalItems(data.total);
       setTotalPages(Math.ceil(data.total / pageSize));
       setCurrentPage(page);
     } catch (err) {

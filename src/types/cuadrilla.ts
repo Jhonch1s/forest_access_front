@@ -15,3 +15,10 @@ export interface CuadrillaResponse {
   nombre: string;
   activa: boolean;
 }
+
+export interface PaginadoCuadrilla {
+  cuadrillas: CuadrillaResponse[];
+  total: number;
+  pagina: number;
+  limite: number;
+}

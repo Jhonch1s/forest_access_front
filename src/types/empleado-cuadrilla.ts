@@ -18,3 +18,10 @@ export interface EmpleadoCuadrillaResponse {
   fechaFin: string;
   esActivo: boolean;
 }
+
+export interface PaginadoEmpleadoCuadrilla {
+  empleadosCuadrilla: EmpleadoCuadrillaResponse[];
+  total: number;
+  pagina: number;
+  limite: number;
+}
