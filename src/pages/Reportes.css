@@ -752,6 +752,55 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* ─── PDF Export (hidden content for html2pdf) ── */
+
+.reporte-pdf-content {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 210mm;
+  background: var(--bg-surface);
+  z-index: -1;
+}
+
+.reporte-pdf-content .reporte-card-pdf {
+  display: none !important;
+}
+
+.reporte-pdf-content .reportes-filtros,
+.reporte-pdf-content .reportes-pagination-top,
+.reporte-pdf-content .reportes-pagination-bottom,
+.reporte-pdf-content .reportes-search-wrap,
+.reporte-pdf-content .reportes-bottom-header,
+.reporte-pdf-content .page-header {
+  display: none !important;
+}
+
+.reporte-pdf-header {
+  text-align: center;
+  padding: 0 0 var(--space-md) 0;
+  border-bottom: 2px solid var(--forest-primary);
+  margin-bottom: var(--space-md);
+}
+
+.reporte-pdf-titulo {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--forest-primary);
+  margin-bottom: 4px;
+}
+
+.reporte-pdf-rango {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Hide PDF buttons on live cards during export */
+
+body.exportando-pdf .reporte-card-pdf {
+  display: none !important;
+}
+
 /* ─── Print ───────────────────────────── */
 
 @media print {

@@ -1,7 +1,9 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import Button from '../components/Button';
 import { getReporteBatch, esPageResponse } from '../services/reporteService';
 import type { ReporteEmpleadoDTO, ReporteBatchPage } from '../types/reporte';
+import html2pdf from 'html2pdf.js';
 import './Reportes.css';
 
 /* ─── SVG icons ─────────────────────────── */
@@ -187,6 +189,15 @@ function jornadaPct(totalHoras: number, diasConTrabajo: number): number {
   return Math.min(100, (totalHoras / (diasConTrabajo * 8)) * 100);
 }
 
+const PDF_OPTIONS = {
+  margin: [10, 10, 10, 10] as [number, number, number, number],
+  image: { type: 'jpeg' as const, quality: 0.95 },
+  enableLinks: false,
+  html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+  jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+  pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+};
+
 const RANGO_LABELS: Record<RangoKey, string> = {
   hoy: 'Hoy',
   semana: 'Semana',
@@ -204,7 +215,7 @@ function rangeOptions(from: number, to: number): number[] {
 
 /* ─── Componente ReporteEmpleadoCard ────── */
 
-function ReporteEmpleadoCard({ emp }: { emp: ReporteEmpleado }) {
+function ReporteEmpleadoCard({ emp, onExportPDF, exportando }: { emp: ReporteEmpleado; onExportPDF?: (id: number) => void; exportando?: boolean }) {
   const incentivoH = incentivoHoras(emp.totalHoras, emp.diasConTrabajo);
   const incentivoV = incentivoValor(incentivoH, emp.valorJornal);
   const pct = jornadaPct(emp.totalHoras, emp.diasConTrabajo);
@@ -220,7 +231,7 @@ function ReporteEmpleadoCard({ emp }: { emp: ReporteEmpleado }) {
   else if (tieneHabsProximas) borderClass = 'reporte-card-border-proximo';
 
   return (
-    <div className={`reporte-card ${borderClass}`}>
+    <div className={`reporte-card ${borderClass}`} data-reporte-id={emp.idEmpleado}>
       <div className="reporte-card-border" />
 
       <div className="reporte-card-body">
@@ -244,11 +255,12 @@ function ReporteEmpleadoCard({ emp }: { emp: ReporteEmpleado }) {
             </span>
             <button
               className="reporte-card-pdf"
-              onClick={() => window.print()}
+              onClick={() => onExportPDF?.(emp.idEmpleado)}
+              disabled={exportando}
               aria-label={`Exportar PDF de ${emp.nombre}`}
             >
               <IconDownload size={14} />
-              PDF
+              {exportando ? '...' : 'PDF'}
             </button>
           </div>
         </div>
@@ -359,6 +371,8 @@ function Reportes() {
   const [viewMode, setViewMode] = useState<ViewMode>('paginado');
   const [pagina, setPagina] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [exportando, setExportando] = useState<'idle' | 'full'>('idle');
+  const fullReportRef = useRef<HTMLDivElement>(null);
   const today = new Date();
   const [inicioDia, setInicioDia] = useState(today.getDate());
   const [inicioMes, setInicioMes] = useState(today.getMonth());
@@ -435,6 +449,59 @@ function Reportes() {
     setFinMes(dFin.mes);
     setFinAnio(dFin.anio);
   }
+
+  /* ─── Exportar PDF ────────────────────── */
+
+  const exportarPDFCompleto = useCallback(async () => {
+    setExportando('full');
+    document.body.classList.add('exportando-pdf');
+    flushSync(() => {});
+    try {
+      const dates = getDates();
+      if (!dates) return;
+      const element = fullReportRef.current;
+      if (!element) return;
+      await html2pdf()
+        .set({
+          ...PDF_OPTIONS,
+          filename: `reporte-diario-${dates.inicio}_a_${dates.hasta}.pdf`,
+        })
+        .from(element)
+        .save();
+    } catch (err) {
+      console.error('Error al exportar PDF completo:', err);
+    } finally {
+      document.body.classList.remove('exportando-pdf');
+      setExportando('idle');
+    }
+  }, [getDates]);
+
+  const exportarPDFEmpleado = useCallback(async (idEmpleado: number) => {
+    setExportando('full');
+    document.body.classList.add('exportando-pdf');
+    flushSync(() => {});
+    try {
+      const element = document.querySelector<HTMLElement>(`[data-reporte-id="${idEmpleado}"]`);
+      if (!element) return;
+      const emp = empleadosDTO.find((e) => e.idEmpleado === idEmpleado);
+      const name = emp?.nombre.replace(/[^a-zA-Z0-9]/g, '_') || `empleado-${idEmpleado}`;
+      const dates = getDates();
+      const suffix = dates ? `_${dates.inicio}` : '';
+      await html2pdf()
+        .set({
+          ...PDF_OPTIONS,
+          margin: 12,
+          filename: `reporte-${name}${suffix}.pdf`,
+        })
+        .from(element)
+        .save();
+    } catch (err) {
+      console.error('Error al exportar PDF de empleado:', err);
+    } finally {
+      document.body.classList.remove('exportando-pdf');
+      setExportando('idle');
+    }
+  }, [empleadosDTO, getDates]);
 
   useEffect(() => {
     fetchReporte();
@@ -527,9 +594,9 @@ function Reportes() {
       <div className="reportes-top">
         <div className="page-header">
           <h2>Reportes Diarios</h2>
-          <Button variant="primary" onClick={() => window.print()}>
+          <Button variant="primary" onClick={exportarPDFCompleto} disabled={exportando !== 'idle'}>
             <IconDownload size={16} />
-            Exportar PDF
+            {exportando !== 'idle' ? 'Generando PDF...' : 'Exportar PDF'}
           </Button>
         </div>
 
@@ -712,7 +779,7 @@ function Reportes() {
         ) : (
           <div className="reportes-list">
             {empleadosPagina.map((emp) => (
-              <ReporteEmpleadoCard key={emp.idEmpleado} emp={emp} />
+              <ReporteEmpleadoCard key={emp.idEmpleado} emp={emp} onExportPDF={exportarPDFEmpleado} exportando={exportando !== 'idle'} />
             ))}
           </div>
         )}
@@ -732,6 +799,54 @@ function Reportes() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ─── Contenido oculto para exportar PDF completo ─── */}
+      <div
+        ref={fullReportRef}
+        className="reporte-pdf-content"
+        aria-hidden="true"
+      >
+        <div className="reporte-pdf-header">
+          <div className="reporte-pdf-titulo">Reporte Diario</div>
+          <div className="reporte-pdf-rango">
+            Del {String(inicioDia).padStart(2, '0')} de {MONTHS[inicioMes]} de {inicioAnio}
+            {' '}&mdash;{' '}
+            {String(finDia).padStart(2, '0')} de {MONTHS[finMes]} de {finAnio}
+          </div>
+        </div>
+
+        <div className="reportes-resumen">
+          <div className="reportes-resumen-card">
+            <span className="reportes-resumen-icon"><IconClipboard size={22} /></span>
+            <div>
+              <span className="reportes-resumen-valor">{totalTareas}</span>
+              <span className="reportes-resumen-label">Tareas realizadas</span>
+            </div>
+          </div>
+          <div className="reportes-resumen-card">
+            <span className="reportes-resumen-icon"><IconClock size={22} /></span>
+            <div>
+              <span className="reportes-resumen-valor">{totalHoras.toFixed(1)}<small>h</small></span>
+              <span className="reportes-resumen-label">Horas totales &middot; {empleados.length} empleados</span>
+            </div>
+          </div>
+          <div className="reportes-resumen-card">
+            <span className="reportes-resumen-icon"><IconTrendUp size={22} /></span>
+            <div>
+              <span className={`reportes-resumen-valor ${totalIncentivoH >= 0 ? 'reportes-incentivo-pos' : 'reportes-incentivo-neg'}`}>
+                {formatIncentivoHoras(totalIncentivoH)}
+              </span>
+              <span className="reportes-resumen-label">Incentivo &middot; {formatMoneda(totalIncentivoV)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="reportes-list">
+          {empleadosOrdenados.map((emp) => (
+            <ReporteEmpleadoCard key={emp.idEmpleado} emp={emp} />
+          ))}
+        </div>
       </div>
     </div>
   );

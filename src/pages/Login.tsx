@@ -4,12 +4,6 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/Button';
 import './Login.css';
 
-function getRedirectPath(perfiles: string[]): string {
-  if (perfiles.includes('admin')) return '/dashboard';
-  if (perfiles.includes('puntero')) return '/puntero';
-  return '/dashboard';
-}
-
 function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated, hasProfile, loading: authLoading } = useAuth();
@@ -44,8 +38,7 @@ function Login() {
 
     setLoading(true);
     try {
-      const user = await login({ usuario: u, password: p });
-      navigate(getRedirectPath(user.perfiles), { replace: true });
+      await login({ usuario: u, password: p });
     } catch {
       setError('Credenciales incorrectas.');
     } finally {
