@@ -1,0 +1,289 @@
+/* Contenedor principal de todo el dashboard */
+.dashboard-container {
+  padding: var(--space-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+}
+
+.dashboard-container h2 {
+  color: var(--forest-primary);
+  margin-bottom: var(--space-lg);
+  font-weight: 700;
+  font-size: 32px;
+}
+
+/* El grid que separa en dos columnas (paneles) */
+.dashboard-grid {
+  margin-top: var(--space-lg);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 2fr; /* 1/3 para la lista, 2/3 para el contenido principal */
+    align-items: start;
+  }
+}
+
+/* Las tarjetas blancas (los paneles y las cards) basados en el DESIGN_SYSTEM */
+.dashboard-panel,
+.dashboard-card {
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: var(--radius-lg, 8px);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: box-shadow 0.3s ease;
+}
+
+.dashboard-panel:hover,
+.dashboard-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-panel h3,
+.dashboard-card h3 {
+  color: var(--forest-primary);
+  margin-bottom: var(--space-md);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.text-muted {
+  color: var(--text-secondary);
+}
+
+/* Panel Derecho */
+.dashboard-panel-derecho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* La lista de botones de cuadrillas */
+.cuadrillas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cuadrilla-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  text-align: left;
+  color: var(--text-main);
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cuadrilla-btn:hover {
+  background-color: rgba(34, 101, 131, 0.05); /* --forest-secondary con opacidad */
+  border-color: var(--forest-secondary);
+}
+
+.cuadrilla-btn.active {
+  background-color: var(--forest-secondary);
+  color: #ffffff;
+  border-color: var(--forest-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===== GRÁFICAS CON CHART.JS ===== */
+
+.graficas-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+  margin-top: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .graficas-grid {
+    grid-template-columns: 1fr 1fr; /* 2 columnas en pantallas medianas o grandes */
+  }
+}
+
+.grafica-wrapper {
+  background-color: var(--bg-main, #f5f7f8);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  border: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.grafica-full-width {
+  grid-column: 1 / -1; /* Ocupa todo el ancho disponible */
+}
+
+.grafica-wrapper h4 {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: var(--space-md);
+  font-weight: 600;
+}
+
+.grafica-canvas-container {
+  position: relative;
+  height: 220px;
+  width: 100%;
+}
+
+.doughnut-container {
+  height: 280px; /* Un poco más alto para que el círculo se vea mejor */
+}
+
+/* ===== DETALLE DE CUADRILLA ===== */
+
+.cuadrilla-detalle {
+  border-top: 4px solid var(--status-success, #308230);
+  animation: slideIn 0.3s ease;
+}
+
+.cuadrilla-detalle h2 {
+  color: var(--forest-primary);
+  margin-bottom: var(--space-md);
+}
+
+.detalle-info p {
+  color: var(--text-main);
+  margin-bottom: var(--space-sm);
+  font-size: 15px;
+}
+
+.detalle-info strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-right: var(--space-xs);
+}
+
+/* Botón de volver usando los estilos del diseño base */
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-lg);
+  padding: 10px 20px;
+  background-color: var(--bg-surface);
+  color: var(--forest-primary);
+  border: 1px solid var(--forest-primary);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-volver:hover {
+  background-color: var(--forest-primary);
+  color: #ffffff;
+}
+
+.btn-volver svg {
+  transition: transform 0.2s ease;
+}
+
+.btn-volver:hover svg {
+  transform: translateX(-3px);
+}
+
+/* Pequeñas animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Caja para cada habilitación */
+
+.habilitacion-caja {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  border: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.habilitacion-caja p {
+  margin-bottom: var(--space-xs);
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.habilitacion-caja p:first-child {
+  font-size: 15px;
+  color: var(--forest-primary);
+}
+
+.dashboard-card-habilitacion {
+  margin-top: var(--space-md);
+  display: flex; /* Alinea los hijos en horizontal por defecto */
+  flex-wrap: wrap; /* Permite que las cajas bajen a la siguiente línea si no caben */
+  gap: var(--space-md);
+}
+
+.habilitacion-caja:hover {
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease;
+}
+
+/* en la esquina superior derecha */
+.posicion-relativa-tarjeta {
+  position: relative;
+}
+
+.leyenda-habilitaciones {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+/* Cada item de la leyenda */
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #000000;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+/* cuadradito con color de fondo */
+.cuadradito-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Efecto visual opaco cuando haces click para ocultar las cajas */
+.leyenda-item.desactivado {
+  opacity: 0.4;
+  text-decoration: line-through; 
+}
