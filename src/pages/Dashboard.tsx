@@ -119,92 +119,92 @@ function Dashboard() {
   const habilitacionesVisibles = Habilitaciones.filter((habilitacion) => !estadosOcultos.includes(habilitacion.estado));
 
   return (
-  <div className="dashboard-container">
-    <h2>Dashboard</h2>
-    {habilitacionesVisibles.length > 0 && (
-    <div className="dashboard-card posicion-relativa-tarjeta">
-      <h3>Habilitaciones por vencer</h3>
-      <p className="text-muted">Permisos de trabajo que venceran en los próximos 7 días</p>
+    <div className="dashboard-container">
+      <h2>Dashboard</h2>
       
-      <div className="leyenda-habilitaciones">
-        <div 
-          className={`leyenda-item ${estadosOcultos.includes("Vencida") ? 'desactivado' : ''}`} 
-          onClick={() => toggleFiltroEstado("Vencida")}
-        >
-          <span className="cuadradito-color" style={{ backgroundColor: "#ee7d90ff" }}></span>
-          <span>Vencidas</span>
-        </div>
-        <div 
-          className={`leyenda-item ${estadosOcultos.includes("Por vencer") ? 'desactivado' : ''}`} 
-          onClick={() => toggleFiltroEstado("Por vencer")}
-        >
-          <span className="cuadradito-color" style={{ backgroundColor: "#ebf1b4ff" }}></span>
-          <span>Por vencer</span>
-        </div>
-      </div>
-
-      <div className="dashboard-card-habilitacion">
-        {Habilitaciones.filter((habilitacion) => !estadosOcultos.includes(habilitacion.estado)).map((habilitacion) => (
-            <div key={habilitacion.id} className="habilitacion-caja" style={{ backgroundColor: colorEstadoHabilitacion(habilitacion.estado) }}>
-              <p><strong>{habilitacion.empleado}</strong></p>
-              <p>{habilitacion.trabajo}</p>
-              <p>{habilitacion.fecha}</p>
+            {/* Acordeón Habilitaciones */}
+            {Habilitaciones.length > 0 && (
+              <div className="dashboard-card posicion-relativa-tarjeta">
+                <div className="dashboard-card-header" onClick={() => setMostrarHabilitaciones(!mostrarHabilitaciones)}>
+                  <h3>Habilitaciones por vencer</h3>
+                  <span className="flecha-acordeon">{mostrarHabilitaciones ? '▲' : '▼'}</span>
+                </div>
+              
+                {mostrarHabilitaciones && (
+                  <div className="dashboard-card-body">
+                    <div className="habilitaciones-body-header">
+                      <p className="text-muted">Permisos de trabajo que vencerán en los próximos 7 días</p>
+                      
+                      <div className="leyenda-habilitaciones alineada-derecha">
+                        <div 
+                          className={`leyenda-item ${estadosOcultos.includes("Vencida") ? 'desactivado' : ''}`} 
+                          onClick={() => toggleFiltroEstado("Vencida")}
+                        >
+                          <span className="cuadradito-color" style={{ backgroundColor: "#ee7d90ff" }}></span>
+                          <span>Vencidas</span>
+                        </div>
+                        <div 
+                          className={`leyenda-item ${estadosOcultos.includes("Por vencer") ? 'desactivado' : ''}`} 
+                          onClick={() => toggleFiltroEstado("Por vencer")}
+                        >
+                          <span className="cuadradito-color" style={{ backgroundColor: "#ebf1b4ff" }}></span>
+                          <span>Por vencer</span>
+                        </div>
+                      </div>
+                    </div>
+                
+                    {habilitacionesVisibles.length > 0 ? (
+                      <div className="dashboard-card-habilitacion">
+                        {habilitacionesVisibles.map((habilitacion) => (
+                          <div key={habilitacion.id} className="habilitacion-caja" style={{ backgroundColor: colorEstadoHabilitacion(habilitacion.estado) }}>
+                            <p><strong>{habilitacion.empleado}</strong></p>
+                            <p>{habilitacion.trabajo}</p>
+                            <p>{habilitacion.fecha}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="no-datos-mensaje">No hay habilitaciones para mostrar con los filtros activos.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+      <div className={`dashboard-layout-dinamico ${mostrarCuadrillas && misCuadrillas.length > 0 ? 'con-cuadrillas' : 'solo-graficas'}`}>
+        {/* Acordeón Cuadrillas */}
+        {misCuadrillas.length > 0 && (
+          <div className="dashboard-card posicion-relativa-tarjeta cuadrillas-tarjeta-acordeon">
+            <div className="dashboard-card-header" onClick={() => setMostrarCuadrillas(!mostrarCuadrillas)}>
+              <h3>Cuadrillas con tratamientos hoy</h3>
+              <span className="flecha-acordeon">{mostrarCuadrillas ? '▲' : '▼'}</span>
             </div>
-          ))}
-      </div>
-    </div>
-    )}
 
-    {habilitacionesVisibles.length === 0 && (
-      <div className="dashboard-card posicion-relativa-tarjeta">
-      <h3>Habilitaciones por vencer</h3>
-      <p className="text-muted">No hay habilitaciones</p>
-      <div className="leyenda-habilitaciones">
-        <div 
-          className={`leyenda-item ${estadosOcultos.includes("Vencida") ? 'desactivado' : ''}`} 
-          onClick={() => toggleFiltroEstado("Vencida")}
-        >
-          <span className="cuadradito-color" style={{ backgroundColor: "#ee7d90ff" }}></span>
-          <span>Vencidas</span>
-        </div>
-        <div 
-          className={`leyenda-item ${estadosOcultos.includes("Por vencer") ? 'desactivado' : ''}`} 
-          onClick={() => toggleFiltroEstado("Por vencer")}
-        >
-          <span className="cuadradito-color" style={{ backgroundColor: "#ebf1b4ff" }}></span>
-          <span>Por vencer</span>
-        </div>
-      </div>
-      </div>
-    )}
-
-      <div className="dashboard-grid">
-        {/* panel izquierdo: lista de cuadrillas */}
-        <div className="dashboard-panel">
-          <h3>Cuadrillas con tratamientos hoy</h3>
-          <div className="cuadrillas-lista">
-            {misCuadrillas.map((cuadrilla) => (
-              <button 
-                key={cuadrilla.id} 
-                onClick={() => setCuadrillaSeleccionada(cuadrilla)} 
-                className={`cuadrilla-btn ${cuadrillaSeleccionada?.id === cuadrilla.id ? 'active' : ''}`}
-              >
-                {cuadrilla.nombre}
-              </button>
-            ))}
+            {mostrarCuadrillas && (
+              <div className="dashboard-card-body">
+                <div className="cuadrillas-lista">
+                  {misCuadrillas.map((cuadrilla) => (
+                    <button 
+                      key={cuadrilla.id} 
+                      onClick={() => setCuadrillaSeleccionada(cuadrilla)} 
+                      className={`cuadrilla-btn ${cuadrillaSeleccionada?.id === cuadrilla.id ? 'active' : ''}`}
+                    >
+                      {cuadrilla.nombre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-        
-        {/* panel derecho, gaficas, habilitaciones y detalles */}
-        <div>
+        )}
+
+        {/* Parte derecha: Gráficas y Detalle Cuadrilla */}
+        <div className="dashboard-main-content">
           {!cuadrillaSeleccionada ? (
             <div className="dashboard-panel-derecho">
-              
               <div className="dashboard-card">
                 <h3>Resumen de Tareas</h3>
-                
                 <div className="graficas-grid">
-                  {/* 1. Gráfica de Barras */}
+                  {/* Gráfica de Barras */}
                   <div className="grafica-wrapper">
                     <h4>Productividad Semanal</h4>
                     <div className="grafica-canvas-container">
@@ -212,7 +212,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  {/* 2. Gráfica de Líneas */}
+                  {/* Gráfica de Líneas */}
                   <div className="grafica-wrapper">
                     <h4>Evolución de Horas</h4>
                     <div className="grafica-canvas-container">
@@ -220,7 +220,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  {/* 3. Gráfica Circular */}
+                  {/* Gráfica Circular */}
                   <div className="grafica-wrapper grafica-full-width">
                     <h4>Estado Actual de Tareas</h4>
                     <div className="grafica-canvas-container doughnut-container">
@@ -228,10 +228,8 @@ function Dashboard() {
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
-            
           ) : (
             <div className="dashboard-card cuadrilla-detalle">
               <h2>{cuadrillaSeleccionada.nombre}</h2>
@@ -249,7 +247,6 @@ function Dashboard() {
             </div>
           )}
         </div>
-      
       </div>
     </div>
   );
