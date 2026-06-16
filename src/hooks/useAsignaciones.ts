@@ -85,8 +85,7 @@ export function useAsignacionesByParcelaPaginado(idParcela:number | null = 10,pa
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalItems, setTotalItems] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [, setTotalItems] = useState(0);
 
   const fetchAsignaciones = useCallback(async (page:number) => {
       setLoading(true);

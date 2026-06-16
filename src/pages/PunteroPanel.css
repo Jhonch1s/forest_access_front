@@ -48,6 +48,42 @@
   max-width: 100%;
 }
 
+.puntero-cuadrilla-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.puntero-password-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  min-height: 40px;
+  font-family: var(--sans);
+}
+
+.puntero-password-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (hover: hover) {
+  .puntero-password-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 .puntero-cuadrilla-info h2 {
   color: #ffffff;
   font-size: 20px;

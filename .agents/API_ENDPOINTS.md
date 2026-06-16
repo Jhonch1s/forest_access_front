@@ -27,6 +27,16 @@
 | PUT | `/usuarios/update/{id}` | `UsuarioDTO` | `UsuarioResponse` |
 | DELETE | `/usuarios/delete/{id}` | — | — |
 
+### Usuarios Punteros
+
+| Método | Endpoint | Request Body | Response |
+|--------|----------|-------------|----------|
+| GET | `/usuarios/puntero/all` | — | `PunteroUsuarioResponse[]` |
+| POST | `/usuarios/puntero/create` | `PunteroUsuarioRequest` | `PunteroUsuarioResponse` |
+| PUT | `/usuarios/puntero/update/{id}` | `PunteroUsuarioRequest` | `PunteroUsuarioResponse` |
+| DELETE | `/usuarios/puntero/delete/{id}` | — | — |
+| PUT | `/usuarios/puntero/cambiar-password/{id}` | `{ currentPassword, newPassword }` | `PunteroUsuarioResponse` |
+
 ---
 
 ## 3. Categorías de Empleado

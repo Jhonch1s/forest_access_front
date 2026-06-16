@@ -102,6 +102,7 @@ src/
   services/
     api.ts                           # Axios instance with JWT + 401/403 interceptor
     authService.ts                   # login / register
+    usuarioService.ts                # CRUD usuarios + cambiarPasswordPuntero
     campoService.ts                  # CRUD campos
     rodalService.ts                  # CRUD rodales
     parcelaService.ts                # CRUD parcelas
@@ -148,6 +149,7 @@ src/
     useCatalogoTareas.ts          # Fetch catalogo de tareas
     useHabilitaciones.ts          # Fetch habilitaciones catalog
     useEmpleadoHabilitacion.ts    # Fetch empleado-habilitaciones
+    useUsuariosPuntero.ts         # Fetch puntero usuarios + disponibles
     useModalA11y.ts               # Accessibility: focus trap, escape, scroll lock for modals
   assets/                   # Static images (react.svg, vite.svg, hero.png*)
 public/                     # Served at root (favicon.svg, icons.svg)
@@ -184,10 +186,30 @@ public/                     # Served at root (favicon.svg, icons.svg)
 - **`AuthContext`** (`src/contexts/AuthContext.ts`) — React context for auth state
 - **`ProtectedRoute`** (`src/components/ProtectedRoute.tsx`) — guards routes by `requiredProfile` prop
 - Store JWT in `localStorage` (`token`)
-- **API interceptor** (`services/api.ts`) handles 401/403 → removes token and redirects to `/`
+- **API interceptor** (`services/api.ts`) handles 401/403 → removes token and redirects to `/`, **except for `/auth/login`** requests to allow proper error feedback
 - **tareaService.ts** uses a **separate axios instance** (`apiLocal`) for `createTarea` and `updateTarea` to bypass the global 401/403 redirect interceptor
 - **Role-based routing**: admin → `/dashboard` (sidebar), puntero → `/puntero` (mobile layout)
 - **Backend FK**: `Usuario` has `@ManyToOne Empleado empleado` (nullable). JWT includes `idEmpleado` claim.
+
+## Password Security
+
+- **BCrypt** with cost factor 12 is used for password hashing
+- `PasswordEncoder` bean defined in `WebSecurityConfig` using `BCryptPasswordEncoder`
+- All new passwords are hashed before storage via `UsuarioService`
+- **Legacy password migration**: On login, if stored password is plain text (doesn't start with `$2`), it's automatically hashed with BCrypt and saved
+- **Puntero password change**: `PUT /usuarios/puntero/cambiar-password/{id}` — requires `{ currentPassword, newPassword }`. Verifies current password before allowing change.
+
+## Usuarios Punteros — Gestión de Contraseñas
+
+- **Admin view** (`PunteroUsersModal`): When creating a new puntero user, admin sets initial password. When editing, password field is **hidden** — admin cannot see or change puntero passwords after creation.
+- **Puntero self-service** (`PunteroPanel`): Punteros can change their own password via "Cambiar contraseña" button. Modal requires: current password + new password + confirm new password. Minimum 4 characters for new password.
+
+### Password Change Flow
+1. Puntero clicks "Cambiar contraseña" in header
+2. Modal validates: current password matches, new password min 4 chars, passwords match
+3. `PUT /usuarios/puntero/cambiar-password/{id}` with `{ currentPassword, newPassword }`
+4. Backend verifies `currentPassword` against stored BCrypt hash using `passwordEncoder.matches()`
+5. If valid, encodes new password with BCrypt and saves
 
 ## Implementation Notes
 
@@ -200,6 +222,8 @@ public/                     # Served at root (favicon.svg, icons.svg)
 - **useModalA11y** (`src/hooks/useModalA11y.ts`) is a reusable accessibility hook used by 7 modal components. Provides focus trapping, Escape key, body scroll lock, focus restoration.
 - **No test framework** is configured.
 - **Liquidaciones.tsx** does NOT exist — the file is missing and there's no route for `/liquidaciones` in `App.tsx`.
+- **PunteroUsersModal** (`Configuracion.tsx`): Admin can create new puntero users with initial password. When editing, password field is hidden — admin cannot modify puntero passwords after creation. Punteros must change their own passwords via PunteroPanel.
+- **Password hashing**: All passwords are hashed with BCrypt cost factor 12. Legacy plain-text passwords are auto-migrated on successful login.
 
 ## Puntero Panel
 
@@ -226,6 +250,7 @@ The backend `/estados/all` endpoint returns estados with **null IDs**. The front
 
 - **Auth with roles**: admin → `/dashboard`, puntero → `/puntero`
 - **Cuadrilla info**: name, puntero name, member count
+- **Password change**: "Cambiar contraseña" button in header opens modal (current password + new password + confirm). Minimum 4 characters for new password.
 - **Parcelas list**: active treatment assignments with badge (estado) and tareas-asignadas count
 - **Inline tarea-asignada registration**: per-assignment card with employee selector + hours input + "Registrar" button. Registers and removes from pending list.
 - **Task creation modal**: selects from catalogo-tareas, employee, hours, date, description, observaciones, plus a "Marcar como completada" checkbox

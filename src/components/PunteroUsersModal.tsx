@@ -250,25 +250,23 @@ function PunteroUsersModal({ usuarios, punterosDisponibles, loading, onClose, on
               {errors.username && <span className="field-error">{errors.username}</span>}
             </div>
 
-            <div className="form-field">
-              <label htmlFor="password">
-                {isEditing ? 'Nueva Contraseña' : 'Contraseña'}
-                {!isEditing && <span className="required"> *</span>}
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={submitting}
-                placeholder={isEditing ? 'Dejar vacío para mantener actual' : undefined}
-                className={errors.password ? 'error' : ''}
-              />
-              {errors.password && <span className="field-error">{errors.password}</span>}
-              {isEditing && (
-                <span className="field-hint">Solo completar si desea cambiar la contraseña</span>
-              )}
-            </div>
+            {!isEditing && (
+              <div className="form-field">
+                <label htmlFor="password">
+                  Contraseña <span className="required">*</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={submitting}
+                  className={errors.password ? 'error' : ''}
+                />
+                {errors.password && <span className="field-error">{errors.password}</span>}
+                <span className="field-hint">El puntero podrá cambiarla después</span>
+              </div>
+            )}
 
             <div className="modal-actions">
               <Button variant="secondary" onClick={backToList} type="button">

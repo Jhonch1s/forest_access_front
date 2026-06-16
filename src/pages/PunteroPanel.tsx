@@ -6,6 +6,7 @@ import { getTareas, createTarea, updateTarea } from '../services/tareaService';
 import { getCatalogoTareas } from '../services/catalogoTareaService';
 import { getEstados } from '../services/estadoService';
 import { getAsignadasVigentesByCuadrilla, createTareaAsignada } from '../services/tareaAsignadaService';
+import { getPunteroUsuarios, cambiarPasswordPuntero } from '../services/usuarioService';
 import Button from '../components/Button';
 import type { EmpleadoCuadrillaResponse } from '../types/empleado-cuadrilla';
 import type { AsignacionTratamientoResponse } from '../types/asignacion-tratamiento';
@@ -57,6 +58,14 @@ function PunteroPanel() {
   const [asignadaForm, setAsignadaForm] = useState<Record<number, { idEmpleado: string; horas: string }>>({});
   const [registrandoAsignada, setRegistrandoAsignada] = useState<number | null>(null);
 
+  const [miUsuarioId, setMiUsuarioId] = useState<number | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
   const [form, setForm] = useState({
@@ -78,12 +87,13 @@ function PunteroPanel() {
 
       try {
         setLoading(true);
-        const [relaciones, asignacionesData, tareasData, catalogosData, estadosData] = await Promise.all([
+        const [relaciones, asignacionesData, tareasData, catalogosData, estadosData, punteroUsuarios] = await Promise.all([
           getEmpleadosCuadrillas(),
           getAsignaciones(),
           getTareas(),
           getCatalogoTareas(),
           getEstados(),
+          getPunteroUsuarios(),
         ]);
 
         const miRelacion = relaciones.find(
@@ -97,6 +107,11 @@ function PunteroPanel() {
           setError('No se encontró una cuadrilla activa asignada a tu usuario.');
           setLoading(false);
           return;
+        }
+
+        const miUsuario = punteroUsuarios.find(u => u.idEmpleado === user.idEmpleado);
+        if (miUsuario) {
+          setMiUsuarioId(miUsuario.id);
         }
 
         const activos = relaciones.filter(
@@ -400,6 +415,57 @@ function PunteroPanel() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleCambiarPassword = async () => {
+    setPasswordError(null);
+
+    if (!currentPassword) {
+      setPasswordError('Ingresá tu contraseña actual');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 4) {
+      setPasswordError('La nueva contraseña debe tener al menos 4 caracteres');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (!miUsuarioId) {
+      setPasswordError('No se pudo identificar tu usuario. Cerrá sesión y volvé a iniciar.');
+      return;
+    }
+
+    setPasswordSubmitting(true);
+    try {
+      await cambiarPasswordPuntero(miUsuarioId, currentPassword, newPassword);
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      alert('Contraseña actualizada correctamente');
+    } catch (err: unknown) {
+      let msg = 'Error al cambiar la contraseña';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { message?: string; error?: string } } };
+        msg = axiosErr.response?.data?.message ?? axiosErr.response?.data?.error ?? msg;
+      }
+      setPasswordError(msg);
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
+
+  const handleCerrarPasswordModal = () => {
+    setShowPasswordModal(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError(null);
   };
 
   if (loading) {
@@ -714,6 +780,67 @@ function PunteroPanel() {
             </div>
           </div>
         )}
+
+        {showPasswordModal && (
+          <div className="modal-overlay" onClick={handleCerrarPasswordModal}>
+            <div className="modal-content" role="dialog" aria-modal="true" aria-label="Cambiar contraseña" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Cambiar Contraseña</h3>
+                <button className="modal-close" onClick={handleCerrarPasswordModal} aria-label="Cerrar">
+                  &times;
+                </button>
+              </div>
+              <div className="modal-form">
+                {passwordError && <div className="modal-error">{passwordError}</div>}
+
+                <div className="form-field">
+                  <label htmlFor="currentPassword">Contraseña Actual</label>
+                  <input
+                    id="currentPassword"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={passwordSubmitting}
+                    placeholder="Ingresá tu contraseña actual"
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="newPassword">Nueva Contraseña</label>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={passwordSubmitting}
+                    placeholder="Mínimo 4 caracteres"
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={passwordSubmitting}
+                    placeholder="Repetí la nueva contraseña"
+                  />
+                </div>
+
+                <div className="modal-actions">
+                  <Button variant="secondary" onClick={handleCerrarPasswordModal} type="button" disabled={passwordSubmitting}>
+                    Cancelar
+                  </Button>
+                  <Button variant="primary" onClick={handleCambiarPassword} loading={passwordSubmitting}>
+                    Guardar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -721,9 +848,23 @@ function PunteroPanel() {
   return (
     <div className="puntero-panel">
       <div className="puntero-cuadrilla-info">
-        <h2>{miCuadrilla?.nombreCuadrilla}</h2>
-        <p className="puntero-cuadrilla-rol">Puntero: {miCuadrilla?.nombreEmpleado}</p>
-        <p className="puntero-cuadrilla-count">{miembros.length} miembros activos</p>
+        <div className="puntero-cuadrilla-header">
+          <div>
+            <h2>{miCuadrilla?.nombreCuadrilla}</h2>
+            <p className="puntero-cuadrilla-rol">Puntero: {miCuadrilla?.nombreEmpleado}</p>
+            <p className="puntero-cuadrilla-count">{miembros.length} miembros activos</p>
+          </div>
+          <button
+            className="puntero-password-btn"
+            onClick={() => setShowPasswordModal(true)}
+            aria-label="Cambiar contraseña"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+            <span>Cambiar contraseña</span>
+          </button>
+        </div>
       </div>
 
       <div className="puntero-section-header">
@@ -772,6 +913,67 @@ function PunteroPanel() {
               </button>
             );
           })}
+        </div>
+      )}
+
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={handleCerrarPasswordModal}>
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label="Cambiar contraseña" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Cambiar Contraseña</h3>
+              <button className="modal-close" onClick={handleCerrarPasswordModal} aria-label="Cerrar">
+                &times;
+              </button>
+            </div>
+            <div className="modal-form">
+              {passwordError && <div className="modal-error">{passwordError}</div>}
+
+              <div className="form-field">
+                <label htmlFor="currentPassword">Contraseña Actual</label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={passwordSubmitting}
+                  placeholder="Ingresá tu contraseña actual"
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="newPassword">Nueva Contraseña</label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={passwordSubmitting}
+                  placeholder="Mínimo 4 caracteres"
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={passwordSubmitting}
+                  placeholder="Repetí la nueva contraseña"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <Button variant="secondary" onClick={handleCerrarPasswordModal} type="button" disabled={passwordSubmitting}>
+                  Cancelar
+                </Button>
+                <Button variant="primary" onClick={handleCambiarPassword} loading={passwordSubmitting}>
+                  Guardar
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

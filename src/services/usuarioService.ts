@@ -40,3 +40,8 @@ export async function updatePunteroUsuario(id: number, data: { nombreUsuario: st
 export async function deletePunteroUsuario(id: number): Promise<void> {
   await api.delete(`/usuarios/puntero/delete/${id}`);
 }
+
+export async function cambiarPasswordPuntero(id: number, currentPassword: string, newPassword: string): Promise<PunteroUsuarioResponse> {
+  const { data } = await api.put(`/usuarios/puntero/cambiar-password/${id}`, { currentPassword, newPassword });
+  return data;
+}
