@@ -138,6 +138,10 @@ tr.proximo-vencer {
     display: none;
   }
 
+  .empleado-title{
+    text-align: center;
+  }
+
   /* Mostrar cards en movil */
   .categoria-cards {
     display: flex;

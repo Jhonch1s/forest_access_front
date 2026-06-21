@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getTareas } from '../services/tareaService';
+import { getTareasByAsignacion } from "../services/tareaService";
 import type { TareaResponse } from '../types/tarea';
 
 export function useTareas() {
@@ -27,4 +28,28 @@ export function useTareas() {
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   return { tareas, loading, error, refetch };
+}
+
+export function useTareasByAsignacion(idAsignacion: number) {
+  const [tareas, setTareas] = useState<TareaResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTareas = useCallback(async () => {
+    if (!idAsignacion) {
+      setTareas([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await getTareasByAsignacion(idAsignacion);
+      setTareas(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  }, [idAsignacion]);
+
+  return { tareas, loading, error, fetchTareas };
 }

@@ -96,6 +96,8 @@ export interface TareaResponse {
   descripcion: string;
   horas: number;
   observaciones: string;
+  idCuadrilla: number;
+  nombreCuadrilla: string;
 }
 
 export interface Tratamiento {

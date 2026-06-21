@@ -81,7 +81,7 @@ export function useAsignacionesByParcela(idParcela: number | null) {
 export function useAsignacionesByParcelaPaginado(idParcela:number | null = 10,pageSize:number = 5){
 
   const [asignacionesPaginadas, setAsignaciones] = useState<AsignacionTratamientoResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAsignaciones, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -121,7 +121,7 @@ export function useAsignacionesByParcelaPaginado(idParcela:number | null = 10,pa
       fetchAsignaciones(1);
     }, [fetchAsignaciones]); 
 
-    return { asignacionesPaginadas, loading, error, goToPage,refetch,currentPage,totalPages };
+    return { asignacionesPaginadas, loadingAsignaciones, error, goToPage,refetch,currentPage,totalPages };
 
 }
 
