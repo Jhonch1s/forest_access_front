@@ -167,7 +167,7 @@ function Empleados() {
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div >
+        <div className='empleado-title'  >
           <h2>Empleados</h2>
           <p>Gestión de empleados.</p>
         </div>
