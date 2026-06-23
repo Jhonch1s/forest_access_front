@@ -34,6 +34,10 @@ export async function terminarCuadrilla(id: number): Promise<void> {
   await api.put(`/cuadrillas/${id}/terminar`);
 }
 
+export async function reactivarCuadrilla(id: number): Promise<void> {
+  await api.put(`/cuadrillas/${id}/reactivar`);
+}
+
 export interface EmpleadoRequest {
   idEmpleado: number;
   rol: string;
@@ -51,5 +55,10 @@ export async function getHistorialCuadrillas(): Promise<CuadrillaResponse[]> {
 
 export async function obtenerCuadrillasPaginadas(offset: number, limite: number, filtroActivas: boolean): Promise<PaginadoCuadrilla> {
   const { data } = await api.get(`/cuadrillas/paginado/${offset}/${limite}/${filtroActivas}`);
+  return data;
+}
+
+export async function getUltimosMiembros(idCuadrilla: number): Promise<any[]> {
+  const { data } = await api.get(`/cuadrillas/${idCuadrilla}/ultimos-miembros`);
   return data;
 }

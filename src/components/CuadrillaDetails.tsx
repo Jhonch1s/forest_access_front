@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { CuadrillaUI, MiembroUI } from '../hooks/useCuadrillas';
 import { getEmpleados } from '../services/empleadoService';
 import type { EmpleadoDTO, EmpleadoResponse } from '../types/empleado';
-import { sincronizarEmpleados } from '../services/cuadrillaService';
+import { sincronizarEmpleados, getUltimosMiembros } from '../services/cuadrillaService';
 import { getEmpleadosCuadrillas, obtenerEmpleadosPaginadosPorCuadrilla } from '../services/empleadoCuadrillaService';
 import './CuadrillaDetails.css';
 import Button from './Button';
@@ -86,36 +86,54 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
       if (!cuadrilla || isEditing) return;
       try {
         setIsLoadingMembers(true);
-        const offset = (paginaActual - 1) * itemsPorPagina;
-        const res = await obtenerEmpleadosPaginadosPorCuadrilla(
-           cuadrilla.idCuadrilla, 
-           offset, 
-           itemsPorPagina, 
-           !cuadrilla.activa // si la cuadrilla no es activa, pasamos true al mostrarHistorial para q muestre todos
-        );
-        
-        if (!res || !res.empleadosCuadrilla) {
-            throw new Error("Respuesta inválida del servidor");
-        }
+        if (!cuadrilla.activa) {
+          const ultimos = await getUltimosMiembros(cuadrilla.idCuadrilla);
+          const mapped = ultimos.map(emp => {
+             const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
+             const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
+             return {
+               id: emp.idEmpleado,
+               nombre: emp.nombreEmpleado || 'Desconocido',
+               iniciales: iniciales ? iniciales.toUpperCase() : 'U',
+               rol: emp.rol || 'Sin rol'
+             };
+          });
+          setServerMembers(mapped);
+          setServerTotalPaginas(Math.ceil(mapped.length / itemsPorPagina) || 1);
+          setServerTotalMembers(mapped.length);
+          const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
+          if (p) setCurrentPuntero(p);
+        } else {
+          const offset = (paginaActual - 1) * itemsPorPagina;
+          const res = await obtenerEmpleadosPaginadosPorCuadrilla(
+             cuadrilla.idCuadrilla, 
+             offset, 
+             itemsPorPagina, 
+             false
+          );
+          
+          if (!res || !res.empleadosCuadrilla) {
+              throw new Error("Respuesta inválida del servidor");
+          }
 
-        const mapped = res.empleadosCuadrilla.map(emp => {
-           const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
-           const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
-           return {
-             id: emp.idEmpleado,
-             nombre: emp.nombreEmpleado || 'Desconocido',
-             iniciales: iniciales ? iniciales.toUpperCase() : 'U',
-             rol: emp.rol || 'Sin rol'
-           };
-        });
-        
-        setServerMembers(mapped);
-        setServerTotalPaginas(Math.ceil(res.total / itemsPorPagina) || 1);
-        setServerTotalMembers(res.total);
-        
-        // El puntero podría no estar en esta página, así que lo buscamos dentro de la página o indicamos cargando/no encontrado
-        const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
-        if (p) setCurrentPuntero(p);
+          const mapped = res.empleadosCuadrilla.map(emp => {
+             const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
+             const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
+             return {
+               id: emp.idEmpleado,
+               nombre: emp.nombreEmpleado || 'Desconocido',
+               iniciales: iniciales ? iniciales.toUpperCase() : 'U',
+               rol: emp.rol || 'Sin rol'
+             };
+          });
+          
+          setServerMembers(mapped);
+          setServerTotalPaginas(Math.ceil(res.total / itemsPorPagina) || 1);
+          setServerTotalMembers(res.total);
+          
+          const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
+          if (p) setCurrentPuntero(p);
+        }
 
       } catch (err) {
         console.error("Error loading members paginated", err);
@@ -133,25 +151,42 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
        if (!cuadrilla || !isEditing) return;
        try {
            setIsLoadingMembers(true);
-           const res = await obtenerEmpleadosPaginadosPorCuadrilla(cuadrilla.idCuadrilla, 0, 1000, !cuadrilla.activa);
-           
-           if (!res || !res.empleadosCuadrilla) {
-               throw new Error("Respuesta inválida del servidor");
-           }
+           if (!cuadrilla.activa) {
+             const ultimos = await getUltimosMiembros(cuadrilla.idCuadrilla);
+             const mapped = ultimos.map(emp => {
+                 const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
+                 const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
+                 return {
+                   id: emp.idEmpleado,
+                   nombre: emp.nombreEmpleado || 'Desconocido',
+                   iniciales: iniciales ? iniciales.toUpperCase() : 'U',
+                   rol: emp.rol || 'Sin rol'
+                 };
+             });
+             setEditMembers(mapped);
+             const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
+             setCurrentPuntero(p);
+           } else {
+             const res = await obtenerEmpleadosPaginadosPorCuadrilla(cuadrilla.idCuadrilla, 0, 1000, false);
+             
+             if (!res || !res.empleadosCuadrilla) {
+                 throw new Error("Respuesta inválida del servidor");
+             }
 
-           const mapped = res.empleadosCuadrilla.map(emp => {
-               const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
-               const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
-               return {
-                 id: emp.idEmpleado,
-                 nombre: emp.nombreEmpleado || 'Desconocido',
-                 iniciales: iniciales ? iniciales.toUpperCase() : 'U',
-                 rol: emp.rol || 'Sin rol'
-               };
-           });
-           setEditMembers(mapped);
-           const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
-           setCurrentPuntero(p);
+             const mapped = res.empleadosCuadrilla.map(emp => {
+                 const partes = emp.nombreEmpleado ? emp.nombreEmpleado.split(' ') : ['Usuario'];
+                 const iniciales = partes.length > 1 ? partes[0][0] + partes[1][0] : partes[0][0];
+                 return {
+                   id: emp.idEmpleado,
+                   nombre: emp.nombreEmpleado || 'Desconocido',
+                   iniciales: iniciales ? iniciales.toUpperCase() : 'U',
+                   rol: emp.rol || 'Sin rol'
+                 };
+             });
+             setEditMembers(mapped);
+             const p = mapped.find(m => m.rol.toLowerCase().includes('puntero') || m.rol.toLowerCase().includes('capataz'));
+             setCurrentPuntero(p);
+           }
        } catch (err) {
            console.error("Error loading members for edit", err);
        } finally {
@@ -381,52 +416,58 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
             )}
 
             {isEditing && (
-              <div className="add-member-row" ref={dropdownRef}>
-                <div className="miembro-avatar add-avatar">+</div>
-                <input 
-                  type="text" 
-                  className="add-member-input"
-                  placeholder="Escribe para añadir empleado..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => setShowDropdown(true)}
-                />
-                
-                {showDropdown && searchTerm && (
-                  <div className="autocomplete-dropdown">
-                    {availableEmpleados.length > 0 ? (
-                      availableEmpleados.map(emp => {
-                        const assignedSquadName = activeAssignments.get(emp.idEmpleado);
-                        return (
-                          <div 
-                            key={emp.idEmpleado} 
-                            className={`autocomplete-item ${assignedSquadName ? 'disabled' : ''}`}
-                            onClick={() => {
-                              if (assignedSquadName) return;
-                              handleAddMember(emp);
-                            }}
-                          >
-                            <div className="emp-search-info">
-                              <span className="emp-name">{emp.nombre}</span>
-                              {assignedSquadName && (
-                                <span className="assigned-squad-badge">
-                                  En: {assignedSquadName}
-                                </span>
-                              )}
+              cuadrilla.activa ? (
+                <div className="add-member-row" ref={dropdownRef}>
+                  <div className="miembro-avatar add-avatar">+</div>
+                  <input 
+                    type="text" 
+                    className="add-member-input"
+                    placeholder="Escribe para añadir empleado..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                  />
+                  
+                  {showDropdown && searchTerm && (
+                    <div className="autocomplete-dropdown">
+                      {availableEmpleados.length > 0 ? (
+                        availableEmpleados.map(emp => {
+                          const assignedSquadName = activeAssignments.get(emp.idEmpleado);
+                          return (
+                            <div 
+                              key={emp.idEmpleado} 
+                              className={`autocomplete-item ${assignedSquadName ? 'disabled' : ''}`}
+                              onClick={() => {
+                                if (assignedSquadName) return;
+                                handleAddMember(emp);
+                              }}
+                            >
+                              <div className="emp-search-info">
+                                <span className="emp-name">{emp.nombre}</span>
+                                {assignedSquadName && (
+                                  <span className="assigned-squad-badge">
+                                    En: {assignedSquadName}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="emp-cedula">CI: {emp.cedula}</span>
                             </div>
-                            <span className="emp-cedula">CI: {emp.cedula}</span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="autocomplete-empty">No se encontraron empleados.</div>
-                    )}
-                  </div>
-                )}
-              </div>
+                          );
+                        })
+                      ) : (
+                        <div className="autocomplete-empty">No se encontraron empleados.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="inactive-edit-warning" style={{ marginTop: '16px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center' }}>
+                  No se pueden añadir nuevos empleados a una cuadrilla inactiva. Recupérala primero.
+                </div>
+              )
             )}
           </div>
         )}
@@ -442,12 +483,11 @@ export default function CuadrillaDetails({ cuadrilla, onRefetch, onClose }: Cuad
           </>
         ) : (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <Button 
-              variant="secondary" 
-              size="medium" 
-              onClick={() => setIsEditing(true)}
-              disabled={!cuadrilla.activa}
-            >
+              <Button 
+                variant="secondary" 
+                size="medium" 
+                onClick={() => setIsEditing(true)}
+              >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'text-bottom' }}>
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>

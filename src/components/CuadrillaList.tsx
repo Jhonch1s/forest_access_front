@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CuadrillaUI } from '../hooks/useCuadrillas';
-import { terminarCuadrilla, deleteCuadrilla } from '../services/cuadrillaService';
+import { terminarCuadrilla, deleteCuadrilla, reactivarCuadrilla } from '../services/cuadrillaService';
 import ConfirmModal from './ConfirmModal';
 import './CuadrillaList.css';
 
@@ -29,10 +29,11 @@ export default function CuadrillaList({
 }: CuadrillaListProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [deleteAction, setDeleteAction] = useState<'terminar' | 'eliminar'>('terminar');
+  const [deleteAction, setDeleteAction] = useState<'terminar' | 'eliminar' | 'reactivar'>('terminar');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleDeleteClick = (e: React.MouseEvent, id: number, action: 'terminar' | 'eliminar') => {
+  const handleDeleteClick = (e: React.MouseEvent, id: number, action: 'terminar' | 'eliminar' | 'reactivar') => {
     e.stopPropagation();
     setDeletingId(id);
     setDeleteAction(action);
@@ -45,6 +46,8 @@ export default function CuadrillaList({
       setIsDeleting(true);
       if (deleteAction === 'terminar') {
         await terminarCuadrilla(deletingId);
+      } else if (deleteAction === 'reactivar') {
+        await reactivarCuadrilla(deletingId);
       } else {
         await deleteCuadrilla(deletingId);
       }
@@ -55,10 +58,13 @@ export default function CuadrillaList({
       }
     } catch (err: any) {
       console.error(err);
-      if (deleteAction === 'eliminar' && err.response?.status === 500) {
-        alert("No se puede eliminar permanentemente esta cuadrilla porque ya tiene historial de miembros o tareas asociadas en la base de datos. Para estos casos, ya está inactiva y debe permanecer así por cuestiones de registro.");
+      if (deleteAction === 'reactivar' && err.response?.status === 409) {
+        const msg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : "Algunos empleados ya están activos en otras cuadrillas. Edita esta cuadrilla para removerlos antes de recuperar.");
+        setErrorMsg(msg);
+      } else if (deleteAction === 'eliminar' && err.response?.status === 500) {
+        setErrorMsg("No se puede eliminar permanentemente esta cuadrilla porque ya tiene historial de miembros o tareas asociadas en la base de datos. Para estos casos, ya está inactiva y debe permanecer así por cuestiones de registro.");
       } else {
-        alert(deleteAction === 'terminar' ? "Error al terminar cuadrilla" : "Error al eliminar cuadrilla");
+        alert(deleteAction === 'terminar' ? "Error al terminar cuadrilla" : (deleteAction === 'reactivar' ? "Error al recuperar cuadrilla" : "Error al eliminar cuadrilla"));
       }
     } finally {
       setIsDeleting(false);
@@ -112,20 +118,34 @@ export default function CuadrillaList({
                       Finalizar
                     </button>
                   ) : (
-                    <button 
-                      className="delete-btn" 
-                      onClick={(e) => handleDeleteClick(e, cuadrilla.idCuadrilla, 'eliminar')}
-                      title="Eliminar Cuadrilla"
-                      style={{ color: '#ef4444' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                      </svg>
-                      Eliminar
-                    </button>
+                    <>
+                      <button 
+                        className="delete-btn" 
+                        onClick={(e) => handleDeleteClick(e, cuadrilla.idCuadrilla, 'reactivar')}
+                        title="Recuperar Cuadrilla"
+                        style={{ color: 'var(--forest-primary, #059669)' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="1 4 1 10 7 10"></polyline>
+                          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                        </svg>
+                        Recuperar
+                      </button>
+                      <button 
+                        className="delete-btn" 
+                        onClick={(e) => handleDeleteClick(e, cuadrilla.idCuadrilla, 'eliminar')}
+                        title="Eliminar Cuadrilla"
+                        style={{ color: '#ef4444' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"></path>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        Eliminar
+                      </button>
+                    </>
                   )}
                   <span className="chevron">›</span>
                 </div>
@@ -166,14 +186,36 @@ export default function CuadrillaList({
 
       <ConfirmModal 
         isOpen={modalOpen}
-        title={deleteAction === 'terminar' ? "Terminar Cuadrilla" : "Eliminar Cuadrilla"}
+        title={deleteAction === 'terminar' ? "Terminar Cuadrilla" : (deleteAction === 'reactivar' ? "Recuperar Cuadrilla" : "Eliminar Cuadrilla")}
         message={deleteAction === 'terminar' 
           ? "¿Estás seguro que deseas terminar esta cuadrilla? Pasará a inactiva y dejará a todos sus miembros liberados."
-          : "¿Estás seguro que deseas eliminar permanentemente esta cuadrilla? Esta acción no se puede deshacer."}
+          : (deleteAction === 'reactivar' 
+            ? "¿Estás seguro que deseas recuperar esta cuadrilla? Pasará a estar activa de nuevo." 
+            : "¿Estás seguro que deseas eliminar permanentemente esta cuadrilla? Esta acción no se puede deshacer.")}
         onConfirm={handleConfirmDelete}
         onCancel={() => setModalOpen(false)}
         isLoading={isDeleting}
       />
+
+      {errorMsg && (
+        <div className="modal-overlay" onClick={() => setErrorMsg(null)} style={{ zIndex: 1000 }}>
+          <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <h3 style={{ color: 'var(--status-error)' }}>No se pudo realizar la acción</h3>
+            <p style={{ marginTop: '12px', marginBottom: '24px', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
+              {errorMsg}
+            </p>
+            <div className="confirm-modal-actions" style={{ justifyContent: 'center' }}>
+              <button 
+                className="button button-primary" 
+                onClick={() => setErrorMsg(null)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

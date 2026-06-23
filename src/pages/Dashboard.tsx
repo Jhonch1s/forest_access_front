@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Dashboard.css';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend,} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { getDashboardData } from '../services/dashboardService';
+import type { DashboardDTO, CuadrillaResumenDTO } from '../types/dashboard';
 
 // registramos los componentes necesarios de Chart.js
 ChartJS.register(
@@ -17,12 +19,57 @@ ChartJS.register(
 );
 
 function Dashboard() {
-  const [cuadrillaSeleccionada, setCuadrillaSeleccionada] = useState(null); 
-  const [misCuadrillas, setMisCuadrillas] = useState([
-    { id: 1, nombre: "Cuadrilla Alfa", tratamiento: "Fumigación de malezas", fecha: "15/06/2026" },
-    { id: 2, nombre: "Cuadrilla Beta", tratamiento: "Control de plagas", fecha: "16/06/2026" },
-    { id: 3, nombre: "Cuadrilla Gamma", tratamiento: "Poda preventiva", fecha: "17/06/2026" }
-  ]);
+  const [cuadrillaSeleccionada, setCuadrillaSeleccionada] = useState<CuadrillaResumenDTO | null>(null); 
+  const [dashboardData, setDashboardData] = useState<DashboardDTO | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await getDashboardData();
+        setDashboardData(data);
+      } catch (err: unknown) {
+        console.error(err);
+        setError("Error al cargar los datos del dashboard");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const [estadosOcultos, setEstadosOcultos] = useState<string[]>([]);
+
+  const toggleFiltroEstado = (estado: string) => {
+    if (estadosOcultos.includes(estado)) {
+      setEstadosOcultos(estadosOcultos.filter(e => e !== estado));
+    } else {
+      setEstadosOcultos([...estadosOcultos, estado]);
+    }
+  };
+  
+  const [mostrarHabilitaciones, setMostrarHabilitaciones] = useState(true);
+  const [mostrarCuadrillas, setMostrarCuadrillas] = useState(true);
+
+  if (loading) {
+    return (
+      <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <p>Cargando dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <p style={{ color: 'var(--status-error)' }}>{error || "Error desconocido"}</p>
+      </div>
+    );
+  }
+
+  const { cuadrillasActivas, habilitacionesPorVencer, estadisticas } = dashboardData;
 
   // Datos para la gráfica de barras
   const barData = {
@@ -30,7 +77,7 @@ function Dashboard() {
     datasets: [
       {
         label: 'Tareas Realizadas',
-        data: [12, 19, 15, 22, 30],
+        data: estadisticas.productividadSemanal,
         backgroundColor: '#226583',
         borderRadius: 6,
       },
@@ -39,16 +86,16 @@ function Dashboard() {
 
   // datos para la gráfica de líneas
   const lineData = {
-    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+    labels: estadisticas.labelsSemanas,
     datasets: [
       {
         label: 'Horas Trabajadas',
-        data: [120, 150, 140, 180],
+        data: estadisticas.evolucionHoras,
         borderColor: '#308230',
         backgroundColor: 'rgba(48, 130, 48, 0.1)',
         pointBackgroundColor: '#308230',
         fill: true,
-        tension: 0.4, //esto hace que la línea sea curva
+        tension: 0.4, 
       },
     ],
   };
@@ -58,7 +105,11 @@ function Dashboard() {
     labels: ['En proceso', 'Pendientes', 'Finalizadas'],
     datasets: [
       {
-        data: [10, 5, 25],
+        data: [
+          estadisticas.estadoTareas['En proceso'] || 0,
+          estadisticas.estadoTareas['Pendiente'] || 0,
+          estadisticas.estadoTareas['Finalizada'] || 0
+        ],
         backgroundColor: [
           '#5a80aa',
           '#c41e3a',
@@ -70,7 +121,6 @@ function Dashboard() {
     ],
   };
 
-  // Opciones generales para que las gráficas se adapten al contenedor
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -88,42 +138,18 @@ function Dashboard() {
       case "Vencida":
         return "#ee7d90ff";
     }
-  };
-
-  const Habilitaciones = [
-    { id: 1, trabajo: "Permiso de trabajo 1", area: "Area 1", fecha: "15/06/2026", estado: "Por vencer", empleado: "Juan Perez" },
-    { id: 2, trabajo: "Permiso de trabajo 2", area: "Area 2", fecha: "16/06/2026", estado: "Vencida", empleado: "Pepito" },
-    { id: 3, trabajo: "Permiso de trabajo 3", area: "Area 3", fecha: "17/06/2026", estado: "Por vencer", empleado: "Periquito" },
-    { id: 4, trabajo: "Permiso de trabajo 4", area: "Area 4", fecha: "18/06/2026", estado: "Vencida", empleado: "Juan Perez" },
-    { id: 5, trabajo: "Permiso de trabajo 5", area: "Area 5", fecha: "19/06/2026", estado: "Vencida", empleado: "Pepito" },
-    { id: 6, trabajo: "Permiso de trabajo 6", area: "Area 6", fecha: "20/06/2026", estado: "Por vencer", empleado: "Periquito" }
-  ];
-
-  const [estadosOcultos, setEstadosOcultos] = useState([]);
-
-  const toggleFiltroEstado = (estado) => {
-    if (estadosOcultos.includes(estado)) {
-    // Si ya estaba oculto, lo removemos del array
-      setEstadosOcultos(estadosOcultos.filter(e => e !== estado));
-    } else {
-    // Si estaba visible, lo agregamos al array (se oculta)
-      setEstadosOcultos([...estadosOcultos, estado]);
-    }
+    return "#fff";
   };
   
-  //para hacer los acordeones y que se escondan si no tienen datos
-  const [mostrarHabilitaciones, setMostrarHabilitaciones] = useState(true);
-  const [mostrarCuadrillas, setMostrarCuadrillas] = useState(true);
-
   //filtro para que solo se muestren las habilitaciones que no esten ocultas
-  const habilitacionesVisibles = Habilitaciones.filter((habilitacion) => !estadosOcultos.includes(habilitacion.estado));
+  const habilitacionesVisibles = habilitacionesPorVencer.filter((habilitacion) => !estadosOcultos.includes(habilitacion.estado));
 
   return (
     <div className="dashboard-container">
       <h2>Dashboard</h2>
       
             {/* Acordeón Habilitaciones */}
-            {Habilitaciones.length > 0 && (
+            {habilitacionesPorVencer.length > 0 && (
               <div className="dashboard-card posicion-relativa-tarjeta">
                 <div className="dashboard-card-header" onClick={() => setMostrarHabilitaciones(!mostrarHabilitaciones)}>
                   <h3>Habilitaciones por vencer</h3>
@@ -170,9 +196,9 @@ function Dashboard() {
                 )}
               </div>
             )}
-      <div className={`dashboard-layout-dinamico ${mostrarCuadrillas && misCuadrillas.length > 0 ? 'con-cuadrillas' : 'solo-graficas'}`}>
+      <div className={`dashboard-layout-dinamico ${mostrarCuadrillas && cuadrillasActivas.length > 0 ? 'con-cuadrillas' : 'solo-graficas'}`}>
         {/* Acordeón Cuadrillas */}
-        {misCuadrillas.length > 0 && (
+        {cuadrillasActivas.length > 0 && (
           <div className="dashboard-card posicion-relativa-tarjeta cuadrillas-tarjeta-acordeon">
             <div className="dashboard-card-header" onClick={() => setMostrarCuadrillas(!mostrarCuadrillas)}>
               <h3>Cuadrillas con tratamientos hoy</h3>
@@ -182,7 +208,7 @@ function Dashboard() {
             {mostrarCuadrillas && (
               <div className="dashboard-card-body">
                 <div className="cuadrillas-lista">
-                  {misCuadrillas.map((cuadrilla) => (
+                  {cuadrillasActivas.map((cuadrilla) => (
                     <button 
                       key={cuadrilla.id} 
                       onClick={() => setCuadrillaSeleccionada(cuadrilla)} 
