@@ -7,22 +7,13 @@
 /* ── Brand Panel (left) ── */
 
 .login-brand-panel {
-  background: var(--forest-primary);
+  background: var(--bg-base);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-2xl);
   position: relative;
   overflow: hidden;
-}
-
-.login-brand-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 30% 50%,
-      rgba(34, 101, 131, 0.4) 0%,
-      transparent 70%);
 }
 
 .login-brand-content {
@@ -32,24 +23,29 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-lg);
+  background: var(--bg-base);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl) var(--space-3xl);
 }
 
 .login-tree-icon {
-  width: 96px;
-  height: 96px;
-  filter: drop-shadow(0 0 24px rgba(34, 255, 216, 0.3));
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
 }
 
 .login-brand-title {
   font-size: 36px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--forest-primary);
   letter-spacing: -0.5px;
 }
 
 .login-brand-tagline {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -66,23 +62,36 @@
 
 .login-brand-footer p {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-secondary);
+  opacity: 0.5;
   margin: 0;
 }
 
 /* ── Form Panel (right) ── */
 
 .login-form-panel {
-  background: var(--bg-surface);
+  background: var(--forest-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-2xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-form-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 50%,
+      rgba(34, 101, 131, 0.4) 0%,
+      transparent 70%);
 }
 
 .login-form-wrapper {
   width: 100%;
   max-width: 340px;
+  position: relative;
 }
 
 .login-form .button {
@@ -97,22 +106,21 @@
 
 .login-form-footer p {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
   margin: 0;
-  opacity: 0.6;
 }
 
 .login-title {
   font-size: 28px;
   font-weight: 700;
-  color: var(--text-main);
+  color: #ffffff;
   margin-bottom: var(--space-xs);
 }
 
 .login-subtitle {
   font-size: 15px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   margin-bottom: var(--space-xl);
 }
 
@@ -123,24 +131,24 @@
 }
 
 .login-error {
-  background: rgba(196, 30, 58, 0.08);
-  color: var(--status-error);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ff8a9b;
   padding: 10px 14px;
   border-radius: var(--radius-md);
   font-size: 14px;
-  border: 1px solid rgba(196, 30, 58, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .login-switch {
   text-align: center;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   margin-top: var(--space-lg);
   margin-bottom: 0;
 }
 
 .login-switch a {
-  color: var(--forest-secondary);
+  color: var(--forest-accent);
   font-weight: 500;
   text-decoration: none;
 }
@@ -162,23 +170,36 @@
   transform: translateY(-50%);
   width: 18px;
   height: 18px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.5);
   pointer-events: none;
 }
 
 .login-input-wrapper input {
   width: calc(100% - 50px);
   padding-left: 38px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.login-input-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.login-input-wrapper input:focus {
+  border-color: var(--forest-accent);
+  box-shadow: 0 0 0 3px rgba(34, 255, 216, 0.15);
+  outline: none;
 }
 
 .login-form select {
   padding: 10px 12px;
-  border: 1px solid var(--border-light);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   font-size: 15px;
   font-family: var(--sans);
-  background: var(--bg-surface);
-  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   width: 100%;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -187,8 +208,12 @@
 
 .login-form select:focus {
   outline: none;
-  border-color: var(--forest-secondary);
-  box-shadow: 0 0 0 3px rgba(34, 101, 131, 0.1);
+  border-color: var(--forest-accent);
+  box-shadow: 0 0 0 3px rgba(34, 255, 216, 0.15);
+}
+
+.login-form label {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Mobile ── */
@@ -211,8 +236,8 @@
   }
 
   .login-tree-icon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
   }
 
   .login-brand-title {

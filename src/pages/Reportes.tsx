@@ -372,7 +372,7 @@ function Reportes() {
   const [pagina, setPagina] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [exportando, setExportando] = useState<'idle' | 'full'>('idle');
-  const fullReportRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   const today = new Date();
   const [inicioDia, setInicioDia] = useState(today.getDate());
   const [inicioMes, setInicioMes] = useState(today.getMonth());
@@ -455,16 +455,17 @@ function Reportes() {
   const exportarPDFCompleto = useCallback(async () => {
     setExportando('full');
     document.body.classList.add('exportando-pdf');
-    flushSync(() => {});
     try {
       const dates = getDates();
       if (!dates) return;
-      const element = fullReportRef.current;
+      const element = pageRef.current;
       if (!element) return;
       await html2pdf()
         .set({
           ...PDF_OPTIONS,
-          filename: `reporte-diario-${dates.inicio}_a_${dates.hasta}.pdf`,
+          filename: dates.inicio === dates.hasta
+            ? `reporte-diario-${dates.inicio}.pdf`
+            : `reporte-diario-${dates.inicio}_a_${dates.hasta}.pdf`,
         })
         .from(element)
         .save();
@@ -589,14 +590,14 @@ function Reportes() {
   );
 
   return (
-    <div className="reportes-page">
+    <div className="reportes-page" ref={pageRef}>
       {/* SECCIÓN SUPERIOR (clara) */}
       <div className="reportes-top">
         <div className="page-header">
           <h2>Reportes Diarios</h2>
-          <Button variant="primary" onClick={exportarPDFCompleto} disabled={exportando !== 'idle'}>
+          <Button variant="primary" onClick={exportarPDFCompleto} disabled={exportando !== 'idle' || viewMode !== 'scroll'}>
             <IconDownload size={16} />
-            {exportando !== 'idle' ? 'Generando PDF...' : 'Exportar PDF'}
+            {exportando !== 'idle' ? 'Generando PDF...' : viewMode !== 'scroll' ? 'PDF (vista scroll)' : 'Exportar PDF'}
           </Button>
         </div>
 
@@ -799,54 +800,6 @@ function Reportes() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* ─── Contenido oculto para exportar PDF completo ─── */}
-      <div
-        ref={fullReportRef}
-        className="reporte-pdf-content"
-        aria-hidden="true"
-      >
-        <div className="reporte-pdf-header">
-          <div className="reporte-pdf-titulo">Reporte Diario</div>
-          <div className="reporte-pdf-rango">
-            Del {String(inicioDia).padStart(2, '0')} de {MONTHS[inicioMes]} de {inicioAnio}
-            {' '}&mdash;{' '}
-            {String(finDia).padStart(2, '0')} de {MONTHS[finMes]} de {finAnio}
-          </div>
-        </div>
-
-        <div className="reportes-resumen">
-          <div className="reportes-resumen-card">
-            <span className="reportes-resumen-icon"><IconClipboard size={22} /></span>
-            <div>
-              <span className="reportes-resumen-valor">{totalTareas}</span>
-              <span className="reportes-resumen-label">Tareas realizadas</span>
-            </div>
-          </div>
-          <div className="reportes-resumen-card">
-            <span className="reportes-resumen-icon"><IconClock size={22} /></span>
-            <div>
-              <span className="reportes-resumen-valor">{totalHoras.toFixed(1)}<small>h</small></span>
-              <span className="reportes-resumen-label">Horas totales &middot; {empleados.length} empleados</span>
-            </div>
-          </div>
-          <div className="reportes-resumen-card">
-            <span className="reportes-resumen-icon"><IconTrendUp size={22} /></span>
-            <div>
-              <span className={`reportes-resumen-valor ${totalIncentivoH >= 0 ? 'reportes-incentivo-pos' : 'reportes-incentivo-neg'}`}>
-                {formatIncentivoHoras(totalIncentivoH)}
-              </span>
-              <span className="reportes-resumen-label">Incentivo &middot; {formatMoneda(totalIncentivoV)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="reportes-list">
-          {empleadosOrdenados.map((emp) => (
-            <ReporteEmpleadoCard key={emp.idEmpleado} emp={emp} />
-          ))}
-        </div>
       </div>
     </div>
   );

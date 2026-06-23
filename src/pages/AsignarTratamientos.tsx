@@ -29,6 +29,7 @@ function AsignarTratamientos() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
+  const [mostrarSoloCompletadas, setMostrarSoloCompletadas] = useState(false);
 
   const { campos, loading: loadingCampos } = useCampos();
   const { rodales, parcelasPorRodal, loading: loadingRodales } = useRodalParcelas(selectedCampoId);
@@ -82,9 +83,13 @@ function AsignarTratamientos() {
   const asignacionesVisibles = useMemo(() => {
     return asignaciones
       .filter((a) => selectedParcelas.has(a.idParcela))
-      .filter((a) => ['PENDIENTE', 'PLANIFICADO', 'EN_EJECUCION'].includes(a.estado))
+      .filter((a) =>
+        mostrarSoloCompletadas
+          ? a.estado === 'COMPLETADO'
+          : ['PENDIENTE', 'PLANIFICADO', 'EN_EJECUCION', 'COMPLETADO', 'CANCELADO'].includes(a.estado)
+      )
       .filter((a) => !deletedIds.has(a.idAsignacion));
-  }, [asignaciones, selectedParcelas, deletedIds]);
+  }, [asignaciones, selectedParcelas, deletedIds, mostrarSoloCompletadas]);
 
   const asignacionesPorParcela = useMemo(() => {
     const groups = new Map<string, typeof asignacionesVisibles>();
@@ -489,9 +494,24 @@ function AsignarTratamientos() {
           </div>
 
           <div className="asignaciones-section">
-            <h3 className="panel-title">
-              Asignaciones Existentes ({asignacionesVisibles.length})
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <h3 className="panel-title" style={{ margin: 0 }}>
+                Asignaciones Existentes ({asignacionesVisibles.length})
+              </h3>
+              <label className="custom-checkbox" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={mostrarSoloCompletadas}
+                  onChange={(e) => setMostrarSoloCompletadas(e.target.checked)}
+                />
+                <span className="custom-checkbox-box">
+                  <svg className="custom-checkbox-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+                <span>Solo completadas</span>
+              </label>
+            </div>
             <div className="asignaciones-list">
               {asignacionesPorParcela.length === 0 && (
                 <p className="arbol-empty">No hay asignaciones para las parcelas seleccionadas.</p>
@@ -516,6 +536,8 @@ function AsignarTratamientos() {
                           <option value="PENDIENTE">PENDIENTE</option>
                           <option value="PLANIFICADO">PLANIFICADO</option>
                           <option value="EN_EJECUCION">EN EJECUCION</option>
+                          <option value="COMPLETADO">COMPLETADO</option>
+                          <option value="CANCELADO">CANCELADO</option>
                         </select>
                         <button
                           className="icon-button danger-hover"

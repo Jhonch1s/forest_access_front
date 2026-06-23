@@ -157,49 +157,51 @@ export default function EmpleadoHabilitacionesModal({ empleadoId, empleadoNombre
                 </div>
               )}
 
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Habilitación</th>
-                    <th>Emisión</th>
-                    <th>Vencimiento</th>
-                    <th>Días restantes</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {habilitaciones.map((h) => (
-                    <tr key={`${h.idEmpleado}-${h.idHabilitacion}`}>
-                      {editing?.idHab === h.idHabilitacion ? (
-                        <>
-                          <td>{h.nombreHabilitacion}</td>
-                          <td>
-                            <input type="date" value={editing.emision} onChange={(e) => setEditing({ ...editing, emision: e.target.value })} />
-                          </td>
-                          <td>
-                            <input type="date" value={editing.vencimiento} onChange={(e) => setEditing({ ...editing, vencimiento: e.target.value })} />
-                          </td>
-                          <td>
-                            <Button variant="secondary" size="small" onClick={() => handleUpdate(h.idHabilitacion, editing.emision, editing.vencimiento)}>Guardar</Button>
-                            <Button variant="danger" size="small" onClick={() => setEditing(null)}>Cancelar</Button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{h.nombreHabilitacion}</td>
-                          <td>{h.fechaEmision}</td>
-                          <td>{h.fechaVencimiento}</td>
-                          
-                          <td>
-                            <Button variant="secondary" size="small" onClick={() => setEditing({ idHab: h.idHabilitacion, emision: h.fechaEmision, vencimiento: h.fechaVencimiento })}>Editar</Button>
-                            <Button variant="danger" size="small" onClick={() => handleDelete(h.idHabilitacion)}>Eliminar</Button>
-                          </td>
-                        </>
-                      )}
+              <div className="table-container">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Habilitación</th>
+                      <th>Emisión</th>
+                      <th>Vencimiento</th>
+                      <th>Días restantes</th>
+                      <th>Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {habilitaciones.map((h) => (
+                      <tr key={`${h.idEmpleado}-${h.idHabilitacion}`}>
+                        {editing?.idHab === h.idHabilitacion ? (
+                          <>
+                            <td>{h.nombreHabilitacion}</td>
+                            <td>
+                              <input type="date" value={editing.emision} onChange={(e) => setEditing({ ...editing, emision: e.target.value })} />
+                            </td>
+                            <td>
+                              <input type="date" value={editing.vencimiento} onChange={(e) => setEditing({ ...editing, vencimiento: e.target.value })} />
+                            </td>
+                            <td>
+                              <Button variant="secondary" size="small" onClick={() => handleUpdate(h.idHabilitacion, editing.emision, editing.vencimiento)}>Guardar</Button>
+                              <Button variant="danger" size="small" onClick={() => setEditing(null)}>Cancelar</Button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td>{h.nombreHabilitacion}</td>
+                            <td>{h.fechaEmision}</td>
+                            <td>{h.fechaVencimiento}</td>
+
+                            <td>
+                              <Button variant="secondary" size="small" onClick={() => setEditing({ idHab: h.idHabilitacion, emision: h.fechaEmision, vencimiento: h.fechaVencimiento })}>Editar</Button>
+                              <Button variant="danger" size="small" onClick={() => handleDelete(h.idHabilitacion)}>Eliminar</Button>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </>
           )}
         </div>

@@ -13,10 +13,10 @@
 .modal-content {
   background: white;
   border-radius: 8px;
-  width: 90%;
-  max-width: 800px;
+  width: 95%;
+  max-width: 1100px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: auto;
   padding: 20px;
 }
 .modal-header {
@@ -64,4 +64,11 @@
 }
 .error {
   color: red;
+}
+.modal-body .table-container {
+  overflow-x: auto;
+}
+.modal-body table {
+  width: 100% !important;
+  table-layout: fixed !important;
 }

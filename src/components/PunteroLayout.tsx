@@ -24,6 +24,7 @@ function PunteroLayout({ children }: PunteroLayoutProps) {
             <rect x="28" y="52" width="8" height="8" rx="1" fill="#22ffd8" opacity="0.6" />
           </svg>
           <span className="puntero-topbar-title">Forest Access</span>
+          <span className="puntero-topbar-company">Forestal AG</span>
         </div>
         <div className="puntero-topbar-user">
           <span className="puntero-topbar-name">{user?.nombreUsuario}</span>

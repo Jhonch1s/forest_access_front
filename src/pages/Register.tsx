@@ -95,7 +95,7 @@ function Register() {
         </div>
         <div className="login-brand-footer">
           <p>v0.1.0</p>
-          <p>&copy; 2026 Forest Access</p>
+          <p>&copy; 2026 Forestal AG</p>
         </div>
       </div>
 
@@ -207,7 +207,7 @@ function Register() {
           </p>
 
           <div className="login-form-footer">
-            <p>v0.1.0 &middot; &copy; 2026 Forest Access</p>
+            <p>v1.0.0 &middot; &copy; 2026 Forestal AG</p>
           </div>
         </div>
       </div>

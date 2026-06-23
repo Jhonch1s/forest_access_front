@@ -111,7 +111,7 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
             <div className="container">
                 <div id="planificadas">
                     <div className="asignaciones-titulo">
-                        <h2>Asignaciones Planificadas</h2>
+                        <h2>Tratamientos Planificados</h2>
                     </div>
 
 
@@ -152,7 +152,7 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                 </div>
                 <div id="progreso">
                     <div className="asignaciones-titulo">
-                        <h2>Asignaciones en progreso</h2>
+                        <h2>Tratamientos en Progreso</h2>
                     </div>
 
                     {asignacionesEnProgreso.length === 0 ? (
@@ -206,7 +206,7 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                 </div>
                 <div id="finalizadas">
                     <div className="asignaciones-titulo">
-                        <h2>Asignaciones Finalizadas</h2>
+                        <h2>Tratamientos Finalizados</h2>
                     </div>
                     {asignacionesFinalizadas.length === 0 ? (
                         <p className="mensaje-vacio">No hay asignaciones finalizadas para esta parcela.</p>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import icono from '../assets/icono.png';
 import './Layout.css';
 
 interface LayoutProps {
@@ -106,21 +107,7 @@ function Layout({ children }: LayoutProps) {
 
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegación principal">
         <div className="sidebar-brand">
-          <svg
-            className="sidebar-tree-icon"
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M32 4L12 28h8l-6 14h8l-6 14h36l-6-14h8l-6-14h8L32 4z"
-              fill="rgba(34, 255, 216, 0.2)"
-              stroke="#22ffd8"
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-            <rect x="28" y="52" width="8" height="8" rx="1" fill="#22ffd8" opacity="0.6" />
-          </svg>
+          <img src={icono} alt="Forest Access" className="sidebar-tree-icon" />
           <span className="sidebar-brand-text">Forest Access</span>
         </div>
 

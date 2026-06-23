@@ -19,14 +19,20 @@
 
 .puntero-topbar-brand {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .puntero-topbar-title {
   font-size: 16px;
   font-weight: 600;
   color: #ffffff;
+}
+
+.puntero-topbar-company {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .puntero-topbar-user {

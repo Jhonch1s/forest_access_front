@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import EmpleadoList from "../components/EmpleadoList";
+import './Empleados.css';
 import { useCategorias } from "../hooks/useCategorias";
 import { useHabilitaciones } from '../hooks/useHabilitaciones';
 import { useEmpleados } from '../hooks/useEmpleados';
@@ -165,35 +166,31 @@ function Empleados() {
 
 
   return (
-    <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div className='empleado-title'  >
+    <div className="empleados-page">
+      <div className="page-header">
+        <div className='empleado-title'>
           <h2>Empleados</h2>
           <p>Gestión de empleados.</p>
         </div>
-        <div>
-          <Button variant="primary" 
-          onClick={filtrar} >
+        <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+          <Button variant="secondary" onClick={filtrar}>
             Filtrar por habilitaciones
           </Button>
-        </div>
-        <div>
           <Button variant="primary" onClick={() => setModal({ type: 'crear' })}>
             + Registrar Empleado
           </Button>
         </div>
-
       </div>
 
       {loading && (
-        <div className="categoria-status">
-          <div className="categoria-spinner" />
+        <div className="parcelas-status">
+          <div className="parcelas-spinner" />
           <p>Cargando empleados...</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="categoria-status">
+        <div className="parcelas-status">
           <p className="categoria-error">{error}</p>
           <Button variant="secondary" onClick={() => refetch()}>Reintentar</Button>
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/Button';
+import icono from '../assets/icono.png';
 import './Login.css';
 
 function Login() {
@@ -52,27 +53,13 @@ function Login() {
     <div className="login-container">
       <div className="login-brand-panel">
         <div className="login-brand-content">
-          <svg
-            className="login-tree-icon"
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M32 4L12 28h8l-6 14h8l-6 14h36l-6-14h8l-6-14h8L32 4z"
-              fill="rgba(34, 255, 216, 0.2)"
-              stroke="#22ffd8"
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-            <rect x="28" y="52" width="8" height="8" rx="1" fill="#22ffd8" opacity="0.6" />
-          </svg>
+          <img src={icono} alt="Forest Access" className="login-tree-icon" />
           <h1 className="login-brand-title">Forest Access</h1>
           <p className="login-brand-tagline">Sistema de gestión forestal</p>
         </div>
         <div className="login-brand-footer">
           <p>v0.1.0</p>
-          <p>&copy; 2026 Forest Access</p>
+          <p>&copy; 2026 Forestal AG</p>
         </div>
       </div>
 
@@ -142,7 +129,7 @@ function Login() {
           </p>
 
           <div className="login-form-footer">
-            <p>v0.1.0 &middot; &copy; 2026 Forest Access</p>
+            <p>v1.0.0 &middot; &copy; 2026 Forestal AG</p>
           </div>
         </div>
       </div>
