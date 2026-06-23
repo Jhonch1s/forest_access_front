@@ -49,6 +49,7 @@ function Tareas() {
 
 
 
+
   return (
     <>
       <div>
@@ -65,7 +66,7 @@ function Tareas() {
             value={selectedCampoId ?? ''}
             onChange={(e) => {
               const value = e.target.value;
-              if(value == "0"){
+              if (value == "0") {
                 setSelectedParcelaId(value ? Number(value) : null);
               }
               const id = value ? Number(value) : null;
@@ -82,18 +83,29 @@ function Tareas() {
         </div>
         <div className="arbol-container">
           {!selectedCampoId && (
-              <p className="arbol-empty">Seleccioná un campo para ver rodales y parcelas.</p>
-            )}
-            
+            <p className="arbol-empty">Seleccioná un campo para ver rodales y parcelas.</p>
+          )}
+
+
           {rodalesDisponibles.map(rodal => {
-            const parcelasMap = new Map<number, string>();
+            const parcelasMap = new Map<number, { id: number; nombre: string; numero: number }>();
+
             asignaciones.forEach(asig => {
               if (asig.idRodal === rodal.id) {
-                parcelasMap.set(asig.idParcela, asig.nombreParcela);
+                if (!parcelasMap.has(asig.idParcela)) {
+                  const partes = asig.nombreParcela.split('-');
+                  const numero = partes.length === 2 ? Number(partes[1]) : 0;
+                  parcelasMap.set(asig.idParcela, {
+                    id: asig.idParcela,
+                    nombre: asig.nombreParcela,
+                    numero: numero
+                  });
+                }
               }
             });
-            const parcelasArray = Array.from(parcelasMap, ([id, nombre]) => ({ id, nombre }));
 
+            const parcelasArray = Array.from(parcelasMap.values())
+              .sort((a, b) => a.numero - b.numero);
             const isExpanded = expandedRodalId === rodal.id;
 
             return (
@@ -125,7 +137,7 @@ function Tareas() {
                     ) : (
                       <div className="parcelas-list">
                         {parcelasArray.map(parcela => (
-                          <div onClick={ () => { setSelectedParcelaId(prev => (prev === parcela.id ? null : parcela.id)); }}>
+                          <div onClick={() => { setSelectedParcelaId(prev => (prev === parcela.id ? null : parcela.id)); }}>
                             <label htmlFor="" className={`parcela-item ${selectedParcelaId == parcela.id ? 'parcela-selected' : ''}`} >
                               <input
                                 type="radio"
@@ -164,7 +176,7 @@ function Tareas() {
 
 
 
-      
+
 
 
       {loadingAsignaciones && (
@@ -188,7 +200,7 @@ function Tareas() {
       )}
 
 
-      <div style={{display: 'flex', justifyContent: 'space-between',marginTop: 10}}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
         <Button variant='primary' size="medium" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>Anterior</Button>
         <Button variant='primary' size="medium" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>Siguiente</Button>
       </div>

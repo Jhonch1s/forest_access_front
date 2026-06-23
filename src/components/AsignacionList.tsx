@@ -4,6 +4,7 @@ import Button from "./Button";
 import type { TareaResponse } from "../types";
 import './AsignacionList.css';
 import { getTareasByAsignacion } from "../services/tareaService";
+import TareasAsignacion from "./TareasAsignacion";
 
 interface AsignacionesListProps {
     asignaciones: AsignacionTratamientoResponse[];
@@ -15,6 +16,13 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
     const asignacionesEnProgreso = asignaciones.filter(asig => asig.estado === 'EN_EJECUCION');
     const asignacionesFinalizadas = asignaciones.filter(asig => asig.estado === 'COMPLETADO');
 
+    function formatearFecha(fecha: string | undefined | null): string {
+        if (!fecha) return 'Sin fecha';
+        const partes = fecha.split('-');
+        if (partes.length !== 3) return fecha;
+        return `${partes[2]}-${partes[1]}-${partes[0]}`;
+    }
+
     const [tareasPorTratamiento, setTareasPorTratamiento] = useState<Map<number, TareaResponse[]>>(new Map());
 
     const [expandidos, setExpandidos] = useState(new Set());
@@ -23,8 +31,10 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
 
     const [tareaSeleccionada, setTareaSeleccionada] = useState<string | null>(null);
 
+    const [expandedTareasId, setExpandedTareasId] = useState<number | null>(null);
 
-    const seleccionarGrupo = (tareas: TareaResponse[],nombreCatalogo:string) => {
+
+    const seleccionarGrupo = (tareas: TareaResponse[], nombreCatalogo: string) => {
         setGrupoSeleccionado(tareas);
         setTareaSeleccionada(nombreCatalogo);
         const planificadas = document.getElementById("planificadas");
@@ -35,7 +45,7 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
         if (contenedor) contenedor.style.display = "block";
     };
 
-    const seleccionarGrupo2 =  (tareas: TareaResponse[],nombreCatalogo:string) => {
+    const seleccionarGrupo2 = (tareas: TareaResponse[], nombreCatalogo: string) => {
         setGrupoSeleccionado(tareas);
         setTareaSeleccionada(nombreCatalogo);
         const planificadas = document.getElementById("planificadas");
@@ -66,11 +76,10 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
 
 
     const toggleExpandir = async (idAsignacion: number) => {
-        if (!expandidos.has(idAsignacion)) {
-            if (!tareasPorTratamiento.has(idAsignacion)) {
-                await cargarTareas(idAsignacion);
-            }
+        if (expandedTareasId === idAsignacion) { setExpandedTareasId(null); } else {
+            setExpandedTareasId(idAsignacion);
         }
+
         setExpandidos(prev => {
             const nuevo = new Set(prev);
             if (nuevo.has(idAsignacion)) nuevo.delete(idAsignacion);
@@ -78,6 +87,8 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
             return nuevo;
         });
     };
+
+
 
     async function cargarTareas(idAsignacion: number) {
         try {
@@ -115,15 +126,15 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                                 <div className="asignacion-card-body">
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Creacion</span>
-                                        <span className="asignacion-card-value">{asigP.fechaAsignacion}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigP.fechaAsignacion)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Inicio</span>
-                                        <span className="asignacion-card-value">{asigP.fechaInicioEstimada}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigP.fechaInicioEstimada)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Fin</span>
-                                        <span className="asignacion-card-value">{asigP.fechaFinEstimada}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigP.fechaFinEstimada)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Observaciones</span>
@@ -155,15 +166,15 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                                 <div className="asignacion-card-body">
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Creacion</span>
-                                        <span className="asignacion-card-value">{asigEP.fechaAsignacion}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigEP.fechaAsignacion)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Inicio</span>
-                                        <span className="asignacion-card-value">{asigEP.fechaInicioEstimada}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigEP.fechaInicioEstimada)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Fin</span>
-                                        <span className="asignacion-card-value">{asigEP.fechaFinEstimada}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigEP.fechaFinEstimada)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Observaciones</span>
@@ -171,56 +182,23 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                                     <div>
                                         <span className="asignacion-card-value">{asigEP.observaciones || "Sin observaciones"}</span>
                                     </div>
-                                    <div className='expandir'>
+                                    <div className={`expandir ${asigEP.idAsignacion === expandedTareasId ? "true" : ''}`}>
                                         <button
                                             onClick={() => toggleExpandir(asigEP.idAsignacion)}
                                         >
                                             <p>Tareas</p>
-                                            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm5.247 8l-5.247 6.44-5.263-6.44-.737.678 6 7.322 6-7.335-.753-.665z" /></svg>
+                                            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm-3 5.753l6.44 5.247-6.44 5.263.678.737 7.322-6-7.335-6-.665.753z" /></svg>
                                         </button>
                                     </div>
                                 </div>
 
                                 {expandidos.has(asigEP.idAsignacion) && (
-                                    <>
-                                        {(() => {
-                                            const tareas = tareasPorTratamiento.get(asigEP.idAsignacion);
-                                            if (!tareas || tareas.length === 0) {
-                                                return (
-                                                    <div className="asignacion-card-body">
-                                                        <div className="asignacion-card-field">
-                                                            <span className='asignacion-card-value'>No hay tareas asignadas</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-
-                                            const grupos = new Map<string, TareaResponse[]>();
-                                            tareas.forEach(tar => {
-                                                const key = tar.nombreTareaCatalogo;
-                                                if (!grupos.has(key)) {
-                                                    grupos.set(key, []);
-                                                }
-                                                grupos.get(key)!.push(tar);
-                                            });
-
-                                            return Array.from(grupos.entries()).map(([nombreCatalogo, tareasGrupo]) => (
-                                                <div key={nombreCatalogo} className={`grupo-tareas ${tareaSeleccionada === nombreCatalogo ? 'selected' : '' }`} >
-                                                    <div
-                                                        className="grupo-tareas-header"
-                                                        onClick={() => seleccionarGrupo(tareasGrupo,nombreCatalogo)}
-                                                    >
-                                                        <div className="grupo-tareas-info">
-                                                            <span className="grupo-tareas-nombre">{nombreCatalogo}</span>
-                                                            <span className="grupo-tareas-badge">{tareasGrupo.length}</span>
-                                                        </div>
-                                                        <span className="grupo-tareas-arrow">›</span>
-                                                    </div>
-                
-                                                </div>
-                                            ));
-                                        })()}
-                                    </>
+                                    <TareasAsignacion
+                                        idAsignacion={asigEP.idAsignacion}
+                                        onSeleccionarGrupo={seleccionarGrupo}
+                                        tareaSeleccionada={tareaSeleccionada}
+                                        grupoSeleccionado={grupoSeleccionado}
+                                    />
                                 )}
                             </div>
                         ))
@@ -233,6 +211,8 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                     {asignacionesFinalizadas.length === 0 ? (
                         <p className="mensaje-vacio">No hay asignaciones finalizadas para esta parcela.</p>
                     ) : (
+
+
                         asignacionesFinalizadas.map((asigF) => (
 
                             <div className="asignacion-cards" >
@@ -242,15 +222,15 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                                 <div className="asignacion-card-body">
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Creacion</span>
-                                        <span className="asignacion-card-value">{asigF.fechaAsignacion}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigF.fechaAsignacion)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Inicio</span>
-                                        <span className="asignacion-card-value">{asigF.fechaInicioEstimada}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigF.fechaInicioEstimada)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Fin</span>
-                                        <span className="asignacion-card-value">{asigF.fechaFinEstimada}</span>
+                                        <span className="asignacion-card-value">{formatearFecha(asigF.fechaFinEstimada)}</span>
                                     </div>
                                     <div className="asignacion-card-field">
                                         <span className="asignacion-card-label">Observaciones</span>
@@ -258,55 +238,22 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                                     <div>
                                         <span className="asignacion-card-value">{asigF.observaciones || "Sin Observaciones"}</span>
                                     </div>
-                                    <div className='expandir'>
+                                    <div className={`expandir ${asigF.idAsignacion === expandedTareasId ? "true" : ""}`}>
                                         <button
                                             onClick={() => toggleExpandir(asigF.idAsignacion)}
                                         >
                                             <p>Tareas</p>
-                                            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm5.247 8l-5.247 6.44-5.263-6.44-.737.678 6 7.322 6-7.335-.753-.665z" /></svg>
+                                            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm-3 5.753l6.44 5.247-6.44 5.263.678.737 7.322-6-7.335-6-.665.753z" /></svg>
                                         </button>
                                     </div>
                                     {expandidos.has(asigF.idAsignacion) && (
-                                    <>
-                                        {(() => {
-                                            const tareas = tareasPorTratamiento.get(asigF.idAsignacion);
-                                            if (!tareas || tareas.length === 0) {
-                                                return (
-                                                    <div className="asignacion-card-body">
-                                                        <div className="asignacion-card-field">
-                                                            <span className='asignacion-card-value'>No hay tareas asignadas</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-
-                                            const grupos = new Map<string, TareaResponse[]>();
-                                            tareas.forEach(tar => {
-                                                const key = tar.nombreTareaCatalogo;
-                                                if (!grupos.has(key)) {
-                                                    grupos.set(key, []);
-                                                }
-                                                grupos.get(key)!.push(tar);
-                                            });
-
-                                            return Array.from(grupos.entries()).map(([nombreCatalogo, tareasGrupo]) => (
-                                                <div key={nombreCatalogo} className={`grupo-tareas ${tareaSeleccionada === nombreCatalogo ? 'selected' : '' }`} >
-                                                    <div
-                                                        className="grupo-tareas-header"
-                                                        onClick={() => seleccionarGrupo2(tareasGrupo,nombreCatalogo)}
-                                                    >
-                                                        <div className="grupo-tareas-info">
-                                                            <span className="grupo-tareas-nombre">{nombreCatalogo}</span>
-                                                            <span className="grupo-tareas-badge">{tareasGrupo.length}</span>
-                                                        </div>
-                                                        <span className="grupo-tareas-arrow">›</span>
-                                                    </div>
-                
-                                                </div>
-                                            ));
-                                        })()}
-                                    </>
-                                )}
+                                        <TareasAsignacion
+                                            idAsignacion={asigF.idAsignacion}
+                                            onSeleccionarGrupo={seleccionarGrupo2}
+                                            tareaSeleccionada={tareaSeleccionada}
+                                            grupoSeleccionado={grupoSeleccionado}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         ))
@@ -319,26 +266,27 @@ function AsignacionList({ asignaciones }: AsignacionesListProps) {
                     </div>
                     {grupoSeleccionado && (
                         <div className="tarea-detalle-completo">
-                            {grupoSeleccionado.map(tar => (
-                                <div key={tar.idTarea} className="tarea-item" style={{ borderBottom: '1px solid #eee', padding: '8px 0' }}>
-                                    <div className="asignacion-card-field">
-                                        <span className="asignacion-card-label">Empleado</span>
-                                        <span className="asignacion-card-value">{tar.nombreEmpleado}</span>
-                                    </div>
-                                    <div className="asignacion-card-field">
-                                        <span className="asignacion-card-label">Cuadrilla</span>
-                                        <span className="asignacion-card-value">{tar.nombreCuadrilla}</span>
-                                    </div>
-                                    <div className="asignacion-card-field">
-                                        <span className="asignacion-card-label">Descripción</span>
-                                        <span className="asignacion-card-value">{tar.descripcion || "Sin Descripción"}</span>
-                                    </div>
-                                    <div className="asignacion-card-field">
-                                        <span className="asignacion-card-label">Estado</span>
-                                        <span className="asignacion-card-value">{tar.nombreEstado}</span>
-                                    </div>
-                                </div>
-                            ))}
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>Empleado</th>
+                                        <th>Cuadrilla</th>
+                                        <th>Descripcion</th>
+                                        <th>Estado</th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+                                    {grupoSeleccionado.map(tar => (
+                                        <tr key={tar.idTarea}>
+                                            <td>{tar.nombreEmpleado}</td>
+                                            <td>{tar.nombreCuadrilla}</td>
+                                            <td>{tar.descripcion || "Sin descripción"}</td>
+                                            <td>{tar.nombreEstado}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>
