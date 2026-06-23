@@ -52,10 +52,12 @@ function Dashboard() {
   
   const [mostrarHabilitaciones, setMostrarHabilitaciones] = useState(true);
   const [mostrarCuadrillas, setMostrarCuadrillas] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   if (loading) {
     return (
-      <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+      <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '300px' }}>
+        <div className="dashboard-spinner" />
         <p>Cargando dashboard...</p>
       </div>
     );
@@ -134,15 +136,23 @@ function Dashboard() {
   const colorEstadoHabilitacion = (estado: string) => {
     switch (estado) {
       case "Por vencer":
-        return "#ebf1b4ff";
+        return { background: "#fff3cd", color: "#856404", borderLeft: "4px solid #ffc107" };
       case "Vencida":
-        return "#ee7d90ff";
+        return { background: "#f8d7da", color: "#721c24", borderLeft: "4px solid #dc3545" };
     }
-    return "#fff";
+    return {};
   };
   
   //filtro para que solo se muestren las habilitaciones que no esten ocultas
-  const habilitacionesVisibles = habilitacionesPorVencer.filter((habilitacion) => !estadosOcultos.includes(habilitacion.estado));
+  const habilitacionesVisibles = habilitacionesPorVencer.filter((habilitacion) => {
+    if (estadosOcultos.includes(habilitacion.estado)) return false;
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      return habilitacion.empleado.toLowerCase().includes(lowerSearch) || 
+             habilitacion.trabajo.toLowerCase().includes(lowerSearch);
+    }
+    return true;
+  });
 
   return (
     <div className="dashboard-container">
@@ -162,18 +172,25 @@ function Dashboard() {
                       <p className="text-muted">Permisos de trabajo que vencerán en los próximos 7 días</p>
                       
                       <div className="leyenda-habilitaciones alineada-derecha">
+                        <input 
+                          type="text" 
+                          placeholder="Buscar empleado o permiso..." 
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="habilitaciones-search"
+                        />
                         <div 
                           className={`leyenda-item ${estadosOcultos.includes("Vencida") ? 'desactivado' : ''}`} 
                           onClick={() => toggleFiltroEstado("Vencida")}
                         >
-                          <span className="cuadradito-color" style={{ backgroundColor: "#ee7d90ff" }}></span>
+                          <span className="cuadradito-color" style={{ backgroundColor: "#f8d7da" }}></span>
                           <span>Vencidas</span>
                         </div>
                         <div 
                           className={`leyenda-item ${estadosOcultos.includes("Por vencer") ? 'desactivado' : ''}`} 
                           onClick={() => toggleFiltroEstado("Por vencer")}
                         >
-                          <span className="cuadradito-color" style={{ backgroundColor: "#ebf1b4ff" }}></span>
+                          <span className="cuadradito-color" style={{ backgroundColor: "#fff3cd" }}></span>
                           <span>Por vencer</span>
                         </div>
                       </div>
@@ -182,10 +199,10 @@ function Dashboard() {
                     {habilitacionesVisibles.length > 0 ? (
                       <div className="dashboard-card-habilitacion">
                         {habilitacionesVisibles.map((habilitacion) => (
-                          <div key={habilitacion.id} className="habilitacion-caja" style={{ backgroundColor: colorEstadoHabilitacion(habilitacion.estado) }}>
-                            <p><strong>{habilitacion.empleado}</strong></p>
-                            <p>{habilitacion.trabajo}</p>
-                            <p>{habilitacion.fecha}</p>
+                          <div key={habilitacion.id} className="habilitacion-caja" style={colorEstadoHabilitacion(habilitacion.estado)}>
+                            <p style={{ color: colorEstadoHabilitacion(habilitacion.estado).color }}><strong>{habilitacion.empleado}</strong></p>
+                            <p style={{ color: colorEstadoHabilitacion(habilitacion.estado).color }}>{habilitacion.trabajo}</p>
+                            <p style={{ color: colorEstadoHabilitacion(habilitacion.estado).color }}>{habilitacion.fecha}</p>
                           </div>
                         ))}
                       </div>

@@ -207,6 +207,20 @@
   }
 }
 
+.dashboard-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--forest-secondary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: var(--space-md);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Caja para cada habilitación */
 
 .habilitacion-caja {
@@ -216,7 +230,8 @@
   border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--space-md);
+  min-width: 200px;
+  flex-shrink: 0;
   box-shadow: var(--shadow-sm);
 }
 
@@ -229,14 +244,29 @@
 
 .habilitacion-caja p:first-child {
   font-size: 15px;
-  color: var(--forest-primary);
+  font-weight: 600;
 }
 
 .dashboard-card-habilitacion {
   margin-top: var(--space-md);
-  display: flex; /* Alinea los hijos en horizontal por defecto */
-  flex-wrap: wrap; /* Permite que las cajas bajen a la siguiente línea si no caben */
+  display: flex;
+  overflow-x: auto;
   gap: var(--space-md);
+  padding-bottom: var(--space-sm);
+}
+
+.habilitaciones-search {
+  padding: 6px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  outline: none;
+  min-width: 250px;
+  background-color: var(--bg-surface);
+}
+
+.habilitaciones-search:focus {
+  border-color: var(--forest-secondary);
 }
 
 .habilitacion-caja:hover {
