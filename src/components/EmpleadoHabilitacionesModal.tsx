@@ -32,12 +32,6 @@ export default function EmpleadoHabilitacionesModal({ empleadoId, empleadoNombre
 
   const [editing, setEditing] = useState<{ idHab: number; emision: string; vencimiento: string } | null>(null);
 
-  useEffect(() => {
-    if (open && empleadoId) {
-      loadData();
-    }
-  }, [open, empleadoId]);
-
   const loadData = async () => {
     setLoading(true);
     setError(null);
@@ -55,6 +49,12 @@ export default function EmpleadoHabilitacionesModal({ empleadoId, empleadoNombre
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (open && empleadoId) {
+      loadData();
+    }
+  }, [open, empleadoId]);
 
   const handleCreate = async () => {
     if (!newHabilitacionId) {

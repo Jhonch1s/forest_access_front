@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { obtenerCuadrillasPaginadas } from '../services/cuadrillaService';
+import { obtenerCuadrillasPaginadas, getUltimosMiembros } from '../services/cuadrillaService';
 
 export interface MiembroUI {
   id: number;
