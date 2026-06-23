@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getEmpleadosCuadrillas } from '../services/empleadoCuadrillaService';
 import { getAsignaciones } from '../services/asignacionTratamientoService';
-import { getTareas, createTarea, updateTarea } from '../services/tareaService';
+import { getTareasByAsignacion, createTarea, updateTarea } from '../services/tareaService';
 import { getCatalogoTareas } from '../services/catalogoTareaService';
 import { getEstados } from '../services/estadoService';
 import { getAsignadasVigentesByCuadrilla, createTareaAsignada } from '../services/tareaAsignadaService';
@@ -87,10 +87,9 @@ function PunteroPanel() {
 
       try {
         setLoading(true);
-        const [relaciones, asignacionesData, tareasData, catalogosData, estadosData, punteroUsuarios] = await Promise.all([
+        const [relaciones, asignacionesData, catalogosData, estadosData, punteroUsuarios] = await Promise.all([
           getEmpleadosCuadrillas(),
           getAsignaciones(),
-          getTareas(),
           getCatalogoTareas(),
           getEstados(),
           getPunteroUsuarios(),
@@ -124,10 +123,18 @@ function PunteroPanel() {
 
         const asignadasData = await getAsignadasVigentesByCuadrilla(miRelacion.idCuadrilla);
 
+        // ponytail: fetch tareas per asignacion; allSettled so one 500 doesn't kill everything
+        const resultados = await Promise.allSettled(
+          asignacionesActivas.map((a) => getTareasByAsignacion(a.idAsignacion)),
+        );
+        const allTareas = resultados
+          .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof getTareasByAsignacion>>> => r.status === 'fulfilled')
+          .flatMap((r) => r.value);
+
         setMiCuadrilla(miRelacion);
         setMiembros(activos);
         setAsignaciones(asignacionesActivas);
-        setTareas(tareasData);
+        setTareas(allTareas);
         setCatalogos(catalogosData);
         setEstados(estadosData);
         setTareasAsignadas(asignadasData);
@@ -741,7 +748,7 @@ function PunteroPanel() {
                         checked={form.marcarCompletada}
                         onChange={(e) => setForm((f) => ({ ...f, marcarCompletada: e.target.checked }))}
                       />
-                      Marcar como completada
+                      Completada
                     </label>
                   </div>
                 </div>
