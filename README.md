@@ -32,7 +32,7 @@ Antes de levantar el backend, necesitas crear una base de datos vacía. Spring B
 El backend expone la API REST en el puerto `8081` (bajo el contexto `/forest_access`) y se conecta a la base de datos PostgreSQL.
 
 ### Paso 3.1: Clonar el repositorio
-Abre tu terminal y ejecuta (el flag `-b test` clona directamente la rama test):
+Abre tu terminal y ejecuta:
 ```bash
 git clone https://github.com/Jhonch1s/forest_access.git
 cd forest_access
