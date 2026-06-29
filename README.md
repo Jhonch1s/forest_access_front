@@ -34,7 +34,7 @@ El backend expone la API REST en el puerto `8081` (bajo el contexto `/forest_acc
 ### Paso 3.1: Clonar el repositorio
 Abre tu terminal y ejecuta (el flag `-b test` clona directamente la rama test):
 ```bash
-git clone -b test https://github.com/Jhonch1s/forest_access.git
+git clone https://github.com/Jhonch1s/forest_access.git
 cd forest_access
 ```
 
@@ -81,7 +81,7 @@ El frontend está configurado para ejecutarse en el puerto `5173` y tiene un pro
 
 ### Paso 4.1: Clonar el repositorio
 ```bash
-git clone -b test https://github.com/Jhonch1s/forest_access_front.git
+git clone https://github.com/Jhonch1s/forest_access_front.git
 cd forest_access_front
 ```
 
