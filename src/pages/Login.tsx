@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/Button';
 import icono from '../assets/icono.png';
@@ -125,7 +125,7 @@ function Login() {
           </form>
 
           <p className="login-switch">
-            ¿No tenés cuenta? <Link to="/register">Registrate</Link>
+            ¿No tienes cuenta? Contactanos al 092756977
           </p>
 
           <div className="login-form-footer">
