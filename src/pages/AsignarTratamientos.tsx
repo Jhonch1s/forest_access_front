@@ -11,7 +11,9 @@ import type { Parcela } from '../types/predio';
 import type { EstadoAsignacion } from '../types/asignacion-tratamiento';
 
 function formatDateInput(d: Date): string {
-  return d.toISOString().split('T')[0];
+  const localDate = new Date(d);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  return localDate.toISOString().split('T')[0];
 }
 
 function AsignarTratamientos() {

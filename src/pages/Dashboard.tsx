@@ -265,7 +265,7 @@ function Dashboard() {
 
                   {/* Gráfica Circular */}
                   <div className="grafica-wrapper grafica-full-width">
-                    <h4>Estado Actual de Tareas</h4>
+                    <h4>Estado de Tareas (Esta semana)</h4>
                     <div className="grafica-canvas-container doughnut-container">
                       <Doughnut data={doughnutData} options={chartOptions} />
                     </div>
@@ -277,8 +277,8 @@ function Dashboard() {
             <div className="dashboard-card cuadrilla-detalle">
               <h2>{cuadrillaSeleccionada.nombre}</h2>
               <div className="detalle-info">
-                <p><strong>Tratamiento:</strong> {cuadrillaSeleccionada.tratamiento}</p>
-                <p><strong>Fecha de inicio:</strong> {cuadrillaSeleccionada.fecha}</p>
+                <p><strong>Tratamientos:</strong> {cuadrillaSeleccionada.tratamientos?.join(', ')}</p>
+                <p><strong>Fecha límite:</strong> {cuadrillaSeleccionada.fecha}</p>
               </div>
               
               <button onClick={() => setCuadrillaSeleccionada(null)} className="btn-volver">

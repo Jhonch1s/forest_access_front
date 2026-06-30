@@ -66,7 +66,11 @@ function PunteroPanel() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
 
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  }, []);
 
   const [form, setForm] = useState({
     idCatalogoTarea: '',

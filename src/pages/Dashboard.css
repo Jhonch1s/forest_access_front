@@ -262,6 +262,7 @@
   font-size: 14px;
   outline: none;
   min-width: 250px;
+  color: var(--text-main);
   background-color: var(--bg-surface);
 }
 
