@@ -1,7 +1,7 @@
 export interface CuadrillaResumenDTO {
     id: number;
     nombre: string;
-    tratamiento: string;
+    tratamientos: string[];
     fecha: string;
 }
 

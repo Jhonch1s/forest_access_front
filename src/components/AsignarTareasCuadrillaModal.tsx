@@ -25,7 +25,11 @@ export default function AsignarTareasCuadrillaModal({ idCuadrilla, onClose, onSu
   const [idAsignacionSeleccionada, setIdAsignacionSeleccionada] = useState<string>('');
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState<Set<number>>(new Set());
   const [fechaLimite, setFechaLimite] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    (() => {
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().split('T')[0];
+    })()
   );
   const [descripcion, setDescripcion] = useState<string>('');
 
