@@ -1,103 +1,59 @@
-# Guía de Instalación y Configuración Local - Forestal AG
+<p align="center">
+  <img src="src/assets/icono.png" alt="Icono de Forest Access" width="88">
+</p>
 
-Pasos necesarios para configurar el entorno de desarrollo y ejecutar la plataforma Forestal AG (Frontend y Backend) de forma local.
+# Forest Access
 
----
+Interfaz web para organizar predios, personal, cuadrillas y tareas de una operación forestal. Es un proyecto académico desarrollado en equipo y se conecta a la [API de Forest Access](https://github.com/Jhonch1s/forest_access).
 
-## 1. Prerrequisitos del Sistema
+## Recorridos principales
 
-Antes de comenzar, asegúrate de tener instalado el siguiente software en tu computadora:
+| Administración | Puntero |
+| --- | --- |
+| Dashboard con datos de tareas, cuadrillas y habilitaciones | Panel adaptado a móvil con las asignaciones de su cuadrilla |
+| Gestión de empleados, habilitaciones y cuadrillas | Consulta de parcelas, integrantes y tareas asignadas |
+| Organización de campos, rodales y parcelas | Registro y finalización de tareas de campo |
+| Asignación de tratamientos y seguimiento de tareas | Cambio de contraseña desde el panel |
+| Reportes por empleado con exportación a PDF y configuración de catálogos | |
 
-*   **Git:** Para clonar los repositorios. ([Descargar Git](https://git-scm.com/))
-*   **Java JDK 24:** Entorno de desarrollo para el backend. ([Descargar JDK](https://jdk.java.net/))
-*   **Node.js (v20 o superior):** Entorno de ejecución para el frontend y NPM. ([Descargar Node.js](https://nodejs.org/))
-*   **Base de Datos Relacional:** PostgreSQL instalado y corriendo localmente (puerto por defecto 5432).
-*   **IDE (Opcional pero recomendado):** IntelliJ IDEA / Eclipse para el backend y Visual Studio Code para el frontend.
+La interfaz usa rutas según perfil (`admin` y `puntero`). Los datos operativos vienen del backend; este repositorio no incluye cuentas ni una base de datos de ejemplo.
 
----
+## Tecnologías
 
-## 2. Configuración de la Base de Datos
+React 19, TypeScript 6, Vite 8, React Router, Axios, Chart.js y React Leaflet. Los reportes PDF se generan en el navegador con `html2pdf.js`.
 
-Antes de levantar el backend, necesitas crear una base de datos vacía. Spring Boot (Hibernate) se encargará de crear las tablas automáticamente.
+## Ejecutar en local
 
-1. Abre tu gestor de base de datos (Ej. DBeaver, pgAdmin).
-2. Ejecuta el siguiente comando SQL para crear la base:
-   ```sql
-   CREATE DATABASE forest_access_db;
-   ```
----
+Necesitás Node.js compatible con Vite 8 (`20.19+` en la serie 20, o `22.12+`) y npm. Para usar los recorridos conectados, iniciá también el [backend](https://github.com/Jhonch1s/forest_access#ejecutar-en-local) con PostgreSQL.
 
-## 3. Instalación y Ejecución del Backend (Spring Boot)
-
-El backend expone la API REST en el puerto `8081` (bajo el contexto `/forest_access`) y se conecta a la base de datos PostgreSQL.
-
-### Paso 3.1: Clonar el repositorio
-```bash
-git clone https://github.com/Jhonch1s/forest_access.git
-cd forest_access
-```
-
-### Paso 3.2: Configurar Variables de Entorno / Base de Datos
-El proyecto utiliza un archivo `application.yaml` parametrizado. Para conectarse a tu base de datos local, **es obligatorio** configurar las variables de entorno antes de ejecutar.
-
-Tienes dos opciones:
-
-**Opción A: .env**
-
-Configurar las siguientes variables de entorno antes de ejecutar el proyecto en tu .env.
-
-```powershell
-DB_URL="jdbc:postgresql://localhost:5432/forest_access_db"
-USERNAME="postgres"
-PASSWORD="tu_contraseña"
-```
-Ve a Edit Configurations… -> Modify options -> Environment variables -> selecciona el lugar donde tengas tu .env
-
-**Opción B: IntelliJ IDEA**
-Añade en *Edit Configurations* -> *Environment variables*:
-`DB_URL=jdbc:postgresql://localhost:5432/forest_access_db;USERNAME=postgres;PASSWORD=tu_contraseña;`
-
-### Paso 3.3: Ejecutar el Servidor Backend
-
-Si todo es correcto, verás en la consola que Tomcat se inició en el puerto `8081`. 
-
-*(Para probar que funciona, puedes abrir tu navegador en: `http://localhost:8081/forest_access/swagger-ui/index.html`)*
-
----
-
-## 4. Instalación y Ejecución del Frontend (React + Vite)
-
-El frontend está configurado para ejecutarse en el puerto `5173` y tiene un proxy interno que redirige las peticiones al backend en el puerto 8081 para evitar errores de CORS durante el desarrollo.
-
-### Paso 4.1: Clonar el repositorio
 ```bash
 git clone https://github.com/Jhonch1s/forest_access_front.git
 cd forest_access_front
-```
-
-### Paso 4.2: Instalar las dependencias
-Ejecuta el gestor de paquetes NPM para instalar React, Vite, Axios, react-leaflet y demás librerías:
-```bash
-npm install
-```
-
-### Paso 4.3: Iniciar el servidor de desarrollo
-Una vez finalizada la instalación, levanta la aplicación cliente con:
-```bash
+npm ci
 npm run dev
 ```
 
-La consola te indicará que el servidor Vite está corriendo.
+Abrí la URL que indique Vite. Si el puerto está libre, será `http://localhost:5173/`. En desarrollo, Vite envía las solicitudes de `/forest_access/api` al backend en `http://localhost:8081` mediante el proxy de `vite.config.ts`.
 
----
+| Comando | Uso |
+| --- | --- |
+| `npm run dev` | Inicia el servidor de desarrollo |
+| `npm run build` | Comprueba TypeScript y genera `dist/` |
+| `npm run lint` | Ejecuta ESLint |
+| `npm run preview` | Sirve una compilación ya generada |
 
-## 5. Acceso al Sistema
+## Organización
 
-Con ambos servidores (Backend y Frontend) corriendo simultáneamente:
+- `src/pages/`: pantallas de administración y del puntero.
+- `src/components/`: interfaz compartida, navegación y mapas.
+- `src/services/`: llamadas a la API.
+- `src/types/`: tipos de datos usados por el frontend.
+- [`portfolio-demo/`](portfolio-demo/): demo independiente con datos ficticios. No necesita backend, autenticación ni base de datos.
 
-1. Abre tu navegador web favorito (Chrome, Firefox, Edge).
-2. Ingresa a la URL: **`http://localhost:5173`**
-3. Verás la pantalla de Login del sistema.
-4. Utiliza alguna de los usuarios proporcionados en la documentación para acceder al proyecto.
-   
-¡Tu entorno local de Forestal AG ya está completamente operativo!
+## Nota sobre el acceso
+
+Para entrar a los paneles, el usuario debe tener asociado el perfil correspondiente en el backend. La pantalla de registro existe, pero la creación de usuario actual no asigna un perfil automáticamente. No se publican credenciales de prueba en este repositorio.
+
+## Equipo
+
+Forest Access fue desarrollado como trabajo académico en equipo. Este README describe el producto sin atribuir todo el trabajo a una sola persona.
